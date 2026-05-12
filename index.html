@@ -1,0 +1,3195 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STEM Career Explorer</title>
+    <meta
+      name="description"
+      content="A modern STEM Career Explorer with profile ranking, live opportunities, and Bedrock chat coaching."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --text: #f1f5f9;
+        --accent: #4f46e5;
+        --muted: #94a3b8;
+        --line: rgba(148, 163, 184, 0.18);
+        --soft: rgba(79, 70, 229, 0.16);
+        --ok: #0e7c86;
+        --warn: #fb923c;
+        --danger: #f97316;
+        --radius: 14px;
+        --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --bg: #f5f7fa;
+        --card-bg: #ffffff;
+        --text: #1f2937;
+        --accent: #4f46e5;
+        --muted: #64748b;
+        --line: rgba(100, 116, 139, 0.22);
+        --soft: rgba(79, 70, 229, 0.1);
+        --ok: #0e7c86;
+        --warn: #c2410c;
+        --danger: #b91c1c;
+        --shadow-soft: 0 4px 12px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background:
+          radial-gradient(circle at 10% 8%, rgba(79, 70, 229, 0.14), transparent 34%),
+          radial-gradient(circle at 86% 14%, rgba(14, 124, 134, 0.12), transparent 32%),
+          var(--bg);
+        color: var(--text);
+        line-height: 1.55;
+      }
+
+      .shell {
+        width: min(1160px, calc(100vw - 2rem));
+        margin: 0 auto;
+        padding: 1.4rem 0 3.2rem;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.4rem;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-weight: 700;
+      }
+
+      .brand-dot {
+        width: 0.74rem;
+        height: 0.74rem;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 8px var(--soft);
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+      }
+
+      .btn,
+      .theme-toggle,
+      .chip,
+      .option-chip {
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        font: inherit;
+        color: var(--text);
+        background: var(--card-bg);
+        padding: 0.58rem 0.9rem;
+        cursor: pointer;
+        box-shadow: var(--shadow-soft);
+        transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+      }
+
+      .btn:hover,
+      .theme-toggle:hover,
+      .chip:hover,
+      .option-chip:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn.primary {
+        border-color: transparent;
+        background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 75%, #7c3aed 25%));
+        color: #fff;
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+      }
+
+      .btn.primary:hover {
+        box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 45%, transparent);
+      }
+
+      .btn.secondary {
+        background: color-mix(in srgb, var(--card-bg) 85%, var(--bg) 15%);
+      }
+
+      .hero {
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: linear-gradient(150deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 87%, black 13%));
+        box-shadow:
+          var(--shadow-soft),
+          0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
+        padding: clamp(1.2rem, 2.5vw, 2.2rem);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%);
+        pointer-events: none;
+        animation: hero-glow 8s ease-in-out infinite;
+      }
+
+      @keyframes hero-glow {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+        50% { transform: translate(-20px, 10px) scale(1.1); opacity: 1; }
+      }
+
+      :root[data-theme="light"] .hero {
+        background: linear-gradient(150deg, #ffffff, #f8fbff);
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      .hero h1 {
+        margin: 0.55rem 0 0.8rem;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        letter-spacing: -0.03em;
+        line-height: 1.08;
+        background: linear-gradient(135deg, var(--text) 0%, var(--accent) 50%, color-mix(in srgb, var(--accent) 70%, #7c3aed 30%) 100%);
+        background-size: 200% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: gradient-shift 6s ease-in-out infinite;
+      }
+
+      @keyframes gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+
+      .hero p {
+        color: var(--muted);
+        max-width: 68ch;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 280ms ease, transform 280ms ease;
+        max-width: 760px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .layout.has-assistant {
+        max-width: none;
+        grid-template-columns: 1.18fr 0.82fr;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-soft);
+        transition: box-shadow 250ms ease, border-color 250ms ease;
+      }
+
+      .card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      }
+
+      .panel {
+        padding: 1rem;
+      }
+
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.8rem;
+        margin-bottom: 0.9rem;
+      }
+
+      .panel-head p {
+        color: var(--muted);
+        margin-bottom: 0;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 0.7rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      label {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .input,
+      .select,
+      .textarea {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card-bg) 90%, var(--bg) 10%);
+        color: var(--text);
+        font: inherit;
+        padding: 0.68rem 0.8rem;
+        outline: none;
+      }
+
+      .textarea {
+        min-height: 90px;
+        resize: vertical;
+      }
+
+      .input:focus,
+      .select:focus,
+      .textarea:focus {
+        border-color: color-mix(in srgb, var(--accent) 65%, transparent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+      }
+
+      .group {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .group-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+      }
+
+      .group-head p {
+        color: var(--muted);
+        font-size: 0.84rem;
+        margin-bottom: 0;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+
+      .option-chip {
+        padding: 0.42rem 0.68rem;
+        font-size: 0.85rem;
+      }
+
+      .option-chip.active,
+      .chip.active {
+        background: var(--soft);
+        border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+        color: var(--accent);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 15%, transparent);
+      }
+
+      .helper {
+        margin: 0.65rem 0 0;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .assistant-chat {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+      }
+
+      .messages {
+        min-height: 230px;
+        max-height: 350px;
+        overflow-y: auto;
+        padding: 0.8rem;
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .message {
+        max-width: 92%;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        padding: 0.6rem 0.68rem;
+        font-size: 0.93rem;
+        white-space: pre-wrap;
+      }
+
+      .message.user {
+        margin-left: auto;
+        background: color-mix(in srgb, var(--accent) 20%, transparent);
+      }
+
+      .message.assistant {
+        margin-right: auto;
+        background: color-mix(in srgb, var(--card-bg) 86%, var(--bg) 14%);
+      }
+
+      .message.system {
+        margin: 0 auto;
+        background: color-mix(in srgb, var(--ok) 18%, transparent);
+        color: color-mix(in srgb, var(--text) 88%, var(--ok) 12%);
+      }
+
+      .chat-footer {
+        border-top: 1px solid var(--line);
+        padding: 0.75rem;
+        display: grid;
+        gap: 0.58rem;
+        background: color-mix(in srgb, var(--card-bg) 90%, var(--bg) 10%);
+      }
+
+      .source-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.6rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .badge {
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        padding: 0.2rem 0.5rem;
+        background: var(--soft);
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .badge.error {
+        color: var(--danger);
+        background: color-mix(in srgb, var(--danger) 18%, transparent);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .flow-start .topbar,
+      .flow-start .layout,
+      .flow-start .results,
+      .flow-start .opps,
+      .flow-start .hero .eyebrow,
+      .flow-start #jump-opps,
+      .flow-start #export-button {
+        display: none !important;
+      }
+
+      .flow-start .shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1rem 0;
+      }
+
+      .flow-start .hero {
+        width: min(760px, calc(100vw - 2rem));
+        text-align: center;
+        padding: clamp(1.4rem, 4vw, 3rem);
+        animation: float-in 600ms ease both;
+      }
+
+      @keyframes float-in {
+        from { opacity: 0; transform: translateY(20px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      .flow-start .hero h1 {
+        margin-bottom: 1.2rem;
+      }
+
+      .intro-points {
+        display: none;
+      }
+
+      .flow-start .hero p {
+        display: block;
+        margin: 0 auto;
+        max-width: 54ch;
+      }
+
+      .flow-start .intro-points {
+        margin: 1rem 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        justify-content: center;
+      }
+
+      .intro-pill {
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        padding: 0.26rem 0.58rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+        background: color-mix(in srgb, var(--card-bg) 86%, var(--bg) 14%);
+        transition: transform 200ms ease, border-color 200ms ease;
+      }
+
+      .intro-pill:hover {
+        transform: translateY(-2px);
+        border-color: color-mix(in srgb, var(--accent) 30%, var(--line) 70%);
+      }
+
+      .flow-start .hero .row {
+        justify-content: center;
+      }
+
+      .flow-leaving .hero {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.985);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .flow-entering .topbar,
+      .flow-entering .layout {
+        animation: revealStep 360ms ease both;
+      }
+
+      .flow-entering .layout {
+        animation-delay: 120ms;
+      }
+
+      @keyframes revealStep {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .results,
+      .opps {
+        margin-top: 1rem;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      .tile {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        padding: 0.7rem;
+        background: color-mix(in srgb, var(--card-bg) 90%, var(--bg) 10%);
+      }
+
+      .tile .k {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .tile .v {
+        margin-top: 0.3rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+
+      .split {
+        margin-top: 0.75rem;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 0.75rem;
+      }
+
+      .career-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.7rem;
+      }
+
+      .career-card {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card-bg) 91%, var(--bg) 9%);
+        padding: 0.8rem;
+        display: grid;
+        gap: 0.45rem;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .career-card:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--accent) 72%, white);
+        outline-offset: 2px;
+      }
+
+      .career-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      }
+
+      .career-card.active {
+        border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+        background: color-mix(in srgb, var(--accent) 10%, var(--card-bg) 90%);
+      }
+
+      .career-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.72);
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+        z-index: 1200;
+      }
+
+      .career-modal-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .career-modal {
+        position: fixed;
+        inset: 50% auto auto 50%;
+        transform: translate(-50%, -46%) scale(0.98);
+        width: min(1040px, calc(100vw - 1.25rem));
+        max-height: min(88vh, 920px);
+        overflow: auto;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card-bg) 96%, var(--bg) 4%);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 180ms ease;
+        z-index: 1210;
+      }
+
+      .career-modal.open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .career-modal-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.1rem 1.1rem 0.95rem;
+        border-bottom: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card-bg) 94%, var(--bg) 6%);
+      }
+
+      .career-modal-header h2 {
+        margin: 0.15rem 0 0.25rem;
+        font-size: 1.45rem;
+      }
+
+      .career-modal-close {
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--text);
+        border-radius: 999px;
+        width: 2.2rem;
+        height: 2.2rem;
+        cursor: pointer;
+        font-size: 1.2rem;
+        line-height: 1;
+      }
+
+      .career-modal-close:hover {
+        background: color-mix(in srgb, var(--soft) 55%, transparent);
+      }
+
+      .career-modal-body {
+        padding: 1.1rem;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .career-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      .metric-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 0.85rem;
+        background: color-mix(in srgb, var(--bg) 10%, var(--card-bg) 90%);
+      }
+
+      .metric-card .label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .metric-card .value {
+        margin-top: 0.28rem;
+        font-weight: 800;
+        font-size: 0.96rem;
+      }
+
+      .career-insight-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 0.85rem;
+      }
+
+      .insight-block {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 0.9rem;
+        background: color-mix(in srgb, var(--bg) 9%, var(--card-bg) 91%);
+        display: grid;
+        gap: 0.7rem;
+      }
+
+      .insight-block h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .roadmap-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      .roadmap-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 0.8rem;
+        background: color-mix(in srgb, var(--card-bg) 92%, var(--bg) 8%);
+      }
+
+      .roadmap-card .eyebrow-mini {
+        margin: 0 0 0.3rem;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent);
+        font-weight: 800;
+      }
+
+      .roadmap-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .career-sample-list {
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .sample-item {
+        border-left: 3px solid var(--accent);
+        padding-left: 0.7rem;
+      }
+
+      .sample-item strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+
+      .sample-item p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .career-question-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      .fit-map-wrap {
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .fit-map {
+        min-height: 340px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--soft) 30%, transparent), transparent);
+        padding: 0.35rem;
+      }
+
+      .fit-map svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .fit-map .axis-label {
+        fill: var(--muted);
+        font-size: 11px;
+      }
+
+      .fit-map .value-label {
+        fill: var(--text);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .fit-map .grid-line {
+        stroke: color-mix(in srgb, var(--line) 80%, transparent);
+        stroke-width: 1;
+      }
+
+      .fit-map .spider-grid {
+        fill: none;
+        stroke: color-mix(in srgb, var(--line) 85%, transparent);
+        stroke-width: 1;
+      }
+
+      .fit-map .spider-spoke {
+        stroke: color-mix(in srgb, var(--line) 70%, transparent);
+        stroke-width: 1;
+      }
+
+      .fit-map .spider-area {
+        fill: color-mix(in srgb, var(--accent) 28%, transparent);
+        stroke: var(--accent);
+        stroke-width: 2.2;
+      }
+
+      .fit-map .spider-outline {
+        fill: none;
+        stroke: #e2e8f0;
+        stroke-width: 2.4;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+      }
+
+      .fit-map .spider-point {
+        fill: #0e7c86;
+        stroke: var(--bg);
+        stroke-width: 2;
+      }
+
+      .question-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 0.8rem;
+        background: color-mix(in srgb, var(--bg) 8%, var(--card-bg) 92%);
+      }
+
+      .question-card p {
+        margin: 0;
+      }
+
+      .question-card .tiny {
+        margin-top: 0.22rem;
+      }
+
+      .glimpse-row {
+        display: grid;
+        gap: 0.12rem;
+      }
+
+      .glimpse-row .label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.55rem;
+      }
+
+      .score {
+        border-radius: 999px;
+        padding: 0.2rem 0.48rem;
+        background: var(--soft);
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 0.78rem;
+      }
+
+      .tiny {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .list,
+      .stack {
+        display: grid;
+        gap: 0.6rem;
+      }
+
+      .item {
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card-bg) 90%, var(--bg) 10%);
+        padding: 0.7rem;
+      }
+
+      .item h3 {
+        margin: 0 0 0.22rem;
+        font-size: 0.98rem;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+
+      .tag {
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        padding: 0.16rem 0.45rem;
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      .meter {
+        height: 9px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--line) 72%, transparent);
+        overflow: hidden;
+      }
+
+      .fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent), #0e7c86);
+      }
+
+      .link {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .link:hover {
+        text-decoration: underline;
+      }
+
+      .status {
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        padding: 0.4rem 0.65rem;
+        color: var(--warn);
+        background: color-mix(in srgb, var(--warn) 14%, transparent);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      @media (max-width: 1040px) {
+        .layout,
+        .layout.has-assistant,
+        .split,
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .layout.has-assistant {
+          max-width: none;
+        }
+
+        .summary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 780px) {
+        .shell {
+          width: min(1160px, calc(100vw - 1rem));
+        }
+
+        .field-grid,
+        .career-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar,
+        .panel-head,
+        .top {
+          align-items: flex-start;
+        }
+
+        .chat-actions {
+          grid-template-columns: 1fr;
+        }
+
+        .layout.has-assistant {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Floating AI Chat Button */
+      .ai-fab {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 900;
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
+        color: #fff;
+        cursor: pointer;
+        box-shadow:
+          0 8px 32px rgba(79, 70, 229, 0.4),
+          0 2px 8px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 200ms ease, box-shadow 200ms ease;
+        animation: fab-pulse 3s ease-in-out infinite;
+      }
+
+      .ai-fab:hover {
+        transform: scale(1.1) translateY(-2px);
+        box-shadow:
+          0 12px 40px rgba(79, 70, 229, 0.5),
+          0 4px 12px rgba(0, 0, 0, 0.25);
+      }
+
+      .ai-fab:active {
+        transform: scale(0.95);
+      }
+
+      .ai-fab svg {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .ai-fab-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #10b981;
+        border: 2px solid var(--bg);
+        animation: badge-blink 2s ease-in-out infinite;
+      }
+
+      @keyframes fab-pulse {
+        0%, 100% {
+          box-shadow:
+            0 8px 32px rgba(79, 70, 229, 0.4),
+            0 2px 8px rgba(0, 0, 0, 0.2),
+            0 0 0 0 rgba(79, 70, 229, 0.3);
+        }
+        50% {
+          box-shadow:
+            0 8px 32px rgba(79, 70, 229, 0.4),
+            0 2px 8px rgba(0, 0, 0, 0.2),
+            0 0 0 12px rgba(79, 70, 229, 0);
+        }
+      }
+
+      @keyframes badge-blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+
+      /* Chat Drawer */
+      .chat-drawer-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 950;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 250ms ease;
+      }
+
+      .chat-drawer-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .chat-drawer {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        z-index: 960;
+        width: min(420px, calc(100vw - 1rem));
+        height: calc(100vh - 2rem);
+        margin: 1rem;
+        border-radius: 20px;
+        background: var(--card-bg);
+        border: 1px solid var(--line);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        display: flex;
+        flex-direction: column;
+        transform: translateX(110%);
+        transition: transform 320ms cubic-bezier(0.32, 0.72, 0, 1);
+        overflow: hidden;
+      }
+
+      .chat-drawer.open {
+        transform: translateX(0);
+      }
+
+      .chat-drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.2rem;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 95%, var(--accent) 5%), var(--card-bg));
+      }
+
+      .chat-drawer-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .chat-drawer-header h3 svg {
+        width: 20px;
+        height: 20px;
+        stroke: var(--accent);
+        fill: none;
+        stroke-width: 2;
+      }
+
+      .chat-drawer-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: background 150ms ease, color 150ms ease;
+      }
+
+      .chat-drawer-close:hover {
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        color: var(--text);
+      }
+
+      .chat-drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+
+      .chat-drawer-body .message {
+        max-width: 88%;
+        border-radius: 14px;
+        padding: 0.65rem 0.8rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        animation: msg-in 200ms ease;
+      }
+
+      .chat-drawer-body .message.user {
+        margin-left: auto;
+        background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #7c3aed 20%));
+        color: #fff;
+      }
+
+      .chat-drawer-body .message.assistant {
+        margin-right: auto;
+        background: color-mix(in srgb, var(--card-bg) 80%, var(--bg) 20%);
+        border: 1px solid var(--line);
+      }
+
+      .chat-drawer-body .message.system {
+        margin: 0 auto;
+        background: color-mix(in srgb, var(--ok) 14%, transparent);
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-align: center;
+      }
+
+      @keyframes msg-in {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .chat-drawer-footer {
+        border-top: 1px solid var(--line);
+        padding: 0.8rem 1rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+        background: color-mix(in srgb, var(--card-bg) 95%, var(--bg) 5%);
+      }
+
+      .chat-drawer-footer textarea {
+        flex: 1;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--card-bg) 90%, var(--bg) 10%);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.9rem;
+        padding: 0.6rem 0.75rem;
+        resize: none;
+        min-height: 40px;
+        max-height: 100px;
+        outline: none;
+        transition: border-color 150ms ease;
+      }
+
+      .chat-drawer-footer textarea:focus {
+        border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+      }
+
+      .chat-drawer-footer button {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 150ms ease, background 150ms ease;
+        flex-shrink: 0;
+      }
+
+      .chat-drawer-footer button:hover {
+        transform: scale(1.05);
+      }
+
+      .chat-drawer-footer button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .chat-drawer-footer button svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .chat-drawer-source {
+        padding: 0.4rem 1rem 0.6rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+      }
+
+      .chat-drawer-source .badge {
+        font-size: 0.72rem;
+        padding: 0.15rem 0.4rem;
+      }
+
+      @media (max-width: 480px) {
+        .chat-drawer {
+          width: calc(100vw - 0.5rem);
+          height: calc(100vh - 0.5rem);
+          margin: 0.25rem;
+          border-radius: 16px;
+        }
+
+        .ai-fab {
+          bottom: 1rem;
+          right: 1rem;
+          width: 56px;
+          height: 56px;
+        }
+      }
+    </style>
+  </head>
+  <body class="flow-start">
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <span>STEM Career Explorer</span>
+        </div>
+        <div class="row">
+          <button id="export-button" class="btn secondary" type="button">Export Snapshot</button>
+          <button id="theme-toggle" class="theme-toggle" type="button">Switch to Light</button>
+        </div>
+      </header>
+
+      <section class="hero card">
+        <p class="eyebrow">Career direction in minutes</p>
+        <h1>Find the STEM path that matches your strengths.</h1>
+        <p>
+          Profile interests, rank best-fit careers, compare paths in plain language, load live opportunities,
+          and ask Bedrock-powered follow-up questions in one minimalist dashboard.
+        </p>
+        <div class="intro-points">
+          <span class="intro-pill">Quick 2-minute quiz</span>
+          <span class="intro-pill">Ranked career fit</span>
+          <span class="intro-pill">Live opportunities</span>
+        </div>
+        <div class="row" style="margin-top: 1rem;">
+          <button id="start-quiz" class="btn primary" type="button">Start Career Quiz</button>
+          <button id="jump-opps" class="btn secondary" type="button">View Opportunities</button>
+        </div>
+      </section>
+
+      <section class="layout">
+        <section class="card panel" id="profile-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Profile Builder</p>
+              <h2>Describe the student, not just the title.</h2>
+              <p>Use interests, strengths, values, and work style to generate realistic fit signals.</p>
+            </div>
+          </div>
+
+          <form id="profile-form">
+            <div class="field-grid">
+              <div class="field">
+                <label for="name">Preferred name</label>
+                <input id="name" class="input" name="name" type="text" placeholder="Alex Rivera" required />
+              </div>
+              <div class="field">
+                <label for="stage">Current stage</label>
+                <select id="stage" class="select" name="stage" required>
+                  <option value="">Select stage</option>
+                  <option value="high-school">High school</option>
+                  <option value="undergraduate">Undergraduate</option>
+                  <option value="graduate">Graduate</option>
+                  <option value="career-switcher">Career switcher</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-grid" style="margin-top: 0.7rem;">
+              <div class="field">
+                <label for="location">Job location</label>
+                <input id="location" class="input" name="location" type="text" value="remote" />
+              </div>
+              <div class="field">
+                <label for="country">Job country</label>
+                <select id="country" class="select" name="country">
+                  <option value="us" selected>United States</option>
+                  <option value="gb">United Kingdom</option>
+                  <option value="ca">Canada</option>
+                  <option value="au">Australia</option>
+                  <option value="de">Germany</option>
+                  <option value="in">India</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="group" style="margin-top: 0.8rem;">
+              <div class="group-head">
+                <label>Interests</label>
+                <p>What topics naturally hold attention?</p>
+              </div>
+              <div id="interest-chips" class="chips"></div>
+            </div>
+
+            <div class="group" style="margin-top: 0.7rem;">
+              <div class="group-head">
+                <label>Strengths</label>
+                <p>Include technical and people skills.</p>
+              </div>
+              <div id="strength-chips" class="chips"></div>
+            </div>
+
+            <div class="group" style="margin-top: 0.7rem;">
+              <div class="group-head">
+                <label>Values</label>
+                <p>What matters most in a career?</p>
+              </div>
+              <div id="value-chips" class="chips"></div>
+            </div>
+
+            <div class="group" style="margin-top: 0.7rem;">
+              <div class="group-head">
+                <label>Work style</label>
+                <p>How do you like to work?</p>
+              </div>
+              <div id="workstyle-chips" class="chips"></div>
+            </div>
+
+            <div class="field" style="margin-top: 0.7rem;">
+              <label for="goal">Goal or question</label>
+              <textarea
+                id="goal"
+                class="textarea"
+                name="goal"
+                placeholder="What kind of impact do you want to create?"
+              ></textarea>
+            </div>
+
+            <div class="panel-head" style="margin-top: 0.8rem; margin-bottom: 0;">
+              <div class="status" id="selection-summary">Select at least one chip in each group.</div>
+              <div class="row">
+                <button id="reset-button" class="btn secondary" type="button">Reset</button>
+                <button class="btn primary" type="submit">Generate Career Map</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <aside class="card panel hidden" id="assistant-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Bedrock Career Chat</p>
+              <h2>Ask follow-up questions in context.</h2>
+              <p>Compare careers, get a 30-day plan, and simplify differences.</p>
+            </div>
+          </div>
+
+          <div class="row" id="assistant-prompt-row"></div>
+
+          <div class="assistant-chat" style="margin-top: 0.7rem;">
+            <div class="messages" id="assistant-messages" aria-live="polite"></div>
+            <div class="chat-footer">
+              <textarea
+                id="assistant-input"
+                class="textarea"
+                placeholder="Ask anything... (Ctrl/Cmd+Enter to send)"
+              ></textarea>
+              <div class="row">
+                <button id="assistant-send" class="btn primary" type="button">Send</button>
+                <button id="assistant-clear" class="btn secondary" type="button">Clear</button>
+              </div>
+              <div class="source-row">
+                <span>Reply source</span>
+                <span id="assistant-source" class="badge">(not checked)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card panel" style="margin-top: 0.8rem; padding: 0.8rem;">
+            <p class="eyebrow">Fast Comparisons</p>
+            <div class="row">
+              <button class="chip" type="button" data-compare="software,data">Software vs Data</button>
+              <button class="chip" type="button" data-compare="cyber,robotics">Cyber vs Robotics</button>
+              <button class="chip" type="button" data-compare="biomedical,environmental">Biomedical vs Environmental</button>
+            </div>
+            <p class="helper">Prompts use your current profile and top rankings when available.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section id="results" class="results card panel hidden">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Career Ranking</p>
+            <h2>What fits best and why.</h2>
+            <p>Click any card to open a focused career deep-dive.</p>
+          </div>
+          <div class="status" id="results-meta">Ready to rank</div>
+        </div>
+
+        <div class="summary-grid" id="profile-summary"></div>
+
+        <div class="split">
+          <div class="card panel" style="padding: 0.8rem;">
+            <div class="panel-head" style="margin-bottom: 0.6rem;">
+              <h3 style="margin: 0;">Top matches</h3>
+              <input id="career-filter" class="input" type="text" placeholder="Filter careers..." style="max-width: 220px;" />
+            </div>
+            <div id="career-grid" class="career-grid"></div>
+          </div>
+
+          <div class="stack">
+            <div class="card panel" style="padding: 0.8rem;">
+              <h3 style="margin-bottom: 0.45rem;">How top options differ</h3>
+              <div id="career-compare"></div>
+            </div>
+            <div class="card panel" style="padding: 0.8rem;">
+              <h3 id="detail-title" style="margin-bottom: 0.45rem;">Career details</h3>
+              <p id="detail-summary" class="tiny">Select a career card.</p>
+              <div id="detail-tags" class="tag-row" style="margin-top: 0.45rem;"></div>
+              <ul id="detail-list" class="tiny" style="padding-left: 1rem;"></ul>
+            </div>
+            <div class="card panel" style="padding: 0.8rem;">
+              <h3 style="margin-bottom: 0.45rem;">Fit breakdown</h3>
+              <div id="breakdown-list" class="list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="opportunities" class="opps card panel hidden">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Live Opportunities</p>
+            <h2>Jobs, mentors, and resources tied to top fit.</h2>
+            <p>Live APIs with curated fallback data for reliable demos.</p>
+          </div>
+          <div class="status" id="live-status">Loading live data</div>
+        </div>
+
+        <div class="split">
+          <div class="card panel" style="padding: 0.8rem;">
+            <h3 style="margin-bottom: 0.5rem;">Job matches</h3>
+            <div id="jobs-list" class="stack"></div>
+          </div>
+
+          <div class="stack">
+            <div class="card panel" style="padding: 0.8rem;">
+              <h3 style="margin-bottom: 0.5rem;">Mentor leads</h3>
+              <div id="mentors-list" class="stack"></div>
+            </div>
+            <div class="card panel" style="padding: 0.8rem;">
+              <h3 style="margin-bottom: 0.5rem;">Learning resources</h3>
+              <div id="resources-list" class="stack"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="career-modal-overlay" id="career-modal-overlay"></div>
+    <section class="career-modal" id="career-modal" aria-hidden="true" aria-labelledby="career-modal-title" role="dialog">
+      <div class="career-modal-header">
+        <div>
+          <p class="eyebrow" id="career-modal-eyebrow">Career insight</p>
+          <h2 id="career-modal-title">Career title</h2>
+          <p class="tiny" id="career-modal-subtitle">Select a card to explore the path.</p>
+        </div>
+        <button class="career-modal-close" id="career-modal-close" type="button" aria-label="Close career details">&times;</button>
+      </div>
+      <div class="career-modal-body" id="career-modal-body"></div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+    <!-- Floating AI Chat Button -->
+    <button class="ai-fab" id="ai-fab" type="button" aria-label="Open AI Career Chat">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1.27A7 7 0 0 1 14 23h-4a7 7 0 0 1-6.73-5H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73A2 2 0 0 1 12 2z"/>
+        <circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none"/>
+        <path d="M9 18h6" stroke="currentColor" stroke-width="2" fill="none"/>
+      </svg>
+      <span class="ai-fab-badge"></span>
+    </button>
+
+    <!-- Chat Drawer Overlay -->
+    <div class="chat-drawer-overlay" id="chat-drawer-overlay"></div>
+
+    <!-- Chat Drawer -->
+    <div class="chat-drawer" id="chat-drawer">
+      <div class="chat-drawer-header">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1.27A7 7 0 0 1 14 23h-4a7 7 0 0 1-6.73-5H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73A2 2 0 0 1 12 2z" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>
+          Bedrock Career Chat
+        </h3>
+        <button class="chat-drawer-close" id="chat-drawer-close" type="button" aria-label="Close chat">&times;</button>
+      </div>
+      <div class="chat-drawer-body" id="chat-drawer-messages"></div>
+      <div class="chat-drawer-source">
+        <span>Reply source</span>
+        <span id="chat-drawer-source-badge" class="badge">(not checked)</span>
+      </div>
+      <div class="chat-drawer-footer">
+        <textarea id="chat-drawer-input" placeholder="Ask about STEM careers... (Ctrl+Enter)" rows="1"></textarea>
+        <button id="chat-drawer-send" type="button" aria-label="Send message">
+          <svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const optionGroups = {
+          interests: [
+            ["AI", "ai"],
+            ["Robotics", "robotics"],
+            ["Cybersecurity", "cybersecurity"],
+            ["Biology", "biology"],
+            ["Climate", "climate"],
+            ["Healthcare", "healthcare"],
+            ["Space", "space"],
+            ["Data", "data"],
+            ["Design", "design"],
+            ["Math", "math"]
+          ],
+          strengths: [
+            ["Coding", "coding"],
+            ["Problem solving", "problem solving"],
+            ["Creativity", "creativity"],
+            ["Teamwork", "teamwork"],
+            ["Communication", "communication"],
+            ["Research", "research"],
+            ["Hands-on", "hands-on"],
+            ["Writing", "writing"]
+          ],
+          values: [
+            ["Impact", "impact"],
+            ["Innovation", "innovation"],
+            ["Stability", "stability"],
+            ["Flexibility", "flexibility"],
+            ["High salary", "salary"],
+            ["Helping people", "helping people"]
+          ],
+          workstyle: [
+            ["Remote-friendly", "remote"],
+            ["Lab-based", "lab"],
+            ["Hands-on", "hands-on"],
+            ["People-focused", "people"],
+            ["Fast-paced", "fast-paced"],
+            ["Independent", "independent"]
+          ]
+        };
+
+        const careerCatalog = [
+          {
+            id: "software",
+            title: "Software Engineer",
+            category: "Build digital products",
+            summary: "Creates apps, platforms, and services for web and cloud.",
+            tags: ["ai", "coding", "problem solving", "teamwork", "flexibility", "innovation"],
+            strengths: ["coding", "problem solving", "communication"],
+            values: ["salary", "flexibility", "innovation"],
+            styles: ["remote", "fast-paced", "independent"],
+            stageFit: ["high-school", "undergraduate", "career-switcher"],
+            education: "Computer science, software engineering, or strong projects.",
+            day: "Coding, debugging, and shipping features with a team.",
+            firstStep: "Build and publish one small app.",
+            difference: "Best if you like turning ideas into working software quickly.",
+            skills: ["APIs", "debugging", "version control", "system design"],
+            salary: "$75k-$145k",
+            keywords: ["software engineer", "frontend", "backend", "developer"],
+            fitFor: "People who like building useful things and improving them quickly.",
+            notIdealIf: "You want every project to stay fixed and predictable.",
+            topics: ["APIs and interfaces", "product thinking", "debugging habits"],
+            roadmaps: {
+              "high-school": "Start with HTML, CSS, JavaScript, and one public project.",
+              undergraduate: "Join a team project, learn Git well, and ship a portfolio app.",
+              "career-switcher": "Use one stack, rebuild a real tool, and show measurable impact."
+            },
+            examples: [
+              "Build a student dashboard with login and profiles.",
+              "Clone one helpful everyday tool and add one original feature.",
+              "Contribute a fix to an open-source app used by real people."
+            ],
+            questions: [
+              "Do I enjoy turning a vague idea into a working product?",
+              "Am I okay debugging for long stretches?",
+              "Would I still like this if I had to keep learning new tools every year?"
+            ]
+          },
+          {
+            id: "data",
+            title: "Data Scientist",
+            category: "Turn data into decisions",
+            summary: "Builds analyses and models that explain what the numbers mean.",
+            tags: ["data", "math", "research", "healthcare", "innovation", "impact"],
+            strengths: ["research", "communication", "problem solving"],
+            values: ["impact", "innovation", "stability"],
+            styles: ["independent", "people", "remote"],
+            stageFit: ["undergraduate", "graduate", "career-switcher"],
+            education: "Statistics, data science, CS, or applied math.",
+            day: "Cleaning data, building models, and explaining results.",
+            firstStep: "Learn SQL and complete one analytics project.",
+            difference: "Best if you enjoy proving answers with evidence.",
+            skills: ["SQL", "Python", "statistics", "visualization"],
+            salary: "$80k-$155k",
+            keywords: ["data scientist", "analytics", "machine learning", "analyst"],
+            fitFor: "People who want to make decisions from evidence, not guesses.",
+            notIdealIf: "You dislike cleaning messy information before the fun part.",
+            topics: ["statistics and bias", "dashboards and storytelling", "machine learning basics"],
+            roadmaps: {
+              "high-school": "Learn spreadsheets and SQL, then analyze a public dataset.",
+              undergraduate: "Take stats seriously, build a portfolio with clear stories, and practice presentations.",
+              "career-switcher": "Move from reporting to analysis by shipping one business-useful project."
+            },
+            examples: [
+              "Track school club trends and recommend a decision.",
+              "Compare two public datasets and explain the difference clearly.",
+              "Build a simple model that answers one real question."
+            ],
+            questions: [
+              "Do I like finding patterns and asking why they happen?",
+              "Can I explain numbers in plain language?",
+              "Am I okay spending time cleaning data before making conclusions?"
+            ]
+          },
+          {
+            id: "cyber",
+            title: "Cybersecurity Analyst",
+            category: "Protect systems and users",
+            summary: "Defends networks and applications from attacks and risk.",
+            tags: ["cybersecurity", "problem solving", "stability", "teamwork", "innovation"],
+            strengths: ["problem solving", "research", "communication"],
+            values: ["stability", "impact", "helping people"],
+            styles: ["fast-paced", "independent", "remote"],
+            stageFit: ["undergraduate", "career-switcher", "graduate"],
+            education: "Cybersecurity, information systems, or hands-on labs.",
+            day: "Monitoring alerts and hardening systems.",
+            firstStep: "Practice CTF challenges and networking basics.",
+            difference: "Best if you like defense strategy and threat analysis.",
+            skills: ["networking", "incident response", "scripting", "cloud security"],
+            salary: "$78k-$148k",
+            keywords: ["cybersecurity", "security analyst", "soc analyst"],
+            fitFor: "People who like protecting systems and thinking several steps ahead.",
+            notIdealIf: "You want every day to be calm and low urgency.",
+            topics: ["threat detection", "network basics", "risk and response"],
+            roadmaps: {
+              "high-school": "Learn networking, Linux, and basic scripting, then try a beginner CTF.",
+              undergraduate: "Join a security club, practice labs, and document how you solved incidents.",
+              "career-switcher": "Transfer from IT or support by learning logs, cloud security, and incident response."
+            },
+            examples: [
+              "Harden a home network and write the steps you took.",
+              "Simulate a breach and practice the response playbook.",
+              "Analyze one alert stream and explain what matters."
+            ],
+            questions: [
+              "Do I like solving problems under pressure?",
+              "Would I enjoy protecting people who may never see my work?",
+              "Am I curious enough to keep up with threats that change constantly?"
+            ]
+          },
+          {
+            id: "biomedical",
+            title: "Biomedical Engineer",
+            category: "Design technology for health",
+            summary: "Creates devices and systems that improve patient outcomes.",
+            tags: ["biology", "healthcare", "research", "impact", "hands-on", "innovation"],
+            strengths: ["research", "hands-on", "communication"],
+            values: ["impact", "helping people", "innovation"],
+            styles: ["lab", "people", "hands-on"],
+            stageFit: ["undergraduate", "graduate"],
+            education: "Biomedical, mechanical, or electrical engineering.",
+            day: "Prototyping, testing, and documenting medical solutions.",
+            firstStep: "Build one biology plus engineering prototype.",
+            difference: "Best if you want direct healthcare impact.",
+            skills: ["prototyping", "device testing", "biology", "documentation"],
+            salary: "$72k-$138k",
+            keywords: ["biomedical engineer", "medical device", "clinical engineering"],
+            fitFor: "People who want to improve health outcomes with tangible tools.",
+            notIdealIf: "You want to stay far away from regulated, detail-heavy work.",
+            topics: ["human physiology", "medical devices", "testing and validation"],
+            roadmaps: {
+              "high-school": "Pair biology with engineering projects and learn basic prototyping tools.",
+              undergraduate: "Focus on design labs, anatomy basics, and projects that solve a real health problem.",
+              "career-switcher": "Use mechanical or electrical skills to move into medtech, then learn regulation basics."
+            },
+            examples: [
+              "Design a low-cost assistive device for one simple need.",
+              "Test a prototype and write a short validation report.",
+              "Interview a healthcare user and redesign a tool around their workflow."
+            ],
+            questions: [
+              "Do I want my work to improve patient care directly?",
+              "Can I tolerate technical work that must be precise and documented?",
+              "Am I interested in the mix of engineering, biology, and regulation?"
+            ]
+          },
+          {
+            id: "robotics",
+            title: "Robotics Engineer",
+            category: "Build intelligent machines",
+            summary: "Combines software and hardware for automation.",
+            tags: ["robotics", "coding", "math", "hands-on", "innovation", "problem solving"],
+            strengths: ["coding", "hands-on", "problem solving"],
+            values: ["innovation", "impact", "stability"],
+            styles: ["hands-on", "fast-paced", "independent"],
+            stageFit: ["undergraduate", "graduate", "career-switcher"],
+            education: "Robotics, mechatronics, or mechanical/electrical engineering.",
+            day: "Sensors, controls, and hardware tuning.",
+            firstStep: "Build a sensor-driven project that moves.",
+            difference: "Best if you like physical systems in real environments.",
+            skills: ["embedded systems", "controls", "CAD", "hardware testing"],
+            salary: "$80k-$150k",
+            keywords: ["robotics engineer", "automation engineer", "mechatronics"],
+            fitFor: "People who like making machines sense, think, and move.",
+            notIdealIf: "You prefer software-only work and little hands-on troubleshooting.",
+            topics: ["sensors and actuators", "controls and feedback", "embedded systems"],
+            roadmaps: {
+              "high-school": "Build with Arduino or Raspberry Pi and document how movement is controlled.",
+              undergraduate: "Take mechatronics and controls seriously, then build systems that combine code and hardware.",
+              "career-switcher": "Bridge from manufacturing or software by building one working automated device."
+            },
+            examples: [
+              "Make a robot that reacts to one sensor input.",
+              "Tune a control loop and explain the tradeoffs.",
+              "Build a home automation prototype that solves a real annoyance."
+            ],
+            questions: [
+              "Do I like debugging both code and physical parts?",
+              "Would I enjoy testing, iterating, and sometimes rebuilding hardware?",
+              "Do I want my work to move in the real world, not just on a screen?"
+            ]
+          },
+          {
+            id: "environmental",
+            title: "Environmental Engineer",
+            category: "Solve sustainability problems",
+            summary: "Designs solutions for cleaner water, air, and infrastructure.",
+            tags: ["climate", "impact", "research", "helping people", "stability", "biology"],
+            strengths: ["research", "communication", "problem solving"],
+            values: ["impact", "stability", "helping people"],
+            styles: ["lab", "people", "hands-on"],
+            stageFit: ["undergraduate", "graduate", "career-switcher"],
+            education: "Environmental, civil, or sustainability-focused engineering.",
+            day: "Modeling, field checks, and stakeholder collaboration.",
+            firstStep: "Create one local sustainability project with data.",
+            difference: "Best if you want climate and public health impact.",
+            skills: ["GIS", "modeling", "policy literacy", "field work"],
+            salary: "$70k-$132k",
+            keywords: ["environmental engineer", "sustainability analyst", "civil engineer"],
+            fitFor: "People who want to make communities healthier and more resilient.",
+            notIdealIf: "You want work that stays fully digital and never involves stakeholders.",
+            topics: ["water and air systems", "climate resilience", "GIS and field data"],
+            roadmaps: {
+              "high-school": "Join a sustainability project and start tracking a local environmental issue.",
+              undergraduate: "Take civil or environmental electives, then solve one local problem with data.",
+              "career-switcher": "Use data, operations, or public policy experience to move into environmental work."
+            },
+            examples: [
+              "Map a neighborhood environmental concern and present findings.",
+              "Measure one resource problem and recommend a fix.",
+              "Design a simple intervention for cleaner water or energy use."
+            ],
+            questions: [
+              "Do I want my work to affect public health or climate outcomes?",
+              "Am I willing to mix technical work with communication and policy?",
+              "Would I enjoy solving problems tied to a place or community?"
+            ]
+          },
+          {
+            id: "mechanical",
+            title: "Mechanical Engineer",
+            category: "Design physical systems",
+            summary: "Builds machines and products that must perform in real conditions.",
+            tags: ["hands-on", "math", "problem solving", "innovation", "stability"],
+            strengths: ["problem solving", "hands-on", "research"],
+            values: ["stability", "innovation", "impact"],
+            styles: ["hands-on", "fast-paced", "independent"],
+            stageFit: ["undergraduate", "graduate", "career-switcher"],
+            education: "Mechanical engineering, mechatronics, or design-build path.",
+            day: "Design reviews, simulations, and prototype testing.",
+            firstStep: "Design and test a simple mechanism.",
+            difference: "Best if you like materials, mechanics, and product systems.",
+            skills: ["CAD", "simulation", "prototyping", "mechanics"],
+            salary: "$72k-$137k",
+            keywords: ["mechanical engineer", "product engineer", "manufacturing"],
+            fitFor: "People who like making physical things work better, faster, or safer.",
+            notIdealIf: "You want work that never involves prototypes, tools, or iteration.",
+            topics: ["mechanics and materials", "CAD and simulation", "manufacturing and design"],
+            roadmaps: {
+              "high-school": "Build and document a simple mechanism or model that actually moves.",
+              undergraduate: "Join design teams, learn CAD deeply, and practice testing prototypes.",
+              "career-switcher": "Move from manufacturing or repair into design by showing one improved product."
+            },
+            examples: [
+              "Design a better holder, hinge, or frame for a real object.",
+              "Compare two prototypes and explain which one performs better.",
+              "Model one small system in CAD and test the result physically."
+            ],
+            questions: [
+              "Do I enjoy solving physical problems with my hands and head?",
+              "Am I okay iterating after prototypes fail?",
+              "Would I like making products that other people will actually use?"
+            ]
+          }
+        ];
+
+        const fallbackJobs = {
+          software: [
+            { title: "Frontend Engineer Intern", company_name: "Studio Atlas", location: "Remote", url: "#", tags: ["JavaScript", "React", "UI"] },
+            { title: "Full Stack Developer", company_name: "Northstar Labs", location: "Hybrid", url: "#", tags: ["APIs", "Cloud"] }
+          ],
+          data: [
+            { title: "Data Analyst Intern", company_name: "Pulse Health", location: "Remote", url: "#", tags: ["SQL", "Python"] },
+            { title: "ML Operations Associate", company_name: "Signal Garden", location: "Hybrid", url: "#", tags: ["MLOps", "Automation"] }
+          ],
+          cyber: [
+            { title: "SOC Analyst Trainee", company_name: "Shieldwave", location: "Hybrid", url: "#", tags: ["Monitoring", "Cloud security"] },
+            { title: "Security Operations Intern", company_name: "Blue Circuit", location: "Remote", url: "#", tags: ["Threat intel", "Networking"] }
+          ],
+          biomedical: [
+            { title: "Biomedical Design Intern", company_name: "Vital Loop", location: "On-site", url: "#", tags: ["Prototyping", "Healthcare"] },
+            { title: "Clinical Engineering Assistant", company_name: "Metro Health", location: "Hybrid", url: "#", tags: ["Devices", "Testing"] }
+          ],
+          robotics: [
+            { title: "Robotics Software Intern", company_name: "Apex Automation", location: "Hybrid", url: "#", tags: ["Embedded", "Controls"] },
+            { title: "Automation Engineer", company_name: "Motion Foundry", location: "On-site", url: "#", tags: ["PLC", "Testing"] }
+          ],
+          environmental: [
+            { title: "Sustainability Analyst", company_name: "Green Harbor", location: "Remote", url: "#", tags: ["Climate", "Modeling"] },
+            { title: "Water Systems Intern", company_name: "Blue Planet Utility", location: "Hybrid", url: "#", tags: ["GIS", "Field work"] }
+          ],
+          mechanical: [
+            { title: "Mechanical Design Intern", company_name: "ForgeWorks", location: "Hybrid", url: "#", tags: ["CAD", "Prototype"] },
+            { title: "Manufacturing Engineer", company_name: "Northline Systems", location: "On-site", url: "#", tags: ["Process", "Quality"] }
+          ]
+        };
+
+        const fallbackMentors = {
+          software: [
+            { login: "buildwithmira", html_url: "https://github.com", bio: "Frontend systems and product engineering" },
+            { login: "cloudtariq", html_url: "https://github.com", bio: "Backend APIs and cloud tooling" }
+          ],
+          data: [
+            { login: "insightmina", html_url: "https://github.com", bio: "Applied stats and ML storytelling" },
+            { login: "sqlsophia", html_url: "https://github.com", bio: "Analytics and experimentation" }
+          ],
+          cyber: [
+            { login: "defenderabel", html_url: "https://github.com", bio: "Threat hunting and response" },
+            { login: "packetnora", html_url: "https://github.com", bio: "Cloud defense and SOC operations" }
+          ],
+          biomedical: [
+            { login: "deviceelena", html_url: "https://github.com", bio: "Medical devices and testing" },
+            { login: "biodesignharuto", html_url: "https://github.com", bio: "Biomechanics and prototyping" }
+          ],
+          robotics: [
+            { login: "autonomyjoan", html_url: "https://github.com", bio: "Autonomous systems and controls" },
+            { login: "makerkhalid", html_url: "https://github.com", bio: "Embedded robotics" }
+          ],
+          environmental: [
+            { login: "ecograce", html_url: "https://github.com", bio: "Climate data and policy" },
+            { login: "watersara", html_url: "https://github.com", bio: "Water systems and sustainability" }
+          ],
+          mechanical: [
+            { login: "cadnate", html_url: "https://github.com", bio: "Product design and simulation" },
+            { login: "motionlina", html_url: "https://github.com", bio: "Manufacturing optimization" }
+          ]
+        };
+
+        const fallbackResources = {
+          software: [
+            { title: "Build a small app and publish it", source: "Starter project", year: "Now", url: "#" },
+            { title: "Learn APIs with a dashboard", source: "Project idea", year: "Now", url: "#" }
+          ],
+          data: [
+            { title: "Analyze a public dataset", source: "Starter project", year: "Now", url: "#" },
+            { title: "Learn SQL with practical cases", source: "Learning path", year: "Now", url: "#" }
+          ],
+          cyber: [
+            { title: "Practice beginner CTF", source: "Lab", year: "Now", url: "#" },
+            { title: "Map and harden a home network", source: "Project idea", year: "Now", url: "#" }
+          ],
+          biomedical: [
+            { title: "Prototype a low-cost medical tool", source: "Design idea", year: "Now", url: "#" },
+            { title: "Biomedical signals basics", source: "Learning path", year: "Now", url: "#" }
+          ],
+          robotics: [
+            { title: "Build a sensor-driven robot", source: "Project idea", year: "Now", url: "#" },
+            { title: "Embedded systems starter tutorial", source: "Learning path", year: "Now", url: "#" }
+          ],
+          environmental: [
+            { title: "Create a local climate dashboard", source: "Project idea", year: "Now", url: "#" },
+            { title: "Study water quality and GIS", source: "Learning path", year: "Now", url: "#" }
+          ],
+          mechanical: [
+            { title: "Design a mechanism in CAD", source: "Project idea", year: "Now", url: "#" },
+            { title: "Prototype a moving assembly", source: "Learning path", year: "Now", url: "#" }
+          ]
+        };
+
+        const promptPresets = [
+          "What is the difference between the top two careers?",
+          "Which path is strongest for hands-on work?",
+          "What should I do in the next 30 days?",
+          "Explain the top career like I am a beginner."
+        ];
+
+        const state = {
+          selections: {
+            interests: new Set(["data"]),
+            strengths: new Set(["problem solving"]),
+            values: new Set(["impact"]),
+            workstyle: new Set(["remote"])
+          },
+          profile: null,
+          rankings: [],
+          selectedCareerId: null,
+          live: { jobs: [], mentors: [], resources: [] },
+          chat: [],
+          theme: localStorage.getItem("stem-theme") || "dark"
+        };
+
+        const els = {
+          body: document.body,
+          root: document.documentElement,
+          themeToggle: document.getElementById("theme-toggle"),
+          startQuiz: document.getElementById("start-quiz"),
+          jumpOpps: document.getElementById("jump-opps"),
+          exportButton: document.getElementById("export-button"),
+          profilePanel: document.getElementById("profile-panel"),
+          assistantPanel: document.getElementById("assistant-panel"),
+          profileForm: document.getElementById("profile-form"),
+          resetButton: document.getElementById("reset-button"),
+          selectionSummary: document.getElementById("selection-summary"),
+          results: document.getElementById("results"),
+          opportunities: document.getElementById("opportunities"),
+          resultsMeta: document.getElementById("results-meta"),
+          profileSummary: document.getElementById("profile-summary"),
+          careerGrid: document.getElementById("career-grid"),
+          careerFilter: document.getElementById("career-filter"),
+          careerCompare: document.getElementById("career-compare"),
+          detailTitle: document.getElementById("detail-title"),
+          detailSummary: document.getElementById("detail-summary"),
+          detailTags: document.getElementById("detail-tags"),
+          detailList: document.getElementById("detail-list"),
+          careerModalOverlay: document.getElementById("career-modal-overlay"),
+          careerModal: document.getElementById("career-modal"),
+          careerModalClose: document.getElementById("career-modal-close"),
+          careerModalBody: document.getElementById("career-modal-body"),
+          careerModalTitle: document.getElementById("career-modal-title"),
+          careerModalSubtitle: document.getElementById("career-modal-subtitle"),
+          breakdownList: document.getElementById("breakdown-list"),
+          jobsList: document.getElementById("jobs-list"),
+          mentorsList: document.getElementById("mentors-list"),
+          resourcesList: document.getElementById("resources-list"),
+          liveStatus: document.getElementById("live-status"),
+          assistantPromptRow: document.getElementById("assistant-prompt-row"),
+          assistantMessages: document.getElementById("assistant-messages"),
+          assistantInput: document.getElementById("assistant-input"),
+          assistantSend: document.getElementById("assistant-send"),
+          assistantClear: document.getElementById("assistant-clear"),
+          assistantSource: document.getElementById("assistant-source"),
+          locationInput: document.getElementById("location"),
+          countrySelect: document.getElementById("country")
+        };
+
+        const assistantUrl = new URL("/api/assistant", window.location.origin).toString();
+
+        function setTheme(theme) {
+          const applied = theme === "light" ? "light" : "dark";
+          els.root.dataset.theme = applied;
+          els.themeToggle.textContent = applied === "dark" ? "Switch to Light" : "Switch to Dark";
+          localStorage.setItem("stem-theme", applied);
+        }
+
+        function renderChipGroup(containerId, groupName) {
+          const container = document.getElementById(containerId);
+          container.innerHTML = optionGroups[groupName]
+            .map(([label, value]) => `
+              <button
+                class="option-chip ${state.selections[groupName].has(value) ? "active" : ""}"
+                type="button"
+                data-group="${groupName}"
+                data-value="${value}"
+              >${label}</button>
+            `)
+            .join("");
+        }
+
+        function renderSelections() {
+          renderChipGroup("interest-chips", "interests");
+          renderChipGroup("strength-chips", "strengths");
+          renderChipGroup("value-chips", "values");
+          renderChipGroup("workstyle-chips", "workstyle");
+
+          const summary = Object.entries(state.selections)
+            .map(([group, values]) => `${group}: ${values.size}`)
+            .join(" | ");
+          els.selectionSummary.textContent = `Selected ${summary}`;
+        }
+
+        function tokenize(value) {
+          return String(value || "")
+            .toLowerCase()
+            .split(/[^a-z0-9+]+/)
+            .map((part) => part.trim())
+            .filter(Boolean);
+        }
+
+        function measureCareerSignals(career, profile) {
+          const goalTokens = tokenize(profile.goal);
+          const keywordMatches = career.keywords.filter((keyword) =>
+            goalTokens.some((token) => keyword.includes(token) || token.includes(keyword))
+          ).length;
+
+          return {
+            interests: career.tags.filter((tag) => profile.interests.has(tag)).length,
+            strengths: career.strengths.filter((tag) => profile.strengths.has(tag)).length,
+            values: career.values.filter((tag) => profile.values.has(tag)).length,
+            workstyle: career.styles.filter((tag) => profile.workstyle.has(tag)).length,
+            stage: career.stageFit.includes(profile.stage) ? 1 : 0,
+            goal: keywordMatches
+          };
+        }
+
+        function unique(list) {
+          return [...new Set(list)];
+        }
+
+        function scoreCareer(career, profile) {
+          let score = 26;
+          const reasons = [];
+          const signals = measureCareerSignals(career, profile);
+
+          career.tags.forEach((tag) => {
+            if (profile.interests.has(tag)) {
+              score += 13;
+              reasons.push(`Matches interest in ${tag}`);
+            }
+          });
+
+          career.strengths.forEach((tag) => {
+            if (profile.strengths.has(tag)) {
+              score += 10;
+              reasons.push(`Uses your strength in ${tag}`);
+            }
+          });
+
+          career.values.forEach((tag) => {
+            if (profile.values.has(tag)) {
+              score += 8;
+              reasons.push(`Fits your priority: ${tag}`);
+            }
+          });
+
+          career.styles.forEach((tag) => {
+            if (profile.workstyle.has(tag)) {
+              score += 7;
+              reasons.push(`Matches your work style: ${tag}`);
+            }
+          });
+
+          if (career.stageFit.includes(profile.stage)) {
+            score += 8;
+            reasons.push(`Good fit for ${profile.stage.replace(/-/g, " ")}`);
+          }
+
+          career.keywords.forEach((keyword) => {
+            if (signals.goal > 0) {
+              score += 6;
+              reasons.push(`Connects to your goal: ${keyword}`);
+            }
+          });
+
+          const stageBonus = {
+            "high-school": 4,
+            undergraduate: 8,
+            graduate: 10,
+            "career-switcher": 6
+          };
+          score += stageBonus[profile.stage] || 0;
+
+          return {
+            ...career,
+            score: Math.max(30, Math.min(100, Math.round(score))),
+            reasons: unique(reasons).slice(0, 4),
+            fitSignals: signals
+          };
+        }
+
+        function getProfileFromForm() {
+          return {
+            name: document.getElementById("name").value.trim() || "Explorer",
+            stage: document.getElementById("stage").value,
+            location: els.locationInput.value.trim() || "remote",
+            country: els.countrySelect.value,
+            goal: document.getElementById("goal").value.trim(),
+            interests: new Set(state.selections.interests),
+            strengths: new Set(state.selections.strengths),
+            values: new Set(state.selections.values),
+            workstyle: new Set(state.selections.workstyle)
+          };
+        }
+
+        function renderProfileSummary(profile) {
+          const items = [
+            ["Explorer", profile.name],
+            ["Stage", profile.stage ? profile.stage.replace(/-/g, " ") : "Not set"],
+            ["Location", profile.location || "remote"],
+            ["Interests", [...profile.interests].slice(0, 3).join(", ") || "none"],
+            ["Goal", profile.goal || "open-ended"]
+          ];
+
+          els.profileSummary.innerHTML = items
+            .map(
+              ([k, v]) => `
+                <article class="tile">
+                  <div class="k">${k}</div>
+                  <div class="v">${v}</div>
+                </article>
+              `
+            )
+            .join("");
+        }
+
+        function renderBreakdown(rankings) {
+          const selected = rankings[0];
+          const compare = rankings[1];
+
+          if (!selected) {
+            els.breakdownList.innerHTML = '<div class="item"><p class="tiny">Complete the profile to see fit signals.</p></div>';
+            els.careerCompare.innerHTML = '<div class="item"><p class="tiny">Top two paths comparison appears here.</p></div>';
+            return;
+          }
+
+          const bars = [
+            ["Skill match", selected.strengths.length],
+            ["Interest match", selected.tags.length],
+            ["Values match", selected.values.length],
+            ["Work style", selected.styles.length]
+          ];
+
+          els.breakdownList.innerHTML = bars
+            .map(
+              ([label, count]) => `
+                <div class="item">
+                  <div class="top">
+                    <strong>${label}</strong>
+                    <span class="tiny">${count} signal${count === 1 ? "" : "s"}</span>
+                  </div>
+                  <div class="meter" style="margin-top: 0.4rem;"><div class="fill" style="width:${Math.min(100, 18 + count * 20)}%"></div></div>
+                </div>
+              `
+            )
+            .join("");
+
+          if (compare) {
+            els.careerCompare.innerHTML = `
+              <div class="item">
+                <h3>${selected.title} vs ${compare.title}</h3>
+                <p class="tiny">${selected.title} is stronger if they want ${selected.difference.toLowerCase()} ${compare.title} is better if they prefer ${compare.difference.toLowerCase()}</p>
+              </div>
+            `;
+          } else {
+            els.careerCompare.innerHTML = '<div class="item"><p class="tiny">Need at least two ranked careers to compare.</p></div>';
+          }
+        }
+
+        function renderCareerDetails(career) {
+          if (!career) {
+            els.detailTitle.textContent = "Career details";
+            els.detailSummary.textContent = "Select a career card.";
+            els.detailTags.innerHTML = "";
+            els.detailList.innerHTML = "";
+            return;
+          }
+
+          els.detailTitle.textContent = career.title;
+          els.detailSummary.textContent = career.fitFor || career.summary;
+          els.detailTags.innerHTML = [career.category, career.salary, career.education]
+            .map((value) => `<span class="tag">${value}</span>`)
+            .join("");
+
+          els.detailList.innerHTML = [
+            career.day,
+            career.firstStep,
+            `Why it stands out: ${career.difference}`,
+            `Topics to explore: ${(career.topics || []).join(", ")}`,
+            `Common skills: ${career.skills.join(", ")}`
+          ]
+            .map((item) => `<li>${item}</li>`)
+            .join("");
+        }
+
+        function renderCareerModal(career) {
+          if (!career) {
+            els.careerModalTitle.textContent = "Career title";
+            els.careerModalSubtitle.textContent = "Select a card to explore the path.";
+            els.careerModalBody.innerHTML = "";
+            return;
+          }
+
+          els.careerModalTitle.textContent = career.title;
+          els.careerModalSubtitle.textContent = career.summary;
+          els.careerModalBody.innerHTML = `
+            <div class="career-metrics">
+              <div class="metric-card"><div class="label">Category</div><div class="value">${career.category}</div></div>
+              <div class="metric-card"><div class="label">Salary range</div><div class="value">${career.salary}</div></div>
+              <div class="metric-card"><div class="label">Starting point</div><div class="value">${career.education}</div></div>
+              <div class="metric-card"><div class="label">Best for stage</div><div class="value">${career.stageFit.map((stage) => stage.replace(/-/g, " ")).join(" / ")}</div></div>
+            </div>
+
+            <div class="career-insight-grid">
+              <div class="insight-block">
+                <h3>What this path actually feels like</h3>
+                <p class="tiny">${career.fitFor}</p>
+                <div class="tag-row">${(career.topics || []).map((topic) => `<span class="tag">${topic}</span>`).join("")}</div>
+                <p class="tiny"><strong>Day-to-day:</strong> ${career.day}</p>
+                <p class="tiny"><strong>Why people choose it:</strong> ${career.difference}</p>
+                <p class="tiny"><strong>Watch out if:</strong> ${career.notIdealIf}</p>
+              </div>
+
+              <div class="insight-block">
+                <h3>Skills and signals</h3>
+                <div class="career-sample-list">
+                  ${career.skills.map((skill) => `
+                    <div class="sample-item">
+                      <strong>${skill}</strong>
+                      <p>Useful when you want to work like a real ${career.title.toLowerCase()}.</p>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+
+            <div class="insight-block">
+              <h3>How to test it in the real world</h3>
+              <div class="roadmap-grid">
+                ${Object.entries(career.roadmaps).map(([stage, roadmap]) => `
+                  <div class="roadmap-card">
+                    <p class="eyebrow-mini">${stage.replace(/-/g, " ")}</p>
+                    <p>${roadmap}</p>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+
+            <div class="career-insight-grid">
+              <div class="insight-block">
+                <h3>Starter projects people can actually show</h3>
+                <div class="career-sample-list">
+                  ${career.examples.map((example) => `
+                    <div class="sample-item">
+                      <strong>${example}</strong>
+                      <p>Use this to build proof, not just interest.</p>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+
+              <div class="insight-block">
+                <h3>Questions worth answering before you commit</h3>
+                <div class="career-question-grid">
+                  ${career.questions.map((question) => `
+                    <div class="question-card">
+                      <p><strong>${question}</strong></p>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+
+            <div class="insight-block">
+              <h3>Fast take</h3>
+              <p class="tiny">${career.firstStep}</p>
+              <p class="tiny">Compare this path with another top match, then try one project for a week before you decide.</p>
+            </div>
+
+            <div class="insight-block">
+              <h3>Fit map</h3>
+              <div class="fit-map-wrap">
+                <div id="fit-map" class="fit-map" aria-label="Career fit map chart"></div>
+                <p class="tiny">The spider chart shows how strongly this path matches your current profile across the main fit signals.</p>
+              </div>
+            </div>
+          `;
+
+          renderCareerFitChart(career);
+        }
+
+        function renderCareerFitChart(career) {
+          const container = document.getElementById("fit-map");
+          if (!container || !window.d3) {
+            return;
+          }
+
+          const profile = state.profile;
+          const signals = profile
+            ? measureCareerSignals(career, profile)
+            : { interests: 0, strengths: 0, values: 0, workstyle: 0, stage: 0, goal: 0 };
+
+          const data = [
+            {
+              label: "Interests",
+              value: Math.min(5, signals.interests * 2.2),
+              max: 5,
+              detail: `${signals.interests} matched topics out of ${career.tags.length}`
+            },
+            {
+              label: "Strengths",
+              value: Math.min(5, signals.strengths * 2.4),
+              max: 5,
+              detail: `${signals.strengths} matched strengths out of ${career.strengths.length}`
+            },
+            {
+              label: "Values",
+              value: Math.min(5, signals.values * 2.6),
+              max: 5,
+              detail: `${signals.values} matched values out of ${career.values.length}`
+            },
+            {
+              label: "Work style",
+              value: Math.min(5, signals.workstyle * 2.6),
+              max: 5,
+              detail: `${signals.workstyle} matched styles out of ${career.styles.length}`
+            },
+            {
+              label: "Stage fit",
+              value: signals.stage ? 5 : 0,
+              max: 5,
+              detail: signals.stage ? "Matches your stage" : "Not a direct stage match"
+            },
+            {
+              label: "Goal match",
+              value: Math.min(5, signals.goal * 2.5),
+              max: 5,
+              detail: signals.goal ? "Matches your goal language" : "No direct goal link"
+            }
+          ];
+
+          const width = Math.max(container.clientWidth || 760, 520);
+          const height = 380;
+          const centerX = width / 2;
+          const centerY = height / 2 + 10;
+          const radius = Math.min(width, height) / 2 - 34;
+          const levels = 4;
+          const angleSlice = (Math.PI * 2) / data.length;
+
+          container.innerHTML = "";
+
+          const svg = window.d3.select(container)
+            .append("svg")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+          const defs = svg.append("defs");
+          const gradient = defs.append("radialGradient")
+            .attr("id", "fit-spider-gradient")
+            .attr("x1", "0%")
+            .attr("cy", "50%")
+            .attr("r", "75%");
+          gradient.append("stop").attr("offset", "0%").attr("stop-color", "#4f46e5").attr("stop-opacity", 0.5);
+          gradient.append("stop").attr("offset", "100%").attr("stop-color", "#0e7c86").attr("stop-opacity", 0.85);
+
+          const chart = svg.append("g").attr("transform", `translate(${centerX},${centerY})`);
+          const radarLine = window.d3.lineRadial()
+            .radius((entry) => (entry.value / 5) * radius)
+            .angle((entry, index) => index * angleSlice)
+            .curve(window.d3.curveLinearClosed);
+
+          const axes = data.map((entry, index) => {
+            const angle = index * angleSlice - Math.PI / 2;
+            return {
+              ...entry,
+              angle,
+              x: Math.cos(angle) * radius,
+              y: Math.sin(angle) * radius,
+              valueX: Math.cos(angle) * ((entry.value / 5) * radius),
+              valueY: Math.sin(angle) * ((entry.value / 5) * radius)
+            };
+          });
+
+          for (let level = 1; level <= levels; level += 1) {
+            const levelRadius = (radius / levels) * level;
+            const points = axes.map((entry) => [Math.cos(entry.angle) * levelRadius, Math.sin(entry.angle) * levelRadius]);
+            chart.append("polygon")
+              .attr("class", "spider-grid")
+              .attr("points", points.map(([x, y]) => `${x},${y}`).join(" "));
+          }
+
+          chart.selectAll("line.spider-spoke")
+            .data(axes)
+            .join("line")
+            .attr("class", "spider-spoke")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", (entry) => entry.x)
+            .attr("y2", (entry) => entry.y);
+
+          chart.append("polygon")
+            .attr("class", "spider-area")
+            .attr("fill", "url(#fit-spider-gradient)")
+            .attr("points", radarLine(axes));
+
+          chart.append("path")
+            .attr("class", "spider-outline")
+            .attr("d", radarLine(axes));
+
+          chart.selectAll("circle.spider-point")
+            .data(axes)
+            .join("circle")
+            .attr("class", "spider-point")
+            .attr("cx", (entry) => entry.valueX)
+            .attr("cy", (entry) => entry.valueY)
+            .attr("r", 4.8)
+            .append("title")
+            .text((entry) => `${entry.label}: ${entry.detail}`);
+
+          chart.selectAll("text.value-label")
+            .data(axes)
+            .join("text")
+            .attr("class", "value-label")
+            .attr("x", (entry) => entry.valueX * 1.08)
+            .attr("y", (entry) => entry.valueY * 1.08)
+            .attr("text-anchor", (entry) => Math.cos(entry.angle) >= 0 ? "start" : "end")
+            .attr("dominant-baseline", "middle")
+            .text((entry) => `${entry.value}/${entry.max}`);
+
+          chart.selectAll("text.axis-label")
+            .data(axes)
+            .join("text")
+            .attr("class", "axis-label")
+            .attr("x", (entry) => entry.x * 1.18)
+            .attr("y", (entry) => entry.y * 1.18)
+            .attr("text-anchor", (entry) => Math.cos(entry.angle) >= 0 ? "start" : "end")
+            .attr("dominant-baseline", "middle")
+            .text((entry) => entry.label);
+        }
+
+        function openCareerModal(career) {
+          renderCareerModal(career);
+          els.careerModal.classList.add("open");
+          els.careerModalOverlay.classList.add("open");
+          els.careerModal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeCareerModal() {
+          els.careerModal.classList.remove("open");
+          els.careerModalOverlay.classList.remove("open");
+          els.careerModal.setAttribute("aria-hidden", "true");
+        }
+
+        function renderCareerGrid(rankings) {
+          const query = String(els.careerFilter.value || "").trim().toLowerCase();
+          const visible = query
+            ? (() => {
+                const fuse = new window.Fuse(rankings, {
+                  keys: ["title", "category", "summary", "keywords", "topics", "examples"],
+                  threshold: 0.38,
+                  ignoreLocation: true,
+                  minMatchCharLength: 2,
+                  includeScore: true
+                });
+                const matchIds = new Set(fuse.search(query).map((result) => result.item.id));
+                return rankings.filter((career) => matchIds.has(career.id));
+              })()
+            : rankings;
+
+          els.careerGrid.innerHTML = visible
+            .slice(0, 6)
+            .map(
+              (career, index) => `
+                <article class="career-card ${career.id === state.selectedCareerId ? "active" : ""}" data-career-id="${career.id}" role="button" tabindex="0" aria-haspopup="dialog">
+                  <div class="top">
+                    <h3 style="margin: 0; font-size: 1rem;">${index + 1}. ${career.title}</h3>
+                    <span class="score">${career.score}%</span>
+                  </div>
+                  <p class="tiny">${career.summary}</p>
+                  <div class="tag-row">${career.tags.slice(0, 4).map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
+                  <div class="meter"><div class="fill" style="width:${career.score}%"></div></div>
+                  <p class="tiny">${career.reasons[0] || career.difference}</p>
+                </article>
+              `
+            )
+            .join("");
+
+          if (visible.length === 0) {
+            els.careerGrid.innerHTML = '<div class="item"><p class="tiny">No careers match this filter.</p></div>';
+          }
+        }
+
+        function renderRankings(profile) {
+          const ranked = careerCatalog
+            .map((career) => scoreCareer(career, profile))
+            .sort((left, right) => right.score - left.score);
+
+          state.rankings = ranked;
+          state.selectedCareerId = ranked[0]?.id || null;
+
+          const top = ranked[0];
+          els.resultsMeta.textContent = top ? `Top match: ${top.title} (${top.score}%)` : "Ready to rank";
+
+          renderProfileSummary(profile);
+          renderCareerGrid(ranked);
+          renderBreakdown(ranked);
+          renderCareerDetails(ranked.find((career) => career.id === state.selectedCareerId) || top);
+
+          state.profile = profile;
+          els.assistantPanel.classList.remove("hidden");
+          document.querySelector(".layout").classList.add("has-assistant");
+          els.results.classList.remove("hidden");
+          els.results.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        function startFlow() {
+          if (!els.body.classList.contains("flow-start") || els.body.classList.contains("flow-leaving")) {
+            return;
+          }
+
+          els.body.classList.add("flow-leaving");
+
+          window.setTimeout(() => {
+            els.body.classList.remove("flow-start", "flow-leaving");
+            els.body.classList.add("flow-entering");
+            window.scrollTo({ top: 0, left: 0 });
+
+            window.setTimeout(() => {
+              els.body.classList.remove("flow-entering");
+              const nameInput = document.getElementById("name");
+              if (nameInput) {
+                nameInput.focus();
+              }
+            }, 380);
+          }, 180);
+        }
+
+        function revealOpportunities() {
+          if (!state.rankings.length) {
+            pushAssistantMessage("system", "Complete the quiz first, then open opportunities.");
+            els.profilePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+
+          els.opportunities.classList.remove("hidden");
+          els.opportunities.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        function buildAssistantAnswer(question) {
+          const top = state.rankings[0];
+          const second = state.rankings[1];
+          const profile = state.profile;
+
+          if (!top || !profile) {
+            return "Complete the profile first so I can explain STEM paths in context.";
+          }
+
+          const lower = String(question || "").toLowerCase();
+          const opener = `For this profile, the strongest path is ${top.title}.`;
+
+          if (lower.includes("difference") || lower.includes("compare") || lower.includes("vs")) {
+            return `${opener} ${top.title} is about ${top.difference.toLowerCase()} ${second ? `while ${second.title} is better if they want ${second.difference.toLowerCase()}` : ""}`;
+          }
+
+          if (lower.includes("30") || lower.includes("next") || lower.includes("plan")) {
+            return `${opener} In the next 30 days: build one beginner project, connect with one mentor, and learn ${top.skills.slice(0, 3).join(", ")}.`;
+          }
+
+          if (lower.includes("hands-on")) {
+            const handsOn = state.rankings.find((career) => career.styles.includes("hands-on"));
+            if (handsOn) {
+              return `${handsOn.title} is most hands-on in your ranking. ${handsOn.summary}`;
+            }
+          }
+
+          return `${opener} Key reasons: ${top.reasons.join("; ") || "interest and skill alignment"}. Suggested first step: ${top.firstStep}`;
+        }
+
+        function setAssistantSource(source, isError = false) {
+          const label = source || "unknown";
+          els.assistantSource.textContent = label;
+          els.assistantSource.classList.toggle("error", Boolean(isError));
+        }
+
+        function pushAssistantMessage(role, text) {
+          const clean = String(text || "").trim();
+          if (!clean) {
+            return;
+          }
+
+          const line = document.createElement("div");
+          line.className = `message ${role}`;
+          line.textContent = clean;
+          els.assistantMessages.appendChild(line);
+          els.assistantMessages.scrollTop = els.assistantMessages.scrollHeight;
+          state.chat.push({ role, text: clean });
+        }
+
+        function resetAssistantChat() {
+          els.assistantMessages.innerHTML = "";
+          state.chat = [];
+          setAssistantSource("(not checked)");
+          pushAssistantMessage("system", "Fill out the profile, then ask for comparisons or next steps.");
+        }
+
+        function syncAssistantContext() {
+          const top = state.rankings[0];
+          const second = state.rankings[1];
+          if (!top) {
+            return;
+          }
+
+          pushAssistantMessage(
+            "system",
+            `Top match: ${top.title}. ${second ? `Backup: ${second.title}. ` : ""}Ask for differences, a 30-day plan, or beginner resources.`
+          );
+        }
+
+        function renderAssistantPresets() {
+          els.assistantPromptRow.innerHTML = promptPresets
+            .map((prompt) => `<button class="chip" type="button" data-prompt="${prompt.replace(/"/g, "&quot;")}">${prompt}</button>`)
+            .join("");
+        }
+
+        async function handleAssist(prompt) {
+          const cleanPrompt = String(prompt || "").trim();
+          if (!cleanPrompt) {
+            return;
+          }
+
+          if (!state.rankings[0]) {
+            pushAssistantMessage("system", "Complete the profile first so I can answer in context.");
+            return;
+          }
+
+          pushAssistantMessage("user", cleanPrompt);
+          els.assistantSend.disabled = true;
+          els.assistantClear.disabled = true;
+
+          try {
+            const response = await fetch(assistantUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                prompt: cleanPrompt,
+                profile: state.profile,
+                rankings: state.rankings.slice(0, 3)
+              })
+            });
+
+            if (!response.ok) {
+              const payload = await response.json().catch(() => ({}));
+              const message = payload.error || `status ${response.status}`;
+              pushAssistantMessage("system", `Error: ${message}`);
+              setAssistantSource("error", true);
+              return;
+            }
+
+            const data = await response.json();
+            pushAssistantMessage("assistant", data.reply || buildAssistantAnswer(cleanPrompt));
+            setAssistantSource(data.source === "bedrock" ? "Bedrock" : (data.source || "unknown"));
+          } catch (err) {
+            pushAssistantMessage("assistant", buildAssistantAnswer(cleanPrompt));
+            setAssistantSource("fallback", true);
+          } finally {
+            els.assistantSend.disabled = false;
+            els.assistantClear.disabled = false;
+          }
+        }
+
+        async function fetchJobs(career) {
+          const location = state.profile?.location || "remote";
+          const country = state.profile?.country || els.countrySelect.value || "us";
+          const url = `/api/jobs?careerId=${encodeURIComponent(career.id)}&location=${encodeURIComponent(location)}&country=${encodeURIComponent(country)}`;
+
+          try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const jobs = Array.isArray(data) ? data : [];
+            return jobs.length ? jobs : (fallbackJobs[career.id] || []);
+          } catch (err) {
+            return fallbackJobs[career.id] || [];
+          }
+        }
+
+        async function fetchMentors(career) {
+          const query = `${career.title} in:bio type:user`;
+          try {
+            const response = await fetch(`https://api.github.com/search/users?q=${encodeURIComponent(query)}&per_page=4`);
+            const data = await response.json();
+            const mentors = Array.isArray(data.items)
+              ? data.items.map((mentor) => ({
+                  login: mentor.login,
+                  html_url: mentor.html_url,
+                  bio: `Public profile related to ${career.title.toLowerCase()}`
+                }))
+              : [];
+            return mentors.length ? mentors : (fallbackMentors[career.id] || []);
+          } catch (err) {
+            return fallbackMentors[career.id] || [];
+          }
+        }
+
+        async function fetchResources(career) {
+          const keyword = career.keywords[0] || career.title;
+          try {
+            const response = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(keyword)}&per-page=4`);
+            const data = await response.json();
+            const resources = Array.isArray(data.results)
+              ? data.results.map((work) => ({
+                  title: work.display_name || "Research resource",
+                  source: work.primary_location?.source?.display_name || "OpenAlex",
+                  year: work.publication_year || "Now",
+                  url: work.primary_location?.landing_page_url || "https://openalex.org"
+                }))
+              : [];
+            return resources.length ? resources : (fallbackResources[career.id] || []);
+          } catch (err) {
+            return fallbackResources[career.id] || [];
+          }
+        }
+
+        function renderLiveJobs() {
+          els.jobsList.innerHTML = state.live.jobs.length
+            ? state.live.jobs
+                .map(
+                  (job) => `
+                    <article class="item">
+                      <h3>${job.title}</h3>
+                      <p class="tiny">${job.company_name || "Company hidden"} | ${job.location || "Location not listed"}</p>
+                      <div class="tag-row">${(job.tags || []).slice(0, 3).map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
+                      <a class="link" href="${job.url || "#"}" target="_blank" rel="noreferrer">Open job listing</a>
+                    </article>
+                  `
+                )
+                .join("")
+            : '<article class="item"><p class="tiny">No jobs found for this selection.</p></article>';
+        }
+
+        function renderMentors() {
+          els.mentorsList.innerHTML = state.live.mentors.length
+            ? state.live.mentors
+                .map(
+                  (mentor) => `
+                    <article class="item">
+                      <h3>${mentor.login || "Mentor"}</h3>
+                      <p class="tiny">${mentor.bio || "STEM mentor profile"}</p>
+                      <a class="link" href="${mentor.html_url || "#"}" target="_blank" rel="noreferrer">View profile</a>
+                    </article>
+                  `
+                )
+                .join("")
+            : '<article class="item"><p class="tiny">No mentor profiles found.</p></article>';
+        }
+
+        function renderResources() {
+          els.resourcesList.innerHTML = state.live.resources.length
+            ? state.live.resources
+                .map(
+                  (resource) => `
+                    <article class="item">
+                      <h3>${resource.title}</h3>
+                      <p class="tiny">${resource.source || "Resource"} | ${resource.year || "Now"}</p>
+                      <a class="link" href="${resource.url || "#"}" target="_blank" rel="noreferrer">Open resource</a>
+                    </article>
+                  `
+                )
+                .join("")
+            : '<article class="item"><p class="tiny">No resources matched this path yet.</p></article>';
+        }
+
+        async function loadLiveData(career) {
+          els.liveStatus.textContent = `Loading live data for ${career.title} in ${state.profile?.location || "remote"}`;
+
+          const [jobs, mentors, resources] = await Promise.all([
+            fetchJobs(career),
+            fetchMentors(career),
+            fetchResources(career)
+          ]);
+
+          state.live.jobs = jobs;
+          state.live.mentors = mentors;
+          state.live.resources = resources;
+
+          renderLiveJobs();
+          renderMentors();
+          renderResources();
+
+          els.liveStatus.textContent = `Loaded live data for ${career.title}`;
+        }
+
+        function exportSnapshot() {
+          if (!state.profile || state.rankings.length === 0) {
+            pushAssistantMessage("system", "Generate a profile first, then export snapshot.");
+            return;
+          }
+
+          const payload = {
+            exportedAt: new Date().toISOString(),
+            profile: {
+              ...state.profile,
+              interests: [...state.profile.interests],
+              strengths: [...state.profile.strengths],
+              values: [...state.profile.values],
+              workstyle: [...state.profile.workstyle]
+            },
+            topRankings: state.rankings.slice(0, 5).map((career) => ({
+              id: career.id,
+              title: career.title,
+              score: career.score,
+              reasons: career.reasons
+            })),
+            live: state.live
+          };
+
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `stem-career-snapshot-${Date.now()}.json`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+        }
+
+        function bindCareerCards() {
+          els.careerGrid.addEventListener("click", async (event) => {
+            const card = event.target.closest(".career-card");
+            if (!card) {
+              return;
+            }
+
+            const selected = state.rankings.find((career) => career.id === card.dataset.careerId);
+            if (!selected) {
+              return;
+            }
+
+            state.selectedCareerId = selected.id;
+            renderCareerGrid(state.rankings);
+            openCareerModal(selected);
+            await loadLiveData(selected);
+          });
+
+          els.careerGrid.addEventListener("keydown", async (event) => {
+            if (event.key !== "Enter" && event.key !== " ") {
+              return;
+            }
+
+            const card = event.target.closest(".career-card");
+            if (!card) {
+              return;
+            }
+
+            event.preventDefault();
+            const selected = state.rankings.find((career) => career.id === card.dataset.careerId);
+            if (!selected) {
+              return;
+            }
+
+            state.selectedCareerId = selected.id;
+            renderCareerGrid(state.rankings);
+            openCareerModal(selected);
+            await loadLiveData(selected);
+          });
+        }
+
+        function bindForm() {
+          els.profileForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const profile = getProfileFromForm();
+            renderRankings(profile);
+            syncAssistantContext();
+            const top = state.rankings[0];
+            if (top) {
+              await loadLiveData(top);
+            }
+          });
+        }
+
+        function bindAssistant() {
+          els.assistantSend.addEventListener("click", () => {
+            const prompt = els.assistantInput.value.trim() || "Explain the top career.";
+            handleAssist(prompt);
+            els.assistantInput.value = "";
+            els.assistantInput.focus();
+          });
+
+          els.assistantClear.addEventListener("click", () => {
+            resetAssistantChat();
+            els.assistantInput.focus();
+          });
+
+          els.assistantInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+              event.preventDefault();
+              els.assistantSend.click();
+            }
+          });
+        }
+
+        function bindChips() {
+          document.body.addEventListener("click", (event) => {
+            const chip = event.target.closest(".option-chip, .chip[data-prompt], .chip[data-compare]");
+            if (!chip) {
+              return;
+            }
+
+            if (chip.classList.contains("option-chip")) {
+              const group = chip.dataset.group;
+              const value = chip.dataset.value;
+              const set = state.selections[group];
+
+              if (set.has(value)) {
+                set.delete(value);
+                chip.classList.remove("active");
+              } else {
+                set.add(value);
+                chip.classList.add("active");
+              }
+
+              renderSelections();
+              return;
+            }
+
+            if (chip.dataset.prompt) {
+              handleAssist(chip.dataset.prompt);
+              return;
+            }
+
+            if (chip.dataset.compare) {
+              const [left, right] = chip.dataset.compare.split(",");
+              const leftCareer = careerCatalog.find((career) => career.id === left);
+              const rightCareer = careerCatalog.find((career) => career.id === right);
+              if (leftCareer && rightCareer) {
+                handleAssist(`Compare ${leftCareer.title} and ${rightCareer.title}.`);
+              }
+            }
+          });
+        }
+
+        function bindReset() {
+          els.resetButton.addEventListener("click", () => {
+            els.profileForm.reset();
+            els.locationInput.value = "remote";
+            els.countrySelect.value = "us";
+
+            state.selections = {
+              interests: new Set(["data"]),
+              strengths: new Set(["problem solving"]),
+              values: new Set(["impact"]),
+              workstyle: new Set(["remote"])
+            };
+            state.profile = null;
+            state.rankings = [];
+            state.selectedCareerId = null;
+            state.live = { jobs: [], mentors: [], resources: [] };
+
+            renderSelections();
+            resetAssistantChat();
+            closeCareerModal();
+            els.assistantPanel.classList.add("hidden");
+            document.querySelector(".layout").classList.remove("has-assistant");
+            els.results.classList.add("hidden");
+            els.opportunities.classList.add("hidden");
+            els.resultsMeta.textContent = "Ready to rank";
+            els.liveStatus.textContent = "Loading live data";
+            els.careerFilter.value = "";
+          });
+        }
+
+        function bindTheme() {
+          els.themeToggle.addEventListener("click", () => {
+            const next = els.root.dataset.theme === "dark" ? "light" : "dark";
+            setTheme(next);
+          });
+        }
+
+        function bindMoreActions() {
+          els.startQuiz.addEventListener("click", () => {
+            startFlow();
+          });
+
+          els.jumpOpps.addEventListener("click", () => {
+            revealOpportunities();
+          });
+
+          els.exportButton.addEventListener("click", exportSnapshot);
+
+          els.careerFilter.addEventListener("input", () => {
+            renderCareerGrid(state.rankings);
+          });
+          els.careerModalClose.addEventListener("click", closeCareerModal);
+          els.careerModalOverlay.addEventListener("click", closeCareerModal);
+          document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+              closeCareerModal();
+            }
+          });
+        }
+
+        function init() {
+          setTheme(state.theme);
+          renderSelections();
+          renderAssistantPresets();
+          resetAssistantChat();
+
+          bindTheme();
+          bindForm();
+          bindAssistant();
+          bindChips();
+          bindReset();
+          bindCareerCards();
+          bindMoreActions();
+          initChatDrawer();
+
+          els.body.classList.add("flow-start");
+          els.assistantPanel.classList.add("hidden");
+          els.results.classList.add("hidden");
+          els.opportunities.classList.add("hidden");
+        }
+
+        /* ---- Floating AI Chat Drawer ---- */
+        function initChatDrawer() {
+          const fab = document.getElementById("ai-fab");
+          const drawer = document.getElementById("chat-drawer");
+          const overlay = document.getElementById("chat-drawer-overlay");
+          const closeBtn = document.getElementById("chat-drawer-close");
+          const messagesEl = document.getElementById("chat-drawer-messages");
+          const inputEl = document.getElementById("chat-drawer-input");
+          const sendBtn = document.getElementById("chat-drawer-send");
+          const sourceBadge = document.getElementById("chat-drawer-source-badge");
+
+          function openDrawer() {
+            drawer.classList.add("open");
+            overlay.classList.add("open");
+            fab.style.display = "none";
+            inputEl.focus();
+          }
+
+          function closeDrawer() {
+            drawer.classList.remove("open");
+            overlay.classList.remove("open");
+            fab.style.display = "flex";
+          }
+
+          function pushMsg(role, text) {
+            const msg = document.createElement("div");
+            msg.className = `message ${role}`;
+            msg.textContent = text;
+            messagesEl.appendChild(msg);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+          }
+
+          async function sendMessage() {
+            const prompt = inputEl.value.trim();
+            if (!prompt) return;
+
+            pushMsg("user", prompt);
+            inputEl.value = "";
+            sendBtn.disabled = true;
+
+            try {
+              const payload = {
+                prompt,
+                profile: state.profile || {},
+                rankings: state.rankings.slice(0, 3)
+              };
+
+              const response = await fetch(assistantUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+              });
+
+              if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                pushMsg("system", `Error: ${err.error || "request failed"}`);
+                sourceBadge.textContent = "error";
+                sourceBadge.classList.add("error");
+                return;
+              }
+
+              const data = await response.json();
+              pushMsg("assistant", data.reply || "(no reply)");
+              sourceBadge.textContent = data.source === "bedrock" ? "Bedrock" : (data.source || "unknown");
+              sourceBadge.classList.remove("error");
+            } catch (e) {
+              pushMsg("system", "Connection failed. Is the server running?");
+              sourceBadge.textContent = "error";
+              sourceBadge.classList.add("error");
+            } finally {
+              sendBtn.disabled = false;
+              inputEl.focus();
+            }
+          }
+
+          fab.addEventListener("click", openDrawer);
+          closeBtn.addEventListener("click", closeDrawer);
+          overlay.addEventListener("click", closeDrawer);
+          sendBtn.addEventListener("click", sendMessage);
+
+          inputEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+              e.preventDefault();
+              sendMessage();
+            }
+          });
+
+          // Welcome message
+          pushMsg("system", "Hi! I'm your AI career coach powered by AWS Bedrock. Ask me anything about STEM careers.");
+        }
+
+        init();
+      })();
+    </script>
+  </body>
+</html>

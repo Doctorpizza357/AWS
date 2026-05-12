@@ -1,0 +1,7 @@
+.env
+node_modules
+npm-debug.log
+.vscode
+bedrock-chat.html
+ngrok.bat
+README.md
