@@ -10,10 +10,12 @@ app.use(express.static(path.join(__dirname)));
 const PORT = process.env.PORT || 3000;
 const AWS_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1';
 const BEDROCK_MODEL_ID = process.env.BEDROCK_MODEL_ID || 'us.amazon.nova-pro-v1:0';
+const bedrockToken = process.env.AWS_BEARER_TOKEN_BEDROCK?.trim();
 
-const bedrockClient = process.env.AWS_BEARER_TOKEN_BEDROCK
-  ? new BedrockRuntimeClient({ region: AWS_REGION })
-  : null;
+const bedrockClient = new BedrockRuntimeClient({
+  region: AWS_REGION,
+  ...(bedrockToken ? { token: { token: bedrockToken } } : {})
+});
 
 console.log('Bedrock client configured?', !!bedrockClient);
 
