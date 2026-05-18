@@ -1,0 +1,229 @@
+.career-path {
+  padding: 40px 0;
+}
+
+.back-btn {
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.back-btn:hover {
+  color: var(--text-primary);
+}
+
+.career-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 40px;
+  border-top: 4px solid var(--career-color);
+}
+
+.career-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.career-hero-icon {
+  font-size: 3rem;
+}
+
+.career-hero h1 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.career-hero-field {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.career-hero-desc {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.career-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.info-value {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.scenarios-section {
+  margin-bottom: 48px;
+}
+
+.scenarios-section h2 {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+.section-sub {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.scenarios-timeline {
+  position: relative;
+  padding-left: 40px;
+}
+
+.scenario-node {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.node-connector {
+  position: absolute;
+  left: -28px;
+  top: 30px;
+  bottom: -24px;
+  width: 2px;
+  background: var(--border);
+}
+
+.scenario-node:last-child .node-connector {
+  display: none;
+}
+
+.node-dot {
+  position: absolute;
+  left: -40px;
+  top: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.scenario-node.completed .node-dot {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
+.scenario-node.locked .node-dot {
+  opacity: 0.5;
+}
+
+.node-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.scenario-node.locked .node-content {
+  opacity: 0.5;
+}
+
+.node-content h3 {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+
+.node-content p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.scenario-btn {
+  padding: 8px 16px;
+  background: var(--gradient-1);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.scenario-btn:hover {
+  transform: translateY(-1px);
+}
+
+.video-section {
+  margin-bottom: 48px;
+}
+
+.video-section h2 {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.skills-section h2 {
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.skill-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.skill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
