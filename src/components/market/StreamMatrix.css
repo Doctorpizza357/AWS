@@ -1,0 +1,255 @@
+.stream-container {
+  position: relative;
+}
+
+.stream-container.compact {
+  max-height: 200px;
+  overflow: hidden;
+}
+
+/* Controls */
+.stream-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stream-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stream-filter-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #0d1321;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: 1px solid #1e293b;
+  transition: all 0.2s;
+}
+
+.stream-filter-btn:hover {
+  color: #94a3b8;
+  border-color: #334155;
+}
+
+.stream-filter-btn.active {
+  background: rgba(0, 255, 200, 0.08);
+  color: #00ffc8;
+  border-color: rgba(0, 255, 200, 0.3);
+}
+
+.stream-refresh-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #1a2235;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid #2d3a4f;
+  transition: all 0.2s;
+}
+
+.stream-refresh-btn:hover {
+  color: #00ffc8;
+  border-color: rgba(0, 255, 200, 0.3);
+}
+
+/* Job list */
+.stream-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stream-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: #0d1321;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.stream-item:hover {
+  border-color: #2d3a4f;
+  background: #111827;
+}
+
+.stream-item.animate-in {
+  animation: streamSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes streamSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.stream-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.stream-item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.stream-job-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f0f4f8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stream-match-score {
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.stream-job-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.stream-company {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.stream-separator {
+  color: #334155;
+}
+
+.stream-salary {
+  color: #00ffc8;
+  font-weight: 500;
+}
+
+.stream-tags {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.stream-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 180, 216, 0.08);
+  color: #00b4d8;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.stream-item-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  margin-left: 16px;
+}
+
+.stream-time {
+  font-size: 0.68rem;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.stream-source {
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.source-onet {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+.source-scraped {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.source-github {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+/* Status bar */
+.stream-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #1e293b;
+}
+
+.stream-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00ffc8;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.stream-status-text {
+  font-size: 0.7rem;
+  color: #475569;
+}
+
+.stream-skeleton {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.stream-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .stream-item {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stream-item-side {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 0;
+  }
+}

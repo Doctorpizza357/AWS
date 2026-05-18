@@ -1,8 +1,6 @@
+node_modules/
+build/
 .env
-node_modules
-npm-debug.log
-.vscode
-bedrock-chat.html
-ngrok.bat
-README.md
-test_bedrock.py
+.env.local
+.DS_Store
+.kiro
