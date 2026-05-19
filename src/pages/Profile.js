@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import badges from '../data/badges';
 import './Profile.css';
+import DownloadProfileButton from '../components/DownloadProfileButton';
+import { fetchSalaryData, fetchViabilityData } from '../services/marketDataService';
 
 function Profile() {
   const navigate = useNavigate();
@@ -15,6 +17,54 @@ function Profile() {
 
   const { profile, progress } = user;
   const earnedBadgeIds = progress.badges.map(b => b.id);
+
+  // Build minimal data for the downloadable profile (client-side only)
+  // Build topMatches with computed fit score and notes
+  const computeTopMatches = () => {
+    const recs = Array.isArray(user.recommendedCareers) ? user.recommendedCareers : [];
+    if (!recs.length) return [];
+    const maxScore = recs.reduce((m, r) => Math.max(m, r.matchScore || 0), 1);
+    return recs.map(r => ({
+      role: r.title || r.name || r.id,
+      score: Math.round(((r.matchScore || 0) / (maxScore || 1)) * 100),
+      note: `${r.field || ''} • ${r.salary || ''}`
+    }));
+  };
+
+  const quizResults = {
+    name: profile.name,
+    strengths: profile.skills || [],
+    topMatches: computeTopMatches(),
+    summary: profile.summary || ''
+  };
+
+  const [marketInsights, setMarketInsights] = useState({ averageSalary: '', trends: [], salarySeries: [], viability: [] });
+
+  const actionPlan = {
+    skills: (profile.skills || []).map((s, i) => ({ name: s, level: Math.min(95, 60 + (progress.level || 1) * 5 + (i * 3)) })),
+    nextSteps: []
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const primaryCareer = (user.recommendedCareers && user.recommendedCareers[0] && user.recommendedCareers[0].id) || (user.recommendedCareers && user.recommendedCareers[0] && user.recommendedCareers[0].title) || 'software-engineer';
+        const salary = await fetchSalaryData(primaryCareer);
+        const viability = await fetchViabilityData(primaryCareer);
+        if (!mounted) return;
+        setMarketInsights({
+          averageSalary: salary.historical && salary.historical.length ? `$${salary.historical[salary.historical.length-1].median.toLocaleString()}` : '',
+          trends: [(salary.predicted && salary.predicted.length) ? `Median salary projected to ${salary.predicted[salary.predicted.length-1].median}` : ''],
+          salarySeries: salary.historical || [],
+          viability: viability || []
+        });
+      } catch (err) {
+        console.warn('Market insights fetch error', err.message);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user.recommendedCareers]);
 
   const handleReset = () => {
     if (window.confirm('Are you sure? This will reset all your progress.')) {
@@ -33,6 +83,15 @@ function Profile() {
           <div>
             <h1>{profile.name}</h1>
             <p className="profile-level">Level {progress.level} Explorer</p>
+          </div>
+          <div className="profile-actions">
+            <DownloadProfileButton
+              quizResults={quizResults}
+              marketInsights={marketInsights}
+              actionPlan={actionPlan}
+              progress={progress}
+              badges={badges}
+            />
           </div>
         </div>
 

@@ -9,6 +9,28 @@
   margin-bottom: 40px;
 }
 
+.profile-actions {
+  margin-left: auto;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, #2563EB 0%, #4F46E5 100%);
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.18);
+  border: none;
+  cursor: pointer;
+}
+
+.download-btn svg { width: 18px; height: 18px; }
+
+.download-btn:hover { transform: translateY(-2px); }
+
 .profile-avatar {
   width: 64px;
   height: 64px;
