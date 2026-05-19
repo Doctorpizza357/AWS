@@ -16,8 +16,6 @@ const initialState = {
   salaryData: { historical: [], predicted: [] },
   viabilityData: [],
   streamData: [],
-  aiMessages: [],
-  aiIsStreaming: false,
   selectedState: null,
   selectedPercentile: 50,
   streamFilters: {
@@ -107,17 +105,6 @@ export function MarketIntelligenceProvider({ children }) {
     setState(prev => ({ ...prev, streamFilters: { ...prev.streamFilters, ...filters } }));
   }, []);
 
-  const addAIMessage = useCallback((message) => {
-    setState(prev => ({
-      ...prev,
-      aiMessages: [...prev.aiMessages, message],
-    }));
-  }, []);
-
-  const setAIStreaming = useCallback((isStreaming) => {
-    setState(prev => ({ ...prev, aiIsStreaming: isStreaming }));
-  }, []);
-
   const refreshJobs = useCallback(async () => {
     if (!state.selectedCareerId) return;
     setState(prev => ({ ...prev, loadingStates: { ...prev.loadingStates, stream: 'loading' } }));
@@ -144,8 +131,6 @@ export function MarketIntelligenceProvider({ children }) {
       selectCareer,
       selectState,
       setStreamFilters,
-      addAIMessage,
-      setAIStreaming,
       refreshJobs,
       loadAllData,
     }}>

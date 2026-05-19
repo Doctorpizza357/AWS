@@ -6,7 +6,6 @@ import MarketPulseHeatmap from '../components/market/MarketPulseHeatmap';
 import PredictiveSalaryArc from '../components/market/PredictiveSalaryArc';
 import ViabilityIndexRadar from '../components/market/ViabilityIndexRadar';
 import StreamMatrix from '../components/market/StreamMatrix';
-import AIAssistantPanel from '../components/market/AIAssistantPanel';
 import careers from '../data/careers';
 import './MarketIntelligence.css';
 
@@ -25,7 +24,6 @@ function MarketIntelligence() {
   } = useMarketIntelligence();
 
   const [activePanel, setActivePanel] = useState('overview');
-  const [aiOpen, setAiOpen] = useState(false);
 
   useEffect(() => {
     if (!user.isOnboarded) {
@@ -216,16 +214,6 @@ function MarketIntelligence() {
         )}
       </div>
 
-      {/* AI Assistant */}
-      <AIAssistantPanel
-        isOpen={aiOpen}
-        onToggle={() => setAiOpen(!aiOpen)}
-        careerContext={{
-          careerId: selectedCareerId,
-          careerTitle: selectedCareer?.title,
-          currentPanel: activePanel,
-        }}
-      />
     </div>
   );
 }

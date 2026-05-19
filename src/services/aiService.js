@@ -1,7 +1,12 @@
-// AI Service - Generates career scenarios using OpenAI GPT-4
+// AI Service - Generates career scenarios using AWS Bedrock
 // For demo purposes, includes fallback mock responses
 
-const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
+const AWS_BEARER_TOKEN = process.env.REACT_APP_AWS_BEARER_TOKEN || '';
+const AWS_REGION = process.env.REACT_APP_AWS_REGION || 'us-east-1';
+const MODEL_ID = process.env.REACT_APP_BEDROCK_MODEL_ID || 'anthropic.claude-3-5-sonnet-20241022-v2:0';
+
+const BEDROCK_ENDPOINT = `https://bedrock-runtime.${AWS_REGION}.amazonaws.com/model/${encodeURIComponent(MODEL_ID)}/converse`;
+const SYSTEM_PROMPT = 'You are a career simulation engine. Always respond with valid JSON.';
 
 const generateScenarioPrompt = (career, scenario, userProfile) => {
   return `You are a career simulation engine for a STEM career exploration platform.
@@ -34,36 +39,48 @@ Each option should have different XP rewards (10-25) and trait tags.`;
 };
 
 export async function generateScenario(career, scenario, userProfile) {
-  if (OPENAI_API_KEY) {
+  if (AWS_BEARER_TOKEN) {
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch(BEDROCK_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${AWS_BEARER_TOKEN}`,
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4',
+          modelId: MODEL_ID,
           messages: [
             {
-              role: 'system',
-              content: 'You are a career simulation engine. Always respond with valid JSON.',
-            },
-            {
               role: 'user',
-              content: generateScenarioPrompt(career, scenario, userProfile),
+              content: [{ text: generateScenarioPrompt(career, scenario, userProfile) }],
             },
           ],
-          temperature: 0.8,
-          max_tokens: 1000,
+          system: [{ text: SYSTEM_PROMPT }],
+          inferenceConfig: {
+            maxTokens: 1000,
+            temperature: 0.8,
+            topP: 0.9,
+          },
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Bedrock API error: ${response.status} ${errorText}`);
+      }
+
       const data = await response.json();
-      const content = data.choices[0].message.content;
-      return JSON.parse(content);
+      const assistantContent = data.output?.message?.content || [];
+      const responseText = assistantContent.map(block => block.text || '').join('\n').trim();
+
+      if (!responseText) {
+        throw new Error('Bedrock response did not include any text content');
+      }
+
+      return parseScenarioJson(responseText);
     } catch (error) {
-      console.warn('AI API failed, using fallback:', error);
+      console.warn('Bedrock API failed, using fallback:', error);
       return getFallbackScenario(career, scenario);
     }
   }
@@ -135,4 +152,26 @@ function getFallbackScenario(career, scenario) {
   };
 
   return fallbacks[scenario.id] || genericFallback;
+}
+
+function parseScenarioJson(responseText) {
+  try {
+    return JSON.parse(responseText);
+  } catch (error) {
+    const trimmedText = responseText.trim();
+    const fencedMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+
+    if (fencedMatch) {
+      return JSON.parse(fencedMatch[1]);
+    }
+
+    const startIndex = trimmedText.indexOf('{');
+    const endIndex = trimmedText.lastIndexOf('}');
+
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      return JSON.parse(trimmedText.slice(startIndex, endIndex + 1));
+    }
+
+    throw error;
+  }
 }
