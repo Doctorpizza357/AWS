@@ -147,6 +147,41 @@
 .hamburger.open::before { top: 0; transform: rotate(45deg); }
 .hamburger.open::after { top: 0; transform: rotate(-45deg); }
 
+.nav-logout {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-logout:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.nav-login {
+  background: var(--gradient-1);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+}
+
+.nav-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+}
+
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import { useAuth } from '../context/AuthContext';
 import badges from '../data/badges';
 import './Profile.css';
 import DownloadProfileButton from '../components/DownloadProfileButton';
@@ -8,10 +9,20 @@ import { fetchSalaryData, fetchViabilityData } from '../services/marketDataServi
 
 function Profile() {
   const navigate = useNavigate();
-  const { user, resetProgress } = useUser();
+  const { user, resetProgress, isHydrating } = useUser();
+  const { user: authUser } = useAuth();
+
+  useEffect(() => {
+    if (!isHydrating && !user.isOnboarded) {
+      navigate('/onboarding');
+    }
+  }, [isHydrating, user.isOnboarded, navigate]);
+
+  if (isHydrating) {
+    return null;
+  }
 
   if (!user.isOnboarded) {
-    navigate('/onboarding');
     return null;
   }
 
@@ -78,10 +89,14 @@ function Profile() {
       <div className="container">
         <div className="profile-header fade-in">
           <div className="profile-avatar">
-            {profile.name.charAt(0).toUpperCase()}
+            {authUser?.photoURL ? (
+              <img src={authUser.photoURL} alt={authUser.displayName || 'User'} className="profile-picture" />
+            ) : (
+              profile.name.charAt(0).toUpperCase()
+            )}
           </div>
           <div>
-            <h1>{profile.name}</h1>
+            <h1>{authUser?.displayName || profile.name}</h1>
             <p className="profile-level">Level {progress.level} Explorer</p>
           </div>
           <div className="profile-actions">

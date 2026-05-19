@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import CareerCard from '../components/CareerCard';
@@ -6,10 +6,19 @@ import './Dashboard.css';
 
 function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, isHydrating } = useUser();
+
+  useEffect(() => {
+    if (!isHydrating && !user.isOnboarded) {
+      navigate('/onboarding');
+    }
+  }, [isHydrating, user.isOnboarded, navigate]);
+
+  if (isHydrating) {
+    return null;
+  }
 
   if (!user.isOnboarded) {
-    navigate('/onboarding');
     return null;
   }
 
