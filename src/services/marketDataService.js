@@ -415,88 +415,9 @@ function extractDecemberValues(series) {
 // ─── Job Stream ──────────────────────────────────────────────────────────────
 
 /**
- * Job listings derived from real BLS wage percentile data.
- * Uses actual p25/p75 wages to generate salary-accurate representative listings.
+ * Job listings are coming soon.
+ * Return an empty list for now.
  */
-export async function fetchJobListings(careerId) {
-  const soc = CAREER_SOC[careerId];
-  if (!soc) return [];
-
-  // Fetch real wage percentiles
-  const ids = [
-    nationalSeriesId(soc, '12'), // p25
-    nationalSeriesId(soc, '13'), // median
-    nationalSeriesId(soc, '14'), // p75
-  ];
-  const series = await fetchMultipleSeries(ids);
-  const p25 = latestAnnualValue(series[0]) || 80000;
-  const median = latestAnnualValue(series[1]) || 100000;
-  const p75 = latestAnnualValue(series[2]) || 130000;
-
-  return buildListings(careerId, p25, median, p75);
-}
-
-const TEMPLATES = {
-  'software-engineer': [
-    { title: 'Senior Software Engineer', company: 'Tech Company', location: 'San Francisco, CA', tags: ['Cloud', 'Distributed Systems', 'API Design'] },
-    { title: 'Full Stack Developer', company: 'Startup', location: 'New York, NY', tags: ['React', 'Node.js', 'TypeScript'] },
-    { title: 'Platform Engineer', company: 'Enterprise', location: 'Seattle, WA', tags: ['Kubernetes', 'Go', 'Infrastructure'] },
-    { title: 'Backend Engineer', company: 'Fintech', location: 'Austin, TX', tags: ['Java', 'Microservices', 'AWS'] },
-    { title: 'ML Infrastructure Engineer', company: 'AI Company', location: 'Remote', tags: ['Python', 'ML Systems', 'GPU'] },
-    { title: 'Mobile Engineer', company: 'Consumer App', location: 'Los Angeles, CA', tags: ['iOS', 'Swift', 'React Native'] },
-    { title: 'DevOps Engineer', company: 'SaaS', location: 'Denver, CO', tags: ['CI/CD', 'Terraform', 'Monitoring'] },
-    { title: 'Embedded Systems Developer', company: 'Hardware', location: 'San Jose, CA', tags: ['C++', 'RTOS', 'Firmware'] },
-  ],
-  'data-scientist': [
-    { title: 'Senior Data Scientist', company: 'Tech Company', location: 'San Francisco, CA', tags: ['ML', 'Python', 'Statistics'] },
-    { title: 'Applied ML Engineer', company: 'Media Company', location: 'Los Angeles, CA', tags: ['Deep Learning', 'NLP', 'Spark'] },
-    { title: 'Quantitative Analyst', company: 'Finance', location: 'New York, NY', tags: ['Statistics', 'Python', 'R'] },
-    { title: 'Research Scientist', company: 'AI Lab', location: 'Remote', tags: ['Research', 'PyTorch', 'Publications'] },
-    { title: 'Data Engineer', company: 'Enterprise', location: 'Chicago, IL', tags: ['ETL', 'SQL', 'Cloud'] },
-    { title: 'NLP Engineer', company: 'AI Startup', location: 'Seattle, WA', tags: ['NLP', 'LLMs', 'Transformers'] },
-  ],
-  'biomedical-engineer': [
-    { title: 'Biomedical Device Engineer', company: 'Medical Devices', location: 'Minneapolis, MN', tags: ['FDA', 'Design Controls', 'Testing'] },
-    { title: 'Clinical Systems Engineer', company: 'Robotics', location: 'Sunnyvale, CA', tags: ['Robotics', 'Systems', 'Safety'] },
-    { title: 'Regulatory Affairs Specialist', company: 'Pharma', location: 'Boston, MA', tags: ['FDA 510(k)', 'Quality', 'Compliance'] },
-    { title: 'R&D Engineer', company: 'Biotech', location: 'San Diego, CA', tags: ['Research', 'Prototyping', 'Biology'] },
-    { title: 'Quality Engineer', company: 'Medical', location: 'New Jersey', tags: ['ISO 13485', 'CAPA', 'Validation'] },
-  ],
-  'aerospace-engineer': [
-    { title: 'Propulsion Engineer', company: 'Space Company', location: 'Hawthorne, CA', tags: ['Rocket Engines', 'Thermodynamics', 'Testing'] },
-    { title: 'Structures Engineer', company: 'Aerospace', location: 'Seattle, WA', tags: ['FEA', 'Composites', 'Design'] },
-    { title: 'GNC Engineer', company: 'Defense', location: 'Huntsville, AL', tags: ['Guidance', 'Navigation', 'Control'] },
-    { title: 'Systems Engineer', company: 'Satellite', location: 'Denver, CO', tags: ['Spacecraft', 'Requirements', 'Integration'] },
-    { title: 'Flight Test Engineer', company: 'Aviation', location: 'Wichita, KS', tags: ['Flight Testing', 'Certification', 'Data'] },
-  ],
-  'environmental-scientist': [
-    { title: 'Environmental Consultant', company: 'Engineering Firm', location: 'Denver, CO', tags: ['EIA', 'Remediation', 'Compliance'] },
-    { title: 'Climate Analyst', company: 'Government', location: 'Washington, DC', tags: ['Climate Modeling', 'GIS', 'Data'] },
-    { title: 'Sustainability Engineer', company: 'Energy', location: 'Austin, TX', tags: ['Renewable Energy', 'LCA', 'Carbon'] },
-    { title: 'Water Resources Scientist', company: 'Consulting', location: 'Portland, OR', tags: ['Hydrology', 'Water Quality', 'Modeling'] },
-    { title: 'ESG Analyst', company: 'Finance', location: 'New York, NY', tags: ['ESG Metrics', 'Sustainability', 'Reporting'] },
-  ],
-};
-
-function buildListings(careerId, p25, median, p75) {
-  const templates = TEMPLATES[careerId] || TEMPLATES['software-engineer'];
-  const soc = CAREER_SOC[careerId];
-
-  return templates.map((job, i) => {
-    // Senior roles (top of list) get higher salary multiplier
-    const mult = 1 + (templates.length - i - 1) * 0.08;
-    const low = Math.round(p25 * mult / 1000) * 1000;
-    const high = Math.round(p75 * mult / 1000) * 1000;
-
-    return {
-      id: `${careerId}-${i}-${Date.now()}`,
-      ...job,
-      salary: `$${low.toLocaleString()} - $${high.toLocaleString()}`,
-      postedDate: new Date(Date.now() - i * 86400000).toISOString(),
-      url: `https://www.bls.gov/oes/current/oes${soc}.htm`,
-      semanticTags: job.tags,
-      matchScore: 95 - i * 4,
-      source: 'bls-derived',
-    };
-  });
+export async function fetchJobListings() {
+  return [];
 }

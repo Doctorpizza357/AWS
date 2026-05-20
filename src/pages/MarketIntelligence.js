@@ -40,7 +40,7 @@ function MarketIntelligence() {
     if (isLoading) return { text: 'Fetching live data...', color: 'var(--accent)' };
     const hasErrors = Object.values(loadingStates).some(s => s === 'error');
     if (hasErrors) return { text: 'Partial data available', color: 'var(--danger)' };
-    return { text: 'All systems nominal', color: '#00ffc8' };
+    return { text: 'Status: Operational', color: '#00ffc8' };
   };
 
   const status = getStatusIndicator();
@@ -149,7 +149,7 @@ function MarketIntelligence() {
             <div className="mi-panel mi-panel-stream" onClick={() => setActivePanel('stream')}>
               <div className="mi-panel-header">
                 <h3>Live Job Stream</h3>
-                <span className="mi-panel-badge live">● Live</span>
+                <span className="mi-panel-badge live">Coming Soon</span>
               </div>
               <StreamMatrix
                 data={streamData}
