@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/logo.png';
 import './Navbar.css';
 
 function Navbar() {
@@ -32,7 +33,7 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-brand">
-          <span className="brand-icon">🧭</span>
+          <img src={logo} alt="STEM PathfindR" className="brand-icon" />
           <span className="brand-text">STEM PathfindR</span>
         </Link>
 
