@@ -5,7 +5,6 @@ import { useMarketIntelligence } from '../context/MarketIntelligenceContext';
 import MarketPulseHeatmap from '../components/market/MarketPulseHeatmap';
 import PredictiveSalaryArc from '../components/market/PredictiveSalaryArc';
 import ViabilityIndexRadar from '../components/market/ViabilityIndexRadar';
-import StreamMatrix from '../components/market/StreamMatrix';
 import careers from '../data/careers';
 import './MarketIntelligence.css';
 
@@ -19,7 +18,7 @@ function MarketIntelligence() {
     heatmapData,
     salaryData,
     viabilityData,
-    streamData,
+    // streamData removed
     lastFetchTimestamps,
   } = useMarketIntelligence();
 
@@ -92,7 +91,6 @@ function MarketIntelligence() {
           { id: 'heatmap', label: 'Market Pulse', icon: '🗺️' },
           { id: 'salary', label: 'Salary Arc', icon: '📈' },
           { id: 'viability', label: 'Viability Index', icon: '🎯' },
-          { id: 'stream', label: 'Job Stream', icon: '⚡' },
         ].map(tab => (
           <button
             key={tab.id}
@@ -146,17 +144,7 @@ function MarketIntelligence() {
               />
             </div>
 
-            <div className="mi-panel mi-panel-stream" onClick={() => setActivePanel('stream')}>
-              <div className="mi-panel-header">
-                <h3>Live Job Stream</h3>
-                <span className="mi-panel-badge live">Coming Soon</span>
-              </div>
-              <StreamMatrix
-                data={streamData}
-                loading={loadingStates.stream === 'loading'}
-                compact
-              />
-            </div>
+            {/* Live Job Stream removed */}
           </div>
         )}
 
@@ -200,18 +188,7 @@ function MarketIntelligence() {
           </div>
         )}
 
-        {activePanel === 'stream' && (
-          <div className="mi-panel mi-panel-full">
-            <div className="mi-panel-header">
-              <h3>Real-Time Job Stream — {selectedCareer.title}</h3>
-              <span className="mi-panel-badge live">● Live Feed</span>
-            </div>
-            <StreamMatrix
-              data={streamData}
-              loading={loadingStates.stream === 'loading'}
-            />
-          </div>
-        )}
+        {/* Stream panel removed */}
       </div>
 
     </div>
