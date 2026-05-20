@@ -14,6 +14,7 @@ function Simulation() {
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState(null);
   const [showOutcome, setShowOutcome] = useState(false);
+  const [awardedXp, setAwardedXp] = useState(null);
   const [startTime] = useState(Date.now());
 
   const career = careers.find(c => c.id === careerId);
@@ -41,20 +42,27 @@ function Simulation() {
     setSelectedOption(option);
     setShowOutcome(true);
 
-    // Award XP
-    addXP(option.xp);
+    // Determine whether this scenario has already been completed
+    const alreadyCompleted = user.progress.completedScenarios.includes(scenarioId);
 
-    // Record decision
-    addDecision({
-      careerId: career.id,
-      careerTitle: career.title,
-      scenarioId: scenario.id,
-      scenarioTitle: scenario.title,
-      choice: option.text,
-      xp: option.xp,
-      traits: option.traits,
-      timestamp: Date.now(),
-    });
+    // Award XP only if the scenario hasn't been completed before
+    const xpToAward = alreadyCompleted ? 0 : option.xp;
+    if (xpToAward > 0) addXP(xpToAward);
+    setAwardedXp(xpToAward);
+
+    // Record decision only if this is the first meaningful completion
+    if (!alreadyCompleted) {
+      addDecision({
+        careerId: career.id,
+        careerTitle: career.title,
+        scenarioId: scenario.id,
+        scenarioTitle: scenario.title,
+        choice: option.text,
+        xp: xpToAward,
+        traits: option.traits,
+        timestamp: Date.now(),
+      });
+    }
 
     // Check for badges
     const elapsed = (Date.now() - startTime) / 1000;
@@ -159,7 +167,6 @@ function Simulation() {
                       >
                         <span className="option-letter">{option.id.toUpperCase()}</span>
                         <span className="option-text">{option.text}</span>
-                        <span className="option-xp">+{option.xp} XP</span>
                       </button>
                     ))}
                   </div>
@@ -173,7 +180,7 @@ function Simulation() {
                     </p>
                     <p className="outcome-result">{selectedOption.outcome}</p>
                     <div className="outcome-rewards">
-                      <span className="reward-xp">+{selectedOption.xp} XP earned</span>
+                      <span className="reward-xp">+{awardedXp ?? selectedOption.xp} XP earned</span>
                       <div className="reward-traits">
                         {selectedOption.traits.map(trait => (
                           <span key={trait} className="trait-tag">{trait}</span>
