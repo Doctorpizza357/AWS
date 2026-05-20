@@ -175,3 +175,26 @@ function parseScenarioJson(responseText) {
     throw error;
   }
 }
+
+// Frontend -> backend assistant relay
+export async function sendAssistantMessage(message) {
+  if (!message || typeof message !== 'string') {
+    throw new Error('Empty message');
+  }
+
+  const resp = await fetch('/api/assistant/message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ message }),
+  });
+
+  const json = await resp.json().catch(() => null);
+
+  if (!resp.ok) {
+    const err = (json && json.message) || `Assistant endpoint returned ${resp.status}`;
+    const payload = { ok: false, message: err, detail: json };
+    return payload;
+  }
+
+  return { ok: true, assistant: json.assistant || (json && json.message) || '' };
+}

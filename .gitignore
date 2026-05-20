@@ -2,5 +2,7 @@ node_modules/
 build/
 .env
 .env.local
+server/.env
+.server.env
 .DS_Store
 .kiro

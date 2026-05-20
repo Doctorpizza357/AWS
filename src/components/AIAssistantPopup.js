@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, Sparkles, X } from 'lucide-react';
+import { sendAssistantMessage } from '../services/aiService';
 import './AIAssistantPopup.css';
 
 function AIAssistantPopup() {
@@ -36,60 +37,42 @@ function AIAssistantPopup() {
     };
   }, [isOpen]);
 
-  const buildPreviewResponse = (message) => {
-    const normalized = message.toLowerCase();
-
-    if (normalized.includes('next step') || normalized.includes('career')) {
-      return 'I’m not working yet. This assistant shell is ready, but the AI connection is not hooked up.';
-    }
-
-    if (normalized.includes('compare') || normalized.includes('two roles')) {
-      return 'I’m not working yet. This assistant shell is ready, but the AI connection is not hooked up.';
-    }
-
-    if (normalized.includes('skill') || normalized.includes('build')) {
-      return 'I’m not working yet. This assistant shell is ready, but the AI connection is not hooked up.';
-    }
-
-    if (normalized.includes('profile') || normalized.includes('strength')) {
-      return 'I’m not working yet. This assistant shell is ready, but the AI connection is not hooked up.';
-    }
-
-    return 'I’m not working yet. This assistant shell is ready, but the AI connection is not hooked up.';
-  };
-
-  const sendMessage = (rawText) => {
+  const sendMessage = async (rawText) => {
     const text = rawText.trim();
 
-    if (!text || isTyping) {
-      return;
-    }
+    if (!text || isTyping) return;
 
-    const userMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      text,
-    };
-
+    const userMessage = { id: `user-${Date.now()}`, role: 'user', text };
     setMessages((current) => [...current, userMessage]);
     setInputValue('');
     setIsTyping(true);
 
-    if (responseTimerRef.current) {
-      window.clearTimeout(responseTimerRef.current);
-    }
+    try {
+      const result = await sendAssistantMessage(text);
 
-    responseTimerRef.current = window.setTimeout(() => {
+      let assistantText = '';
+      if (result && result.ok) {
+        assistantText = result.assistant || 'No response from assistant.';
+      } else {
+        assistantText = (result && result.message) || 'Assistant is not available.';
+      }
+
+      setMessages((current) => [
+        ...current,
+        { id: `assistant-${Date.now()}`, role: 'assistant', text: assistantText },
+      ]);
+    } catch (err) {
       setMessages((current) => [
         ...current,
         {
           id: `assistant-${Date.now()}`,
           role: 'assistant',
-          text: buildPreviewResponse(text),
+          text: 'Assistant error: Unable to reach backend. Try again later.',
         },
       ]);
+    } finally {
       setIsTyping(false);
-    }, 700);
+    }
   };
 
   const handleSubmit = (event) => {
