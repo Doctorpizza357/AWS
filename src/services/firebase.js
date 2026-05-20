@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getAnalytics } from 'firebase/analytics';
 
 // Replace with your Firebase config from Firebase Console
 // Go to: Project Settings > Your apps > Web > Copy the config
@@ -21,5 +22,8 @@ export const auth = getAuth(app);
 
 // Initialize Firestore
 export const db = getFirestore(app);
+
+// Initialize Analytics
+export const analytics = getAnalytics(app);
 
 export default app;
