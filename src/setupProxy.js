@@ -6,7 +6,7 @@ module.exports = function (app) {
     createProxyMiddleware({
       target: 'https://api.bls.gov',
       changeOrigin: true,
-      pathRewrite: { '^/api/bls': '/publicAPI/v1/timeseries/data' },
+      pathRewrite: { '^/api/bls': '/publicAPI/v2/timeseries/data' },
     })
   );
 };

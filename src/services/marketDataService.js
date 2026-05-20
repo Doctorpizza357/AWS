@@ -1,6 +1,6 @@
 /**
  * Market Data Service
- * Fetches real data from BLS Public Data API v1 (no registration required).
+ * Fetches real data from BLS Public Data API v2.
  *
  * OE (OEWS) Series ID format (from oe.txt / hlpforma.htm):
  *   Position 1-2:  OE (survey prefix)
@@ -17,15 +17,16 @@
  *   14=Annual 75th pct, 15=Annual 90th pct,
  *   16=Emp per 1000, 17=Location Quotient
  *
- * API v1: GET https://api.bls.gov/publicAPI/v1/timeseries/data/{seriesId}
- *   - No registration needed
- *   - Returns last 3 years of data
- *   - Max 25 series per request (POST)
+ * API v2: POST https://api.bls.gov/publicAPI/v2/timeseries/data/
+ *   - Supports a registration key
+ *   - Returns the requested date range
+ *   - Max 20 series per request
  */
 
 // Proxied through CRA dev server (see src/setupProxy.js) to avoid CORS.
 // In production, replace with your own backend proxy or serverless function.
-const BLS_V1_BASE = '/api/bls/';
+const BLS_API_BASE = '/api/bls/';
+const BLS_API_KEY = process.env.REACT_APP_BLS_API_KEY;
 
 // SOC codes (6 digits, no dash)
 const CAREER_SOC = {
@@ -73,39 +74,48 @@ function nationalSeriesId(socCode, datatypeCode) {
 }
 
 /**
- * Fetch a single series via BLS API v1 GET.
- * Returns the data array from the response.
+ * Fetch a single series via BLS API v2 POST.
+ * Returns the series object from the response.
  */
 async function fetchSeries(seriesId) {
-  const url = `${BLS_V1_BASE}${seriesId}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`BLS API returned ${res.status}`);
-  const json = await res.json();
-  if (json.status !== 'REQUEST_SUCCEEDED') {
-    throw new Error(json.message?.[0] || 'BLS request failed');
-  }
-  return json.Results.series[0];
+  const [series] = await fetchMultipleSeries([seriesId]);
+  return series;
 }
 
 /**
- * Fetch multiple series via BLS API v1 POST (up to 25 per request, no key needed).
- * Automatically batches if more than 25 series are requested.
- * Note: v1 has a limit of ~25 requests/day without registration.
+ * Fetch multiple series via BLS API v2 POST.
+ * Automatically batches if more than 20 series are requested.
  */
 async function fetchMultipleSeries(seriesIds) {
-  // Batch into chunks of 25 (v1 limit)
-  const BATCH_SIZE = 25;
+  // Batch into chunks of 20 (v2 limit)
+  const BATCH_SIZE = 20;
   const chunks = [];
   for (let i = 0; i < seriesIds.length; i += BATCH_SIZE) {
     chunks.push(seriesIds.slice(i, i + BATCH_SIZE));
   }
 
+  const currentYear = new Date().getFullYear();
+
+  const buildRequestBody = (chunk) => {
+    const body = {
+      seriesid: chunk,
+      startyear: String(currentYear - 10),
+      endyear: String(currentYear),
+    };
+
+    if (BLS_API_KEY) {
+      body.registrationkey = BLS_API_KEY;
+    }
+
+    return body;
+  };
+
   let allSeries = [];
   for (const chunk of chunks) {
-    const res = await fetch(BLS_V1_BASE, {
+    const res = await fetch(BLS_API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ seriesid: chunk }),
+      body: JSON.stringify(buildRequestBody(chunk)),
     });
 
     if (!res.ok) throw new Error(`BLS API returned ${res.status}`);
@@ -141,7 +151,7 @@ export async function fetchSalaryData(careerId) {
     nationalSeriesId(soc, '15'), // Annual 90th percentile
   ];
 
-  // v1 POST — returns last 3 years, no registration
+  // v2 POST — returns the requested range when a key is provided
   const results = await fetchMultipleSeries(seriesIds);
 
   // Collect all years from the response
@@ -217,7 +227,7 @@ export async function fetchMarketOverview(careerId) {
 /**
  * Heatmap data: state-level Location Quotient, Mean Wage, Employment.
  * 
- * BLS v1 has a 25 queries/day limit for unregistered users.
+ * BLS v2 supports a registration key and a larger request window.
  * Strategy: fetch LQ + wage for 10 key states in one request (20 series),
  * then use national data to estimate the rest.
  */
