@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import CareerPath from './pages/CareerPath';
 import Simulation from './pages/Simulation';
 import Profile from './pages/Profile';
+import AIAssistantPopup from './components/AIAssistantPopup';
 import { UserProvider } from './context/UserContext';
 import { MarketIntelligenceProvider } from './context/MarketIntelligenceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -46,6 +47,7 @@ function AppContent() {
             </Routes>
           </Suspense>
         </main>
+        <AIAssistantPopup />
       </div>
     </UserProvider>
   );
