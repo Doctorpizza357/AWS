@@ -1,239 +1,193 @@
 /**
  * Market Data Service
- * Fetches real data from BLS API v2, O*NET, and generates predictions.
- * Uses BLS public API (no key required for basic access, key for higher limits).
+ * Fetches real data from BLS Public Data API v1 (no registration required).
+ *
+ * OE (OEWS) Series ID format (from oe.txt / hlpforma.htm):
+ *   Position 1-2:  OE (survey prefix)
+ *   Position 3:    U  (seasonal adjustment, U=unadjusted)
+ *   Position 4:    Area type (N=National, S=State, M=Metropolitan)
+ *   Position 5-11: Area code (7 digits; national=0000000, state=SS00000)
+ *   Position 12-17: Industry code (6 digits; 000000=cross-industry)
+ *   Position 18-23: Occupation code (6 digits; SOC without dash)
+ *   Position 24-25: Datatype code (2 digits)
+ *
+ * Datatype codes (from oe.datatype):
+ *   01=Employment, 04=Annual mean wage,
+ *   11=Annual 10th pct, 12=Annual 25th pct, 13=Annual median,
+ *   14=Annual 75th pct, 15=Annual 90th pct,
+ *   16=Emp per 1000, 17=Location Quotient
+ *
+ * API v1: GET https://api.bls.gov/publicAPI/v1/timeseries/data/{seriesId}
+ *   - No registration needed
+ *   - Returns last 3 years of data
+ *   - Max 25 series per request (POST)
  */
 
-const BLS_API_BASE = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
-const BLS_API_KEY = process.env.REACT_APP_BLS_API_KEY || '';
+// Proxied through CRA dev server (see src/setupProxy.js) to avoid CORS.
+// In production, replace with your own backend proxy or serverless function.
+const BLS_V1_BASE = '/api/bls/';
 
-// BLS Series ID mappings for STEM occupations
-const CAREER_BLS_MAPPING = {
-  'software-engineer': {
-    socCode: '15-1252',
-    wageSeriesPrefix: 'OEUM',
-    employmentSeries: 'CES5051200001',
-    title: 'Software Developers',
-  },
-  'data-scientist': {
-    socCode: '15-2051',
-    wageSeriesPrefix: 'OEUM',
-    employmentSeries: 'CES5051200001',
-    title: 'Data Scientists',
-  },
-  'biomedical-engineer': {
-    socCode: '17-2031',
-    wageSeriesPrefix: 'OEUM',
-    employmentSeries: 'CES3000000001',
-    title: 'Biomedical Engineers',
-  },
-  'aerospace-engineer': {
-    socCode: '17-2011',
-    wageSeriesPrefix: 'OEUM',
-    employmentSeries: 'CES3136400001',
-    title: 'Aerospace Engineers',
-  },
-  'environmental-scientist': {
-    socCode: '19-2041',
-    wageSeriesPrefix: 'OEUM',
-    employmentSeries: 'CES5051200001',
-    title: 'Environmental Scientists',
-  },
+// SOC codes (6 digits, no dash)
+const CAREER_SOC = {
+  'software-engineer': '151252',
+  'data-scientist': '152051',
+  'biomedical-engineer': '172031',
+  'aerospace-engineer': '172011',
+  'environmental-scientist': '192041',
 };
 
-// State FIPS codes for heatmap
 const STATE_FIPS = {
-  'AL': '01', 'AK': '02', 'AZ': '04', 'AR': '05', 'CA': '06',
-  'CO': '08', 'CT': '09', 'DE': '10', 'FL': '12', 'GA': '13',
-  'HI': '15', 'ID': '16', 'IL': '17', 'IN': '18', 'IA': '19',
-  'KS': '20', 'KY': '21', 'LA': '22', 'ME': '23', 'MD': '24',
-  'MA': '25', 'MI': '26', 'MN': '27', 'MS': '28', 'MO': '29',
-  'MT': '30', 'NE': '31', 'NV': '32', 'NH': '33', 'NJ': '34',
-  'NM': '35', 'NY': '36', 'NC': '37', 'ND': '38', 'OH': '39',
-  'OK': '40', 'OR': '41', 'PA': '42', 'RI': '44', 'SC': '45',
-  'SD': '46', 'TN': '47', 'TX': '48', 'UT': '49', 'VT': '50',
-  'VA': '51', 'WA': '53', 'WV': '54', 'WI': '55', 'WY': '56',
+  'AL':'01','AK':'02','AZ':'04','AR':'05','CA':'06','CO':'08','CT':'09',
+  'DE':'10','FL':'12','GA':'13','HI':'15','ID':'16','IL':'17','IN':'18',
+  'IA':'19','KS':'20','KY':'21','LA':'22','ME':'23','MD':'24','MA':'25',
+  'MI':'26','MN':'27','MS':'28','MO':'29','MT':'30','NE':'31','NV':'32',
+  'NH':'33','NJ':'34','NM':'35','NY':'36','NC':'37','ND':'38','OH':'39',
+  'OK':'40','OR':'41','PA':'42','RI':'44','SC':'45','SD':'46','TN':'47',
+  'TX':'48','UT':'49','VT':'50','VA':'51','WA':'53','WV':'54','WI':'55',
+  'WY':'56',
 };
 
 const STATE_NAMES = {
-  'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
-  'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
-  'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho',
-  'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
-  'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
-  'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi',
-  'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada',
-  'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico', 'NY': 'New York',
-  'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
-  'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
-  'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
-  'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
-  'WI': 'Wisconsin', 'WY': 'Wyoming',
+  'AL':'Alabama','AK':'Alaska','AZ':'Arizona','AR':'Arkansas',
+  'CA':'California','CO':'Colorado','CT':'Connecticut','DE':'Delaware',
+  'FL':'Florida','GA':'Georgia','HI':'Hawaii','ID':'Idaho',
+  'IL':'Illinois','IN':'Indiana','IA':'Iowa','KS':'Kansas',
+  'KY':'Kentucky','LA':'Louisiana','ME':'Maine','MD':'Maryland',
+  'MA':'Massachusetts','MI':'Michigan','MN':'Minnesota','MS':'Mississippi',
+  'MO':'Missouri','MT':'Montana','NE':'Nebraska','NV':'Nevada',
+  'NH':'New Hampshire','NJ':'New Jersey','NM':'New Mexico','NY':'New York',
+  'NC':'North Carolina','ND':'North Dakota','OH':'Ohio','OK':'Oklahoma',
+  'OR':'Oregon','PA':'Pennsylvania','RI':'Rhode Island','SC':'South Carolina',
+  'SD':'South Dakota','TN':'Tennessee','TX':'Texas','UT':'Utah',
+  'VT':'Vermont','VA':'Virginia','WA':'Washington','WV':'West Virginia',
+  'WI':'Wisconsin','WY':'Wyoming',
 };
 
 /**
- * Fetch BLS time series data
+ * Build a national OE series ID.
+ * Example: OEUN000000000000015125213
+ *   OE + U + N + 0000000 + 000000 + 151252 + 13
  */
-async function fetchBLSSeries(seriesIds, startYear, endYear) {
-  try {
-    const payload = {
-      seriesid: seriesIds,
-      startyear: String(startYear),
-      endyear: String(endYear),
-      registrationkey: BLS_API_KEY || undefined,
-    };
+function nationalSeriesId(socCode, datatypeCode) {
+  return `OEUN0000000000000${socCode}${datatypeCode}`;
+}
 
-    const response = await fetch(BLS_API_BASE, {
+/**
+ * Fetch a single series via BLS API v1 GET.
+ * Returns the data array from the response.
+ */
+async function fetchSeries(seriesId) {
+  const url = `${BLS_V1_BASE}${seriesId}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`BLS API returned ${res.status}`);
+  const json = await res.json();
+  if (json.status !== 'REQUEST_SUCCEEDED') {
+    throw new Error(json.message?.[0] || 'BLS request failed');
+  }
+  return json.Results.series[0];
+}
+
+/**
+ * Fetch multiple series via BLS API v1 POST (up to 25 per request, no key needed).
+ * Automatically batches if more than 25 series are requested.
+ * Note: v1 has a limit of ~25 requests/day without registration.
+ */
+async function fetchMultipleSeries(seriesIds) {
+  // Batch into chunks of 25 (v1 limit)
+  const BATCH_SIZE = 25;
+  const chunks = [];
+  for (let i = 0; i < seriesIds.length; i += BATCH_SIZE) {
+    chunks.push(seriesIds.slice(i, i + BATCH_SIZE));
+  }
+
+  let allSeries = [];
+  for (const chunk of chunks) {
+    const res = await fetch(BLS_V1_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ seriesid: chunk }),
     });
 
-    if (!response.ok) throw new Error(`BLS API error: ${response.status}`);
-    const data = await response.json();
+    if (!res.ok) throw new Error(`BLS API returned ${res.status}`);
+    const json = await res.json();
 
-    if (data.status === 'REQUEST_SUCCEEDED') {
-      return data.Results.series;
+    if (json.status !== 'REQUEST_SUCCEEDED') {
+      console.error('[BLS] Request failed:', json.message, 'Series:', chunk[0]);
+      throw new Error(json.message?.join('; ') || 'BLS request failed');
     }
-    throw new Error(data.message?.[0] || 'BLS API request failed');
-  } catch (error) {
-    console.warn('BLS API fetch failed, using computed data:', error.message);
-    return null;
+    allSeries = allSeries.concat(json.Results.series);
   }
+
+  return allSeries;
 }
 
+// ─── PUBLIC API ──────────────────────────────────────────────────────────────
+
 /**
- * Generate realistic market data based on BLS statistical models
- * Uses actual BLS methodology for wage distributions and growth rates
+ * Predictive Salary Arc — the one we're testing.
+ * Fetches national percentile wages (p10, p25, median, p75, p90) from BLS,
+ * then projects forward using the observed growth rate.
  */
-function generateRealisticHeatmapData(careerId) {
-  const career = CAREER_BLS_MAPPING[careerId];
-  if (!career) return [];
+export async function fetchSalaryData(careerId) {
+  const soc = CAREER_SOC[careerId];
+  if (!soc) return { historical: [], predicted: [] };
 
-  // Real BLS-sourced base wages and employment concentrations by state
-  const stateData = {
-    'software-engineer': {
-      hotStates: ['CA', 'WA', 'NY', 'TX', 'MA', 'VA', 'CO', 'IL', 'NJ', 'GA'],
-      baseWage: 127260, // BLS 2023 median for 15-1252
-      nationalEmployment: 1847900,
-    },
-    'data-scientist': {
-      hotStates: ['CA', 'NY', 'WA', 'MA', 'VA', 'TX', 'IL', 'NJ', 'MD', 'DC'],
-      baseWage: 108020,
-      nationalEmployment: 192000,
-    },
-    'biomedical-engineer': {
-      hotStates: ['CA', 'MA', 'MN', 'IN', 'NJ', 'PA', 'TX', 'IL', 'NY', 'MD'],
-      baseWage: 99550,
-      nationalEmployment: 23200,
-    },
-    'aerospace-engineer': {
-      hotStates: ['CA', 'TX', 'WA', 'AL', 'FL', 'AZ', 'CO', 'VA', 'CT', 'OH'],
-      baseWage: 126880,
-      nationalEmployment: 66400,
-    },
-    'environmental-scientist': {
-      hotStates: ['CA', 'TX', 'FL', 'VA', 'CO', 'WA', 'NY', 'PA', 'MD', 'NC'],
-      baseWage: 78980,
-      nationalEmployment: 86900,
-    },
-  };
+  // Build series IDs for each percentile (national, cross-industry)
+  const seriesIds = [
+    nationalSeriesId(soc, '11'), // Annual 10th percentile
+    nationalSeriesId(soc, '12'), // Annual 25th percentile
+    nationalSeriesId(soc, '13'), // Annual median
+    nationalSeriesId(soc, '14'), // Annual 75th percentile
+    nationalSeriesId(soc, '15'), // Annual 90th percentile
+  ];
 
-  const careerData = stateData[careerId] || stateData['software-engineer'];
-  const states = Object.keys(STATE_FIPS);
+  // v1 POST — returns last 3 years, no registration
+  const results = await fetchMultipleSeries(seriesIds);
 
-  return states.map(stateCode => {
-    const isHot = careerData.hotStates.includes(stateCode);
-    const hotRank = careerData.hotStates.indexOf(stateCode);
-
-    // Location quotient: hot states get 1.2-3.5, others get 0.3-1.1
-    let lq;
-    if (isHot) {
-      lq = 3.5 - (hotRank * 0.25) + (Math.random() * 0.3 - 0.15);
-    } else {
-      lq = 0.3 + Math.random() * 0.8;
-    }
-
-    // Employment proportional to LQ
-    const employment = Math.round((careerData.nationalEmployment / 50) * lq * (0.8 + Math.random() * 0.4));
-
-    // Wage varies by state cost of living
-    const costMultiplier = isHot ? (1.1 + hotRank * 0.02) : (0.85 + Math.random() * 0.2);
-    const meanWage = Math.round(careerData.baseWage * costMultiplier);
-
-    // YoY change
-    const percentChange = isHot ? (2 + Math.random() * 6) : (-2 + Math.random() * 5);
-
-    return {
-      stateCode,
-      stateName: STATE_NAMES[stateCode],
-      locationQuotient: Math.round(lq * 100) / 100,
-      employment,
-      meanWage,
-      percentChange: Math.round(percentChange * 10) / 10,
-    };
+  // Collect all years from the response
+  const yearsSet = new Set();
+  results.forEach(s => {
+    if (s?.data) s.data.forEach(d => { if (d.value !== '-') yearsSet.add(+d.year); });
   });
-}
+  const years = [...yearsSet].sort((a, b) => a - b);
 
-/**
- * Generate historical salary data based on BLS OES survey methodology
- */
-function generateHistoricalSalaryData(careerId) {
-  const career = CAREER_BLS_MAPPING[careerId];
-  if (!career) return { historical: [], predicted: [] };
-
-  // Real BLS base wages (approximate 2023 values)
-  const baseWages = {
-    'software-engineer': { p10: 74600, p25: 98300, median: 127260, p75: 160100, p90: 202000 },
-    'data-scientist': { p10: 61400, p25: 80200, median: 108020, p75: 141200, p90: 184800 },
-    'biomedical-engineer': { p10: 62200, p25: 77800, median: 99550, p75: 126800, p90: 159200 },
-    'aerospace-engineer': { p10: 81000, p25: 100400, median: 126880, p75: 158600, p90: 190000 },
-    'environmental-scientist': { p10: 48800, p25: 60200, median: 78980, p75: 101200, p90: 129000 },
-  };
-
-  const wages = baseWages[careerId] || baseWages['software-engineer'];
-
-  // Growth rates by career (annual, based on BLS projections)
-  const growthRates = {
-    'software-engineer': 0.045,
-    'data-scientist': 0.055,
-    'biomedical-engineer': 0.035,
-    'aerospace-engineer': 0.03,
-    'environmental-scientist': 0.025,
-  };
-
-  const growthRate = growthRates[careerId] || 0.04;
-  const historical = [];
-
-  // Generate 2015-2026 historical data
-  for (let year = 2015; year <= 2026; year++) {
-    const yearsFromBase = year - 2023;
-    const multiplier = Math.pow(1 + growthRate, yearsFromBase);
-    const noise = 1 + (Math.random() * 0.02 - 0.01);
-
-    historical.push({
-      year,
-      p10: Math.round(wages.p10 * multiplier * noise),
-      p25: Math.round(wages.p25 * multiplier * noise),
-      median: Math.round(wages.median * multiplier * noise),
-      p75: Math.round(wages.p75 * multiplier * noise),
-      p90: Math.round(wages.p90 * multiplier * noise),
-      source: 'BLS',
+  // Map to historical array
+  const keys = ['p10', 'p25', 'median', 'p75', 'p90'];
+  const historical = years.map(year => {
+    const row = { year, source: 'BLS' };
+    keys.forEach((key, idx) => {
+      const series = results[idx];
+      const point = series?.data?.find(d => d.year === String(year) && d.value !== '-');
+      row[key] = point ? Math.round(parseFloat(point.value)) : null;
     });
+    return row;
+  }).filter(r => r.median != null);
+
+  // Calculate CAGR from observed median values
+  let cagr = 0.035;
+  if (historical.length >= 2) {
+    const first = historical[0];
+    const last = historical[historical.length - 1];
+    const n = last.year - first.year;
+    if (n > 0 && first.median > 0) {
+      cagr = Math.pow(last.median / first.median, 1 / n) - 1;
+    }
   }
 
-  // Generate 2027-2035 predictions with confidence intervals
-  const predicted = [];
-  for (let year = 2027; year <= 2035; year++) {
-    const yearsFromBase = year - 2023;
-    const multiplier = Math.pow(1 + growthRate, yearsFromBase);
-    const uncertainty = (year - 2026) * 0.015; // Growing uncertainty
+  // Project forward 10 years
+  const lastMedian = historical[historical.length - 1]?.median || 100000;
+  const lastYear = historical[historical.length - 1]?.year || 2024;
 
+  const predicted = [];
+  for (let y = lastYear + 1; y <= lastYear + 10; y++) {
+    const out = y - lastYear;
+    const med = Math.round(lastMedian * Math.pow(1 + cagr, out));
+    const unc = out * 0.015;
     predicted.push({
-      year,
-      median: Math.round(wages.median * multiplier),
-      confidenceLow: Math.round(wages.median * multiplier * (1 - uncertainty)),
-      confidenceHigh: Math.round(wages.median * multiplier * (1 + uncertainty)),
+      year: y,
+      median: med,
+      confidenceLow: Math.round(med * (1 - unc)),
+      confidenceHigh: Math.round(med * (1 + unc)),
       source: 'PREDICTION',
     });
   }
@@ -241,198 +195,298 @@ function generateHistoricalSalaryData(careerId) {
   return { historical, predicted };
 }
 
-/**
- * Generate viability index data based on O*NET and BLS metrics
- */
-function generateViabilityData(careerId) {
-  const viabilityScores = {
-    'software-engineer': [
-      { id: 'ai-displacement', label: 'AI Displacement Risk', value: 35, rawValue: 0.35, unit: 'risk score', trend: 'up' },
-      { id: 'capital-inflow', label: 'Capital Inflow Rate', value: 88, rawValue: 245.6, unit: 'B USD', trend: 'up' },
-      { id: 'supply-demand', label: 'Supply vs Demand', value: 72, rawValue: 1.4, unit: 'ratio', trend: 'stable' },
-      { id: 'wage-growth', label: 'Wage Growth vs Inflation', value: 78, rawValue: 4.5, unit: '% real', trend: 'up' },
-      { id: 'cola-delta', label: 'COLA Adjusted Value', value: 65, rawValue: -12.3, unit: '% delta', trend: 'down' },
-    ],
-    'data-scientist': [
-      { id: 'ai-displacement', label: 'AI Displacement Risk', value: 42, rawValue: 0.42, unit: 'risk score', trend: 'up' },
-      { id: 'capital-inflow', label: 'Capital Inflow Rate', value: 92, rawValue: 312.8, unit: 'B USD', trend: 'up' },
-      { id: 'supply-demand', label: 'Supply vs Demand', value: 68, rawValue: 1.6, unit: 'ratio', trend: 'up' },
-      { id: 'wage-growth', label: 'Wage Growth vs Inflation', value: 82, rawValue: 5.5, unit: '% real', trend: 'up' },
-      { id: 'cola-delta', label: 'COLA Adjusted Value', value: 60, rawValue: -15.1, unit: '% delta', trend: 'down' },
-    ],
-    'biomedical-engineer': [
-      { id: 'ai-displacement', label: 'AI Displacement Risk', value: 18, rawValue: 0.18, unit: 'risk score', trend: 'stable' },
-      { id: 'capital-inflow', label: 'Capital Inflow Rate', value: 74, rawValue: 89.2, unit: 'B USD', trend: 'up' },
-      { id: 'supply-demand', label: 'Supply vs Demand', value: 55, rawValue: 2.1, unit: 'ratio', trend: 'down' },
-      { id: 'wage-growth', label: 'Wage Growth vs Inflation', value: 62, rawValue: 3.5, unit: '% real', trend: 'stable' },
-      { id: 'cola-delta', label: 'COLA Adjusted Value', value: 72, rawValue: -5.8, unit: '% delta', trend: 'up' },
-    ],
-    'aerospace-engineer': [
-      { id: 'ai-displacement', label: 'AI Displacement Risk', value: 22, rawValue: 0.22, unit: 'risk score', trend: 'stable' },
-      { id: 'capital-inflow', label: 'Capital Inflow Rate', value: 80, rawValue: 156.4, unit: 'B USD', trend: 'up' },
-      { id: 'supply-demand', label: 'Supply vs Demand', value: 78, rawValue: 1.2, unit: 'ratio', trend: 'up' },
-      { id: 'wage-growth', label: 'Wage Growth vs Inflation', value: 68, rawValue: 3.0, unit: '% real', trend: 'stable' },
-      { id: 'cola-delta', label: 'COLA Adjusted Value', value: 70, rawValue: -8.2, unit: '% delta', trend: 'stable' },
-    ],
-    'environmental-scientist': [
-      { id: 'ai-displacement', label: 'AI Displacement Risk', value: 15, rawValue: 0.15, unit: 'risk score', trend: 'stable' },
-      { id: 'capital-inflow', label: 'Capital Inflow Rate', value: 65, rawValue: 42.1, unit: 'B USD', trend: 'up' },
-      { id: 'supply-demand', label: 'Supply vs Demand', value: 48, rawValue: 2.4, unit: 'ratio', trend: 'down' },
-      { id: 'wage-growth', label: 'Wage Growth vs Inflation', value: 52, rawValue: 2.5, unit: '% real', trend: 'stable' },
-      { id: 'cola-delta', label: 'COLA Adjusted Value', value: 78, rawValue: -3.2, unit: '% delta', trend: 'up' },
-    ],
-  };
-
-  return viabilityScores[careerId] || viabilityScores['software-engineer'];
-}
+// ─── Heatmap: state-level LQ, wage, employment ──────────────────────────────
 
 /**
- * Generate realistic job listings based on current market
+ * Build a state-level OE series ID.
+ * Example for Alabama (FIPS 01), SOC 151252, datatype 17 (LQ):
+ *   OE + U + S + 0100000 + 000000 + 151252 + 17
  */
-function generateJobListings(careerId) {
-  const jobTemplates = {
-    'software-engineer': [
-      { title: 'Senior Backend Engineer', company: 'Amazon Web Services', location: 'Seattle, WA', salary: '$165,000 - $210,000', tags: ['Cloud Architecture', 'Distributed Systems', 'Java'] },
-      { title: 'Full Stack Developer', company: 'Stripe', location: 'San Francisco, CA', salary: '$150,000 - $195,000', tags: ['React', 'Node.js', 'TypeScript'] },
-      { title: 'Platform Engineer', company: 'Google', location: 'Mountain View, CA', salary: '$175,000 - $240,000', tags: ['Kubernetes', 'Go', 'Infrastructure'] },
-      { title: 'Software Engineer II', company: 'Microsoft', location: 'Redmond, WA', salary: '$140,000 - $185,000', tags: ['C#', '.NET', 'Azure'] },
-      { title: 'ML Infrastructure Engineer', company: 'OpenAI', location: 'San Francisco, CA', salary: '$200,000 - $350,000', tags: ['Python', 'CUDA', 'ML Systems'] },
-      { title: 'Frontend Engineer', company: 'Vercel', location: 'Remote', salary: '$130,000 - $170,000', tags: ['Next.js', 'React', 'Performance'] },
-      { title: 'DevOps Engineer', company: 'Datadog', location: 'New York, NY', salary: '$145,000 - $190,000', tags: ['CI/CD', 'Terraform', 'Monitoring'] },
-      { title: 'Embedded Systems Developer', company: 'Tesla', location: 'Austin, TX', salary: '$135,000 - $180,000', tags: ['C++', 'RTOS', 'Firmware'] },
-    ],
-    'data-scientist': [
-      { title: 'Senior Data Scientist', company: 'Meta', location: 'Menlo Park, CA', salary: '$170,000 - $230,000', tags: ['ML', 'Python', 'Experimentation'] },
-      { title: 'Applied ML Engineer', company: 'Netflix', location: 'Los Gatos, CA', salary: '$180,000 - $280,000', tags: ['Recommendation Systems', 'Deep Learning', 'Spark'] },
-      { title: 'Data Scientist - NLP', company: 'Anthropic', location: 'San Francisco, CA', salary: '$190,000 - $300,000', tags: ['NLP', 'LLMs', 'Research'] },
-      { title: 'Quantitative Analyst', company: 'Citadel', location: 'Chicago, IL', salary: '$200,000 - $400,000', tags: ['Statistics', 'Finance', 'Python'] },
-      { title: 'ML Engineer', company: 'Spotify', location: 'New York, NY', salary: '$155,000 - $210,000', tags: ['Audio ML', 'PyTorch', 'Production ML'] },
-      { title: 'Research Scientist', company: 'DeepMind', location: 'London / Remote', salary: '$160,000 - $250,000', tags: ['Reinforcement Learning', 'Research', 'TensorFlow'] },
-    ],
-    'biomedical-engineer': [
-      { title: 'Biomedical Device Engineer', company: 'Medtronic', location: 'Minneapolis, MN', salary: '$95,000 - $130,000', tags: ['Medical Devices', 'FDA', 'Design Controls'] },
-      { title: 'Clinical Systems Engineer', company: 'Intuitive Surgical', location: 'Sunnyvale, CA', salary: '$110,000 - $155,000', tags: ['Robotics', 'Surgery', 'Systems'] },
-      { title: 'Tissue Engineer', company: 'Organovo', location: 'San Diego, CA', salary: '$85,000 - $120,000', tags: ['3D Bioprinting', 'Cell Biology', 'Research'] },
-      { title: 'Regulatory Affairs Specialist', company: 'Boston Scientific', location: 'Marlborough, MA', salary: '$90,000 - $125,000', tags: ['FDA 510(k)', 'Quality', 'Compliance'] },
-      { title: 'Neural Interface Engineer', company: 'Neuralink', location: 'Austin, TX', salary: '$130,000 - $180,000', tags: ['Neuroscience', 'Electronics', 'Signal Processing'] },
-    ],
-    'aerospace-engineer': [
-      { title: 'Propulsion Engineer', company: 'SpaceX', location: 'Hawthorne, CA', salary: '$120,000 - $165,000', tags: ['Rocket Engines', 'Thermodynamics', 'Testing'] },
-      { title: 'Structures Engineer', company: 'Boeing', location: 'Seattle, WA', salary: '$105,000 - $145,000', tags: ['FEA', 'Composites', 'Aircraft Design'] },
-      { title: 'GNC Engineer', company: 'Blue Origin', location: 'Kent, WA', salary: '$130,000 - $175,000', tags: ['Guidance', 'Navigation', 'Control Systems'] },
-      { title: 'Satellite Systems Engineer', company: 'Lockheed Martin', location: 'Denver, CO', salary: '$115,000 - $155,000', tags: ['Spacecraft', 'Orbital Mechanics', 'Systems'] },
-      { title: 'Flight Test Engineer', company: 'Joby Aviation', location: 'Santa Cruz, CA', salary: '$110,000 - $150,000', tags: ['eVTOL', 'Flight Testing', 'Certification'] },
-    ],
-    'environmental-scientist': [
-      { title: 'Environmental Consultant', company: 'AECOM', location: 'Denver, CO', salary: '$72,000 - $98,000', tags: ['EIA', 'Remediation', 'Compliance'] },
-      { title: 'Climate Data Analyst', company: 'NOAA', location: 'Silver Spring, MD', salary: '$80,000 - $110,000', tags: ['Climate Modeling', 'GIS', 'Remote Sensing'] },
-      { title: 'Sustainability Engineer', company: 'Tesla Energy', location: 'Austin, TX', salary: '$95,000 - $130,000', tags: ['Renewable Energy', 'LCA', 'Carbon'] },
-      { title: 'Water Resources Scientist', company: 'Stantec', location: 'Portland, OR', salary: '$68,000 - $95,000', tags: ['Hydrology', 'Water Quality', 'Modeling'] },
-      { title: 'ESG Analyst', company: 'BlackRock', location: 'New York, NY', salary: '$100,000 - $145,000', tags: ['ESG Metrics', 'Sustainability', 'Finance'] },
-    ],
-  };
-
-  const listings = jobTemplates[careerId] || jobTemplates['software-engineer'];
-
-  return listings.map((job, index) => ({
-    id: `${careerId}-${index}-${Date.now()}`,
-    ...job,
-    postedDate: getRandomRecentDate(),
-    url: '#',
-    semanticTags: job.tags,
-    matchScore: 70 + Math.floor(Math.random() * 30),
-    source: ['onet', 'scraped', 'github'][Math.floor(Math.random() * 3)],
-  }));
+function stateSeriesId(fips, socCode, datatypeCode) {
+  return `OEUS${fips}00000000000${socCode}${datatypeCode}`;
 }
-
-function getRandomRecentDate() {
-  const now = new Date();
-  const daysAgo = Math.floor(Math.random() * 14);
-  const date = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-  return date.toISOString();
-}
-
-// ============ PUBLIC API ============
 
 export async function fetchMarketOverview(careerId) {
-  // Try BLS API first, fall back to computed data
-  const blsData = await fetchBLSSeries(
-    [CAREER_BLS_MAPPING[careerId]?.employmentSeries || 'CES5051200001'],
-    2020,
-    2024
-  );
-
-  if (blsData) {
-    return { source: 'BLS_LIVE', data: blsData };
-  }
-
-  return { source: 'COMPUTED', data: generateRealisticHeatmapData(careerId) };
+  const soc = CAREER_SOC[careerId];
+  if (!soc) return { source: 'PENDING', data: [] };
+  const id = nationalSeriesId(soc, '01'); // national employment
+  const series = await fetchMultipleSeries([id]);
+  return { source: 'BLS_LIVE', data: series };
 }
 
+/**
+ * Heatmap data: state-level Location Quotient, Mean Wage, Employment.
+ * 
+ * BLS v1 has a 25 queries/day limit for unregistered users.
+ * Strategy: fetch LQ + wage for 10 key states in one request (20 series),
+ * then use national data to estimate the rest.
+ */
 export async function fetchHeatmapData(careerId) {
-  // Attempt BLS OEWS data fetch
-  const career = CAREER_BLS_MAPPING[careerId];
-  if (!career) return generateRealisticHeatmapData(careerId);
+  const soc = CAREER_SOC[careerId];
+  if (!soc) return [];
 
-  try {
-    // BLS OEWS state-level data endpoint
-    const response = await fetch(
-      `https://api.bls.gov/publicAPI/v2/timeseries/data/`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          seriesid: [`OEUN000000000000${career.socCode.replace('-', '')}03`],
-          startyear: '2023',
-          endyear: '2024',
-          registrationkey: BLS_API_KEY || undefined,
-        }),
-      }
-    );
+  // Top 10 states by tech employment — fetch real data for these
+  const keyStates = ['CA','TX','NY','WA','VA','MA','IL','FL','PA','CO'];
+  const keyFips = keyStates.map(s => STATE_FIPS[s]);
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.length > 0) {
-        // Transform BLS response to our format
-        console.log('BLS heatmap data fetched successfully');
-      }
+  // Build series: LQ + mean wage for key states (20 series, fits in 1 request)
+  const ids = [];
+  keyFips.forEach(f => {
+    ids.push(stateSeriesId(f, soc, '17')); // LQ
+    ids.push(stateSeriesId(f, soc, '04')); // Mean wage
+  });
+
+  // Also get national employment for context
+  ids.push(nationalSeriesId(soc, '01'));
+
+  const series = await fetchMultipleSeries(ids);
+
+  // Parse key state data
+  const keyStateData = {};
+  keyStates.forEach((code, i) => {
+    const lqSeries = series[i * 2];
+    const wageSeries = series[i * 2 + 1];
+    keyStateData[code] = {
+      locationQuotient: latestAnnualValue(lqSeries) || 0,
+      meanWage: latestAnnualValue(wageSeries) || 0,
+    };
+  });
+
+  const nationalEmp = latestAnnualValue(series[series.length - 1]) || 0;
+
+  // Build full state array: real data for key states, estimated for others
+  const allStates = Object.entries(STATE_FIPS);
+  return allStates.map(([stateCode]) => {
+    const real = keyStateData[stateCode];
+    if (real) {
+      return {
+        stateCode,
+        stateName: STATE_NAMES[stateCode],
+        locationQuotient: Math.round(real.locationQuotient * 100) / 100,
+        employment: Math.round(nationalEmp / 50 * real.locationQuotient),
+        meanWage: Math.round(real.meanWage),
+        percentChange: 0,
+      };
     }
-  } catch (err) {
-    console.warn('BLS heatmap fetch failed, using computed data:', err.message);
-  }
-
-  // Return computed data based on BLS statistical models
-  return generateRealisticHeatmapData(careerId);
+    // For non-key states, use a baseline LQ of ~0.5-0.8
+    return {
+      stateCode,
+      stateName: STATE_NAMES[stateCode],
+      locationQuotient: 0.6,
+      employment: Math.round(nationalEmp / 100),
+      meanWage: 0,
+      percentChange: 0,
+    };
+  });
 }
 
-export async function fetchSalaryData(careerId) {
-  const career = CAREER_BLS_MAPPING[careerId];
-  if (!career) return generateHistoricalSalaryData(careerId);
-
-  try {
-    // Try fetching real BLS wage data
-    const seriesId = `OEUM000000000000${career.socCode.replace('-', '')}03`;
-    const blsData = await fetchBLSSeries([seriesId], 2015, 2024);
-
-    if (blsData && blsData.length > 0) {
-      console.log('BLS salary data fetched successfully');
-      // Even with real data, we still need predictions
-    }
-  } catch (err) {
-    console.warn('BLS salary fetch failed:', err.message);
-  }
-
-  return generateHistoricalSalaryData(careerId);
+/** Extract latest annual value (period A01) from a series. */
+function latestAnnualValue(series) {
+  if (!series?.data?.length) return null;
+  const annual = series.data.find(d => d.period === 'A01' && d.value !== '-');
+  if (annual) return parseFloat(annual.value);
+  const any = series.data.find(d => d.value !== '-');
+  return any ? parseFloat(any.value) : null;
 }
 
+// ─── Viability Index ─────────────────────────────────────────────────────────
+
+/**
+ * Viability: derived from real BLS national employment + wage data vs CPI.
+ * Uses CPI-U (CUUR0000SA0) for inflation comparison.
+ */
 export async function fetchViabilityData(careerId) {
-  // O*NET automation data would be fetched here
-  // For now, using computed scores based on O*NET methodology
-  return generateViabilityData(careerId);
+  const soc = CAREER_SOC[careerId];
+  if (!soc) return [];
+
+  const empId = nationalSeriesId(soc, '01');   // Employment
+  const wageId = nationalSeriesId(soc, '04');  // Annual mean wage
+  const cpiId = 'CUUR0000SA0';                 // CPI-U All Items
+
+  const series = await fetchMultipleSeries([empId, wageId, cpiId]);
+  const empS = series[0];
+  const wageS = series[1];
+  const cpiS = series[2];
+
+  // Get values for growth calculation (v1 gives ~3 years)
+  const empVals = extractYearValues(empS);
+  const wageVals = extractYearValues(wageS);
+  const cpiVals = extractDecemberValues(cpiS);
+
+  // Employment growth %
+  let empGrowth = 0;
+  const empYears = Object.keys(empVals).sort();
+  if (empYears.length >= 2) {
+    const oldest = empVals[empYears[0]];
+    const newest = empVals[empYears[empYears.length - 1]];
+    if (oldest > 0) empGrowth = ((newest - oldest) / oldest) * 100;
+  }
+
+  // Wage growth %
+  let wageGrowth = 0;
+  const wageYears = Object.keys(wageVals).sort();
+  if (wageYears.length >= 2) {
+    const oldest = wageVals[wageYears[0]];
+    const newest = wageVals[wageYears[wageYears.length - 1]];
+    if (oldest > 0) wageGrowth = ((newest - oldest) / oldest) * 100;
+  }
+
+  // CPI inflation %
+  let inflation = 0;
+  const cpiYears = Object.keys(cpiVals).sort();
+  if (cpiYears.length >= 2) {
+    const oldest = cpiVals[cpiYears[0]];
+    const newest = cpiVals[cpiYears[cpiYears.length - 1]];
+    if (oldest > 0) inflation = ((newest - oldest) / oldest) * 100;
+  }
+
+  const realWage = wageGrowth - inflation;
+  const clamp = (v) => Math.max(10, Math.min(90, Math.round(v)));
+  const trend = (v) => v > 2 ? 'up' : v < -2 ? 'down' : 'stable';
+
+  return [
+    {
+      id: 'ai-displacement', label: 'AI Displacement Risk',
+      value: clamp(50 - empGrowth * 3),
+      rawValue: Math.round((50 - empGrowth * 3)) / 100,
+      unit: 'risk score', trend: trend(-empGrowth),
+    },
+    {
+      id: 'capital-inflow', label: 'Capital Inflow Rate',
+      value: clamp(50 + (empGrowth + wageGrowth) * 2),
+      rawValue: Math.round((empGrowth + wageGrowth) * 10) / 10,
+      unit: '% combined growth', trend: trend(empGrowth + wageGrowth),
+    },
+    {
+      id: 'supply-demand', label: 'Supply vs Demand',
+      value: clamp(50 + empGrowth * 5),
+      rawValue: Math.round(empGrowth * 10) / 10,
+      unit: '% emp growth', trend: trend(empGrowth),
+    },
+    {
+      id: 'wage-growth', label: 'Wage Growth vs Inflation',
+      value: clamp(50 + realWage * 4),
+      rawValue: Math.round(realWage * 10) / 10,
+      unit: '% real', trend: trend(realWage),
+    },
+    {
+      id: 'cola-delta', label: 'COLA Adjusted Value',
+      value: clamp(50 + realWage * 5),
+      rawValue: Math.round(realWage * 10) / 10,
+      unit: '% delta', trend: trend(realWage),
+    },
+  ];
 }
 
-export async function fetchJobListings(careerId, filters = {}) {
-  // In production, this would hit a scraping Lambda
-  // Returns realistic current listings
-  return generateJobListings(careerId);
+/** Extract annual (A01) values keyed by year. */
+function extractYearValues(series) {
+  const vals = {};
+  if (!series?.data) return vals;
+  series.data.forEach(d => {
+    if (d.period === 'A01' && d.value !== '-') {
+      vals[d.year] = parseFloat(d.value);
+    }
+  });
+  return vals;
+}
+
+/** Extract December (M12) CPI values keyed by year. */
+function extractDecemberValues(series) {
+  const vals = {};
+  if (!series?.data) return vals;
+  series.data.forEach(d => {
+    if (d.period === 'M12' && d.value !== '-') {
+      vals[d.year] = parseFloat(d.value);
+    }
+  });
+  return vals;
+}
+
+// ─── Job Stream ──────────────────────────────────────────────────────────────
+
+/**
+ * Job listings derived from real BLS wage percentile data.
+ * Uses actual p25/p75 wages to generate salary-accurate representative listings.
+ */
+export async function fetchJobListings(careerId) {
+  const soc = CAREER_SOC[careerId];
+  if (!soc) return [];
+
+  // Fetch real wage percentiles
+  const ids = [
+    nationalSeriesId(soc, '12'), // p25
+    nationalSeriesId(soc, '13'), // median
+    nationalSeriesId(soc, '14'), // p75
+  ];
+  const series = await fetchMultipleSeries(ids);
+  const p25 = latestAnnualValue(series[0]) || 80000;
+  const median = latestAnnualValue(series[1]) || 100000;
+  const p75 = latestAnnualValue(series[2]) || 130000;
+
+  return buildListings(careerId, p25, median, p75);
+}
+
+const TEMPLATES = {
+  'software-engineer': [
+    { title: 'Senior Software Engineer', company: 'Tech Company', location: 'San Francisco, CA', tags: ['Cloud', 'Distributed Systems', 'API Design'] },
+    { title: 'Full Stack Developer', company: 'Startup', location: 'New York, NY', tags: ['React', 'Node.js', 'TypeScript'] },
+    { title: 'Platform Engineer', company: 'Enterprise', location: 'Seattle, WA', tags: ['Kubernetes', 'Go', 'Infrastructure'] },
+    { title: 'Backend Engineer', company: 'Fintech', location: 'Austin, TX', tags: ['Java', 'Microservices', 'AWS'] },
+    { title: 'ML Infrastructure Engineer', company: 'AI Company', location: 'Remote', tags: ['Python', 'ML Systems', 'GPU'] },
+    { title: 'Mobile Engineer', company: 'Consumer App', location: 'Los Angeles, CA', tags: ['iOS', 'Swift', 'React Native'] },
+    { title: 'DevOps Engineer', company: 'SaaS', location: 'Denver, CO', tags: ['CI/CD', 'Terraform', 'Monitoring'] },
+    { title: 'Embedded Systems Developer', company: 'Hardware', location: 'San Jose, CA', tags: ['C++', 'RTOS', 'Firmware'] },
+  ],
+  'data-scientist': [
+    { title: 'Senior Data Scientist', company: 'Tech Company', location: 'San Francisco, CA', tags: ['ML', 'Python', 'Statistics'] },
+    { title: 'Applied ML Engineer', company: 'Media Company', location: 'Los Angeles, CA', tags: ['Deep Learning', 'NLP', 'Spark'] },
+    { title: 'Quantitative Analyst', company: 'Finance', location: 'New York, NY', tags: ['Statistics', 'Python', 'R'] },
+    { title: 'Research Scientist', company: 'AI Lab', location: 'Remote', tags: ['Research', 'PyTorch', 'Publications'] },
+    { title: 'Data Engineer', company: 'Enterprise', location: 'Chicago, IL', tags: ['ETL', 'SQL', 'Cloud'] },
+    { title: 'NLP Engineer', company: 'AI Startup', location: 'Seattle, WA', tags: ['NLP', 'LLMs', 'Transformers'] },
+  ],
+  'biomedical-engineer': [
+    { title: 'Biomedical Device Engineer', company: 'Medical Devices', location: 'Minneapolis, MN', tags: ['FDA', 'Design Controls', 'Testing'] },
+    { title: 'Clinical Systems Engineer', company: 'Robotics', location: 'Sunnyvale, CA', tags: ['Robotics', 'Systems', 'Safety'] },
+    { title: 'Regulatory Affairs Specialist', company: 'Pharma', location: 'Boston, MA', tags: ['FDA 510(k)', 'Quality', 'Compliance'] },
+    { title: 'R&D Engineer', company: 'Biotech', location: 'San Diego, CA', tags: ['Research', 'Prototyping', 'Biology'] },
+    { title: 'Quality Engineer', company: 'Medical', location: 'New Jersey', tags: ['ISO 13485', 'CAPA', 'Validation'] },
+  ],
+  'aerospace-engineer': [
+    { title: 'Propulsion Engineer', company: 'Space Company', location: 'Hawthorne, CA', tags: ['Rocket Engines', 'Thermodynamics', 'Testing'] },
+    { title: 'Structures Engineer', company: 'Aerospace', location: 'Seattle, WA', tags: ['FEA', 'Composites', 'Design'] },
+    { title: 'GNC Engineer', company: 'Defense', location: 'Huntsville, AL', tags: ['Guidance', 'Navigation', 'Control'] },
+    { title: 'Systems Engineer', company: 'Satellite', location: 'Denver, CO', tags: ['Spacecraft', 'Requirements', 'Integration'] },
+    { title: 'Flight Test Engineer', company: 'Aviation', location: 'Wichita, KS', tags: ['Flight Testing', 'Certification', 'Data'] },
+  ],
+  'environmental-scientist': [
+    { title: 'Environmental Consultant', company: 'Engineering Firm', location: 'Denver, CO', tags: ['EIA', 'Remediation', 'Compliance'] },
+    { title: 'Climate Analyst', company: 'Government', location: 'Washington, DC', tags: ['Climate Modeling', 'GIS', 'Data'] },
+    { title: 'Sustainability Engineer', company: 'Energy', location: 'Austin, TX', tags: ['Renewable Energy', 'LCA', 'Carbon'] },
+    { title: 'Water Resources Scientist', company: 'Consulting', location: 'Portland, OR', tags: ['Hydrology', 'Water Quality', 'Modeling'] },
+    { title: 'ESG Analyst', company: 'Finance', location: 'New York, NY', tags: ['ESG Metrics', 'Sustainability', 'Reporting'] },
+  ],
+};
+
+function buildListings(careerId, p25, median, p75) {
+  const templates = TEMPLATES[careerId] || TEMPLATES['software-engineer'];
+  const soc = CAREER_SOC[careerId];
+
+  return templates.map((job, i) => {
+    // Senior roles (top of list) get higher salary multiplier
+    const mult = 1 + (templates.length - i - 1) * 0.08;
+    const low = Math.round(p25 * mult / 1000) * 1000;
+    const high = Math.round(p75 * mult / 1000) * 1000;
+
+    return {
+      id: `${careerId}-${i}-${Date.now()}`,
+      ...job,
+      salary: `$${low.toLocaleString()} - $${high.toLocaleString()}`,
+      postedDate: new Date(Date.now() - i * 86400000).toISOString(),
+      url: `https://www.bls.gov/oes/current/oes${soc}.htm`,
+      semanticTags: job.tags,
+      matchScore: 95 - i * 4,
+      source: 'bls-derived',
+    };
+  });
 }
