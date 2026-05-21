@@ -17,3 +17,15 @@
   color: #64748b;
   font-size: 1rem;
 }
+
+/* Page/route enter animation for subtle transitions */
+@media (prefers-reduced-motion: no-preference) {
+  .main-content > * {
+    animation: pageEnter 360ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+
+  @keyframes pageEnter {
+    0% { opacity: 0; transform: translateY(10px) scale(0.998); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}

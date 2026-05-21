@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +11,8 @@ function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const navbarLinksRef = useRef(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
   const isActive = (path) => location.pathname === path;
 
@@ -29,6 +31,26 @@ function Navbar() {
     setMenuOpen(false);
   };
 
+  useEffect(() => {
+    const updateIndicator = () => {
+      const container = navbarLinksRef.current;
+      if (!container) return setIndicatorStyle({ left: 0, width: 0, opacity: 0 });
+
+      const active = container.querySelector('.nav-link.active');
+      if (!active) return setIndicatorStyle({ left: 0, width: 0, opacity: 0 });
+
+      const containerRect = container.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const left = activeRect.left - containerRect.left + container.scrollLeft;
+      const width = activeRect.width;
+      setIndicatorStyle({ left, width, opacity: 1 });
+    };
+
+    updateIndicator();
+    window.addEventListener('resize', updateIndicator);
+    return () => window.removeEventListener('resize', updateIndicator);
+  }, [location.pathname, menuOpen]);
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -45,7 +67,11 @@ function Navbar() {
           <span className={`hamburger ${menuOpen ? 'open' : ''}`}></span>
         </button>
 
-        <div className={`navbar-links ${menuOpen ? 'open' : ''}`}>
+        <div className={`navbar-links ${menuOpen ? 'open' : ''}`} ref={navbarLinksRef}>
+          <div
+            className="nav-indicator"
+            style={{ left: indicatorStyle.left, width: indicatorStyle.width, opacity: indicatorStyle.opacity }}
+          />
           {/* Show these links only after onboarding */}
           {user?.isOnboarded && (
             <>

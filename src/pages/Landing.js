@@ -19,7 +19,7 @@ function Landing() {
     <div className="landing">
       <div className="landing-hero">
         <div className="hero-content fade-in">
-          <div className="hero-badge">🎮 Gamified Career Discovery</div>
+          <div className="hero-badge">Gamified Career Discovery</div>
           <h1 className="hero-title">
             Discover Your <span className="gradient-text">STEM Career</span> Through Adventure
           </h1>
