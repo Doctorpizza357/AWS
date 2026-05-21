@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
@@ -20,6 +20,10 @@ const MarketIntelligence = lazy(() => import('./pages/MarketIntelligence'));
 function AppContent() {
   const { user } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
   
   // Show navbar on all pages except login
   const showNavbar = !['/login'].includes(location.pathname);

@@ -24,9 +24,7 @@ function Landing() {
             Discover Your <span className="gradient-text">STEM Career</span> Through Adventure
           </h1>
           <p className="hero-subtitle">
-            Don't just read about careers — live them. Experience realistic day-in-the-life
-            scenarios, make decisions that shape your path, and discover where your
-            skills and passions lead.
+            Don't just read about careers. Try them. Step into real day-to-day scenarios, make choices that shape your path, and see where your strengths and interests can take you.
           </p>
           <div className="hero-actions">
             <button className="btn-primary" onClick={handleStart}>

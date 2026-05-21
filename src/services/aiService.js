@@ -45,7 +45,7 @@ export async function generateCareerRecommendations(profile) {
     return { ...career, matchScore };
   });
 
-  return scored.sort((a, b) => b.matchScore - a.matchScore).slice(0, 4);
+  return scored.sort((a, b) => b.matchScore - a.matchScore).slice(0, 6);
 }
 
 function normalizeScenario(scenario) {

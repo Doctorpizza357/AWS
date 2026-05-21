@@ -35,6 +35,10 @@ const CAREER_SOC = {
   'biomedical-engineer': '172031',
   'aerospace-engineer': '172011',
   'environmental-scientist': '192041',
+  'cybersecurity-analyst': '151212',
+  'cloud-architect': '151241',
+  'robotics-engineer': '172141',
+  'renewable-energy-engineer': '172081',
 };
 
 const STATE_FIPS = {

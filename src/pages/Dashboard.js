@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import CareerCard from '../components/CareerCard';
+import careers from '../data/careers';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -73,6 +74,20 @@ function Dashboard() {
                 key={career.id}
                 career={career}
                 matchScore={career.matchScore ? career.matchScore / career.tags.length : undefined}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section className="careers-section all-careers-section">
+          <h2 className="section-heading">Explore All Career Paths</h2>
+          <p className="section-desc">Browse every path available in the scenario builder, including the newest generated careers.</p>
+          <div className="careers-grid">
+            {careers.map((career) => (
+              <CareerCard
+                key={career.id}
+                career={career}
+                locked={false}
               />
             ))}
           </div>
