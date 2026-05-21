@@ -86,18 +86,7 @@
   gap: 6px;
 }
 
-.mi-nav-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #00ffc8;
-  animation: miNavPulse 2s ease-in-out infinite;
-}
 
-@keyframes miNavPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
 
 .nav-xp {
   display: flex;

@@ -87,7 +87,6 @@ function Navbar() {
                 className={`nav-link mi-link ${isActive('/market-intelligence') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                <span className="mi-nav-dot"></span>
                 Market Intel
               </Link>
               <Link
