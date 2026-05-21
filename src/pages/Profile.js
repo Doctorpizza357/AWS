@@ -6,6 +6,7 @@ import badges from '../data/badges';
 import './Profile.css';
 import DownloadProfileButton from '../components/DownloadProfileButton';
 import { fetchSalaryData, fetchViabilityData } from '../services/marketDataService';
+import { getIconComponent } from '../utils/iconMap';
 
 function Profile() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ function Profile() {
 
   const { profile, progress } = user;
   const earnedBadgeIds = progress.badges.map(b => b.id);
+  const EarnedIcon = getIconComponent('check');
 
   // Build minimal data for the downloadable profile (client-side only)
   // Build topMatches with computed fit score and notes
@@ -161,12 +163,13 @@ function Profile() {
           <div className="badges-collection">
             {badges.map(badge => {
               const earned = earnedBadgeIds.includes(badge.id);
+              const BadgeIcon = getIconComponent(badge.icon);
               return (
                 <div key={badge.id} className={`badge-card ${earned ? 'earned' : 'locked'}`}>
-                  <span className="badge-card-icon">{badge.icon}</span>
+                  <span className="badge-card-icon"><BadgeIcon size={28} aria-hidden="true" /></span>
                   <span className="badge-card-name">{badge.name}</span>
                   <span className="badge-card-desc">{badge.description}</span>
-                  {earned && <span className="badge-earned-mark">✓</span>}
+                  {earned && <span className="badge-earned-mark"><EarnedIcon size={14} aria-hidden="true" /></span>}
                 </div>
               );
             })}

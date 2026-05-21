@@ -1,9 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getIconComponent } from '../utils/iconMap';
 import './CareerCard.css';
 
 function CareerCard({ career, matchScore, locked }) {
   const navigate = useNavigate();
+  const CareerIcon = getIconComponent(career.icon);
+  const LockIcon = getIconComponent('lock');
 
   return (
     <div
@@ -15,13 +18,13 @@ function CareerCard({ career, matchScore, locked }) {
       aria-label={`Explore ${career.title} career path`}
     >
       <div className="career-card-header">
-        <span className="career-icon">{career.icon}</span>
+        <span className="career-icon"><CareerIcon size={32} aria-hidden="true" /></span>
         {matchScore !== undefined && (
           <span className="match-badge">
             {Math.round(matchScore * 100)}% Match
           </span>
         )}
-        {locked && <span className="lock-badge">🔒</span>}
+        {locked && <span className="lock-badge"><LockIcon size={18} aria-hidden="true" /></span>}
       </div>
 
       <h3 className="career-title">{career.title}</h3>

@@ -93,7 +93,7 @@
 
 .check {
   color: var(--primary);
-  font-weight: 700;
+  display: inline-flex;
 }
 
 .option-hint {
@@ -163,6 +163,9 @@
   border-radius: 10px;
   font-weight: 500;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-back:hover {
@@ -178,6 +181,9 @@
   font-size: 1rem;
   margin-left: auto;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-next:disabled {

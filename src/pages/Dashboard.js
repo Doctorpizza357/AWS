@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import CareerCard from '../components/CareerCard';
 import careers from '../data/careers';
+import { getIconComponent } from '../utils/iconMap';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -24,39 +25,43 @@ function Dashboard() {
   }
 
   const { profile, progress, recommendedCareers } = user;
+  const LevelIcon = getIconComponent('stat-level');
+  const ScenarioIcon = getIconComponent('stat-scenarios');
+  const BadgeCountIcon = getIconComponent('stat-badges');
+  const DecisionIcon = getIconComponent('stat-decisions');
 
   return (
     <div className="dashboard">
       <div className="container">
         <header className="dashboard-header fade-in">
           <div className="welcome-section">
-            <h1>Welcome back, {profile.name}! 👋</h1>
+            <h1>Welcome back, {profile.name}!</h1>
             <p className="welcome-sub">Continue exploring your STEM career paths</p>
           </div>
           <div className="stats-row">
             <div className="stat-card">
-              <span className="stat-icon">⭐</span>
+              <span className="stat-icon"><LevelIcon size={22} aria-hidden="true" /></span>
               <div>
                 <span className="stat-val">Level {progress.level}</span>
                 <span className="stat-lbl">Current Level</span>
               </div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">🎯</span>
+              <span className="stat-icon"><ScenarioIcon size={22} aria-hidden="true" /></span>
               <div>
                 <span className="stat-val">{progress.completedScenarios.length}</span>
                 <span className="stat-lbl">Scenarios Done</span>
               </div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">🏅</span>
+              <span className="stat-icon"><BadgeCountIcon size={22} aria-hidden="true" /></span>
               <div>
                 <span className="stat-val">{progress.badges.length}</span>
                 <span className="stat-lbl">Badges Earned</span>
               </div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">⚡</span>
+              <span className="stat-icon"><DecisionIcon size={22} aria-hidden="true" /></span>
               <div>
                 <span className="stat-val">{progress.decisions.length}</span>
                 <span className="stat-lbl">Decisions Made</span>
@@ -97,12 +102,15 @@ function Dashboard() {
           <section className="badges-section">
             <h2 className="section-heading">Your Badges</h2>
             <div className="badges-grid">
-              {progress.badges.map(badge => (
-                <div key={badge.id} className="badge-item">
-                  <span className="badge-icon">{badge.icon}</span>
-                  <span className="badge-name">{badge.name}</span>
-                </div>
-              ))}
+              {progress.badges.map(badge => {
+                const BadgeIcon = getIconComponent(badge.icon);
+                return (
+                  <div key={badge.id} className="badge-item">
+                    <span className="badge-icon"><BadgeIcon size={18} aria-hidden="true" /></span>
+                    <span className="badge-name">{badge.name}</span>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}

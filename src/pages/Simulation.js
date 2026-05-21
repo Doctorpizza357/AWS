@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { generateScenario } from '../services/aiService';
 import careers from '../data/careers';
+import { getIconComponent } from '../utils/iconMap';
 import './Simulation.css';
 
 function Simulation() {
@@ -20,6 +21,11 @@ function Simulation() {
 
   const career = careers.find(c => c.id === careerId);
   const scenario = career?.scenarios.find(s => s.id === scenarioId);
+  const CareerIcon = career ? getIconComponent(career.icon) : null;
+  const BackIcon = getIconComponent('arrow-left');
+  const TargetIcon = getIconComponent('decision-point');
+  const OutcomeIcon = getIconComponent('outcome-book');
+  const CompleteIcon = getIconComponent('check');
 
   useEffect(() => {
     if (career && scenario) {
@@ -83,7 +89,7 @@ function Simulation() {
     // Check for badges
     const elapsed = (Date.now() - startTime) / 1000;
     if (elapsed < 120) {
-      earnBadge({ id: 'quick-thinker', name: 'Quick Thinker', icon: '💡', description: 'Completed a scenario in under 2 minutes' });
+      earnBadge({ id: 'quick-thinker', name: 'Quick Thinker', icon: 'badge-quick-thinker', description: 'Completed a scenario in under 2 minutes' });
     }
 
     if (selectedOption.traits.includes('collaborative') || selectedOption.traits.includes('helpful')) {
@@ -91,13 +97,13 @@ function Simulation() {
         d.traits && (d.traits.includes('collaborative') || d.traits.includes('helpful'))
       ).length + (alreadyCompleted ? 0 : 1);
       if (collabCount >= 5) {
-        earnBadge({ id: 'team-player', name: 'Team Player', icon: '🤝', description: 'Choose collaborative options 5 times' });
+        earnBadge({ id: 'team-player', name: 'Team Player', icon: 'badge-team-player', description: 'Choose collaborative options 5 times' });
       }
     }
 
     // Check first-step badge
     if (user.progress.completedScenarios.length === 0) {
-      earnBadge({ id: 'first-step', name: 'First Step', icon: '👣', description: 'Complete your first scenario' });
+      earnBadge({ id: 'first-step', name: 'First Step', icon: 'badge-first-step', description: 'Complete your first scenario' });
     }
 
     // Check deep-diver badge
@@ -106,7 +112,7 @@ function Simulation() {
       [...user.progress.completedScenarios, scenarioId].includes(id)
     );
     if (allCompleted) {
-      earnBadge({ id: 'deep-diver', name: 'Deep Diver', icon: '🤿', description: 'Complete all scenarios in one career' });
+      earnBadge({ id: 'deep-diver', name: 'Deep Diver', icon: 'badge-deep-diver', description: 'Complete all scenarios in one career' });
     }
 
     navigate(`/career/${careerId}`);
@@ -144,10 +150,10 @@ function Simulation() {
       <div className="container">
         <div className="sim-header fade-in">
           <button className="back-btn" onClick={() => navigate(`/career/${careerId}`)}>
-            ← Back to {career.title}
+            <BackIcon size={16} aria-hidden="true" /> Back to {career.title}
           </button>
           <div className="sim-title-row">
-            <span className="sim-icon">{career.icon}</span>
+            <span className="sim-icon"><CareerIcon size={38} aria-hidden="true" /></span>
             <div>
               <h1>{scenario.title}</h1>
               <p className="sim-career">{career.title} • Scenario</p>
@@ -163,7 +169,7 @@ function Simulation() {
               </div>
 
               <div className="challenge-box">
-                <h3>🎯 Decision Point</h3>
+                <h3><TargetIcon size={16} aria-hidden="true" /> Decision Point</h3>
                 <p>{scenarioData.challenge}</p>
               </div>
 
@@ -186,7 +192,7 @@ function Simulation() {
               ) : (
                 <div className="outcome-section fade-in">
                   <div className="outcome-box">
-                    <h3>📖 Outcome</h3>
+                    <h3><OutcomeIcon size={16} aria-hidden="true" /> Outcome</h3>
                     <p className="outcome-choice">
                       <strong>Your choice:</strong> {selectedOption.text}
                     </p>
@@ -201,7 +207,7 @@ function Simulation() {
                     </div>
                   </div>
                   <button className="btn-primary complete-btn" onClick={handleComplete}>
-                    Complete Scenario ✓
+                    Complete Scenario <CompleteIcon size={16} aria-hidden="true" />
                   </button>
                 </div>
               )}

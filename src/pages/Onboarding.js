@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Check, Rocket } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { generateCareerRecommendations } from '../services/aiService';
 import './Onboarding.css';
@@ -159,7 +160,7 @@ function Onboarding() {
                   onClick={() => handleMultiSelect(option)}
                 >
                   {option}
-                  {answers[currentStep.id].includes(option) && <span className="check">✓</span>}
+                  {answers[currentStep.id].includes(option) && <span className="check"><Check size={14} aria-hidden="true" /></span>}
                 </button>
               ))}
               <p className="option-hint">Select 2-4 options</p>
@@ -185,7 +186,7 @@ function Onboarding() {
         <div className="quiz-actions">
           {step > 0 && (
             <button className="btn-back" onClick={() => setStep(step - 1)}>
-              ← Back
+              <ArrowLeft size={16} aria-hidden="true" /> Back
             </button>
           )}
           <button
@@ -193,7 +194,15 @@ function Onboarding() {
             onClick={handleNext}
             disabled={!canProceed() || loading}
           >
-            {loading ? 'Analyzing...' : step === quizSteps.length - 1 ? 'Discover My Paths 🚀' : 'Next →'}
+            {loading ? 'Analyzing...' : step === quizSteps.length - 1 ? (
+              <>
+                Discover My Paths <Rocket size={16} aria-hidden="true" />
+              </>
+            ) : (
+              <>
+                Next <ArrowRight size={16} aria-hidden="true" />
+              </>
+            )}
           </button>
         </div>
       </div>

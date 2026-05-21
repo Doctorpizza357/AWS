@@ -35,7 +35,8 @@
 }
 
 .stat-icon {
-  font-size: 1.5rem;
+  display: inline-flex;
+  color: var(--primary-light);
 }
 
 .stat-val {
@@ -95,7 +96,8 @@
 }
 
 .badge-icon {
-  font-size: 1.3rem;
+  display: inline-flex;
+  color: var(--primary-light);
 }
 
 .badge-name {

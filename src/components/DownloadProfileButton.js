@@ -28,6 +28,16 @@ export default function DownloadProfileButton({ quizResults = {}, marketInsights
     };
 
     const safeText = (t) => (t === undefined || t === null ? '' : String(t));
+    const badgeLabelMap = {
+      'badge-first-step': 'Route',
+      'badge-explorer': 'Compass',
+      'badge-decision-maker': 'Zap',
+      'badge-deep-diver': 'Waves',
+      'badge-level-5': 'Star',
+      'badge-level-10': 'Trophy',
+      'badge-quick-thinker': 'Bulb',
+      'badge-team-player': 'Team',
+    };
 
     // ===== HELPER FUNCTIONS =====
     const ensureSpace = (needed = 120) => {
@@ -410,7 +420,7 @@ export default function DownloadProfileButton({ quizResults = {}, marketInsights
         head: [['Badge', 'Name', 'Description', 'Status']],
         body: allBadges.map(b => {
           const earned = earnedBadges.some(eb => eb.id === b.id);
-          return [b.icon || '🏅', b.name, b.description, earned ? '✓ Earned' : '○ Locked'];
+          return [badgeLabelMap[b.icon] || 'Badge', b.name, b.description, earned ? 'Earned' : 'Locked'];
         }),
         theme: 'striped',
         styles: { fontSize: 9, textColor: colors.text, cellPadding: 8 },

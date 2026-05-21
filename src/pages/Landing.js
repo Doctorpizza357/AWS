@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import { getIconComponent } from '../utils/iconMap';
 import './Landing.css';
 
 function Landing() {
@@ -14,6 +15,37 @@ function Landing() {
       navigate('/onboarding');
     }
   };
+
+  const floatingCards = [
+    { label: 'Software Engineer', icon: 'career-software', delay: '0s' },
+    { label: 'Biomedical Engineer', icon: 'career-biomedical', delay: '0.5s' },
+    { label: 'Aerospace Engineer', icon: 'career-aerospace', delay: '1s' },
+    { label: 'Data Scientist', icon: 'career-data', delay: '1.5s' },
+    { label: 'Environmental Scientist', icon: 'career-environmental', delay: '2s' },
+  ];
+
+  const featureCards = [
+    {
+      title: 'Take the Quiz',
+      description: 'Tell us about your interests, skills, and what excites you about STEM.',
+      icon: 'feature-quiz',
+    },
+    {
+      title: 'AI Matches You',
+      description: 'Our AI analyzes your profile and recommends personalized career paths.',
+      icon: 'feature-ai',
+    },
+    {
+      title: 'Live the Day',
+      description: 'Experience realistic scenarios and make decisions that shape your journey.',
+      icon: 'feature-game',
+    },
+    {
+      title: 'Level Up',
+      description: 'Earn XP, unlock badges, and discover new career paths as you progress.',
+      icon: 'feature-level',
+    },
+  ];
 
   return (
     <div className="landing">
@@ -51,11 +83,15 @@ function Landing() {
         </div>
         <div className="hero-visual">
           <div className="floating-cards">
-            <div className="float-card" style={{ '--delay': '0s' }}>💻 Software Engineer</div>
-            <div className="float-card" style={{ '--delay': '0.5s' }}>🧬 Biomedical Engineer</div>
-            <div className="float-card" style={{ '--delay': '1s' }}>🚀 Aerospace Engineer</div>
-            <div className="float-card" style={{ '--delay': '1.5s' }}>📊 Data Scientist</div>
-            <div className="float-card" style={{ '--delay': '2s' }}>🌍 Environmental Scientist</div>
+            {floatingCards.map((card) => {
+              const Icon = getIconComponent(card.icon);
+              return (
+                <div key={card.label} className="float-card" style={{ '--delay': card.delay }}>
+                  <Icon size={18} aria-hidden="true" />
+                  {card.label}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -63,26 +99,16 @@ function Landing() {
       <section id="features" className="features-section">
         <h2 className="section-title">How It Works</h2>
         <div className="features-grid">
-          <div className="feature-card">
-            <span className="feature-icon">📝</span>
-            <h3>Take the Quiz</h3>
-            <p>Tell us about your interests, skills, and what excites you about STEM.</p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon">🤖</span>
-            <h3>AI Matches You</h3>
-            <p>Our AI analyzes your profile and recommends personalized career paths.</p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon">🎮</span>
-            <h3>Live the Day</h3>
-            <p>Experience realistic scenarios and make decisions that shape your journey.</p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon">🏆</span>
-            <h3>Level Up</h3>
-            <p>Earn XP, unlock badges, and discover new career paths as you progress.</p>
-          </div>
+          {featureCards.map((feature) => {
+            const Icon = getIconComponent(feature.icon);
+            return (
+              <div className="feature-card" key={feature.title}>
+                <span className="feature-icon"><Icon size={32} aria-hidden="true" /></span>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
 

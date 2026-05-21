@@ -154,7 +154,7 @@
 }
 
 .tab-icon {
-  font-size: 1rem;
+  display: inline-flex;
 }
 
 .tab-label {

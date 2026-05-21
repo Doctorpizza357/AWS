@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Rocket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../context/UserContext';
 import './Login.css';
@@ -71,7 +72,7 @@ function Login() {
     <div className="login-page">
       <div className="login-container fade-in">
         <div className="login-header">
-          <h1>🚀 STEM Career Explorer</h1>
+          <h1><Rocket size={24} aria-hidden="true" /> STEM Career Explorer</h1>
           <p>{isRegister ? 'Create your account' : 'Welcome back'}</p>
         </div>
 

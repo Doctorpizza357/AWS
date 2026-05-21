@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import careers from '../data/careers';
+import { getIconComponent } from '../utils/iconMap';
 import './CareerPath.css';
 
 function CareerPath() {
@@ -10,6 +11,14 @@ function CareerPath() {
   const { user } = useUser();
 
   const career = careers.find(c => c.id === careerId);
+  const CareerIcon = career ? getIconComponent(career.icon) : null;
+  const SalaryIcon = getIconComponent('career-salary');
+  const GrowthIcon = getIconComponent('career-growth');
+  const EducationIcon = getIconComponent('career-education');
+  const CheckIcon = getIconComponent('check');
+  const LockIcon = getIconComponent('lock');
+  const BackIcon = getIconComponent('arrow-left');
+  const NextIcon = getIconComponent('arrow-right');
 
   if (!career) {
     return (
@@ -31,10 +40,10 @@ function CareerPath() {
       <div className="container">
         <div className="career-header fade-in" style={{ '--career-color': career.color }}>
           <button className="back-btn" onClick={() => navigate('/dashboard')}>
-            ← Back to Dashboard
+            <BackIcon size={16} aria-hidden="true" /> Back to Dashboard
           </button>
           <div className="career-hero">
-            <span className="career-hero-icon">{career.icon}</span>
+            <span className="career-hero-icon"><CareerIcon size={42} aria-hidden="true" /></span>
             <div>
               <h1>{career.title}</h1>
               <p className="career-hero-field">{career.field}</p>
@@ -44,15 +53,15 @@ function CareerPath() {
 
           <div className="career-info-grid">
             <div className="info-item">
-              <span className="info-label">💰 Salary Range</span>
+              <span className="info-label"><SalaryIcon size={14} aria-hidden="true" /> Salary Range</span>
               <span className="info-value">{career.salary}</span>
             </div>
             <div className="info-item">
-              <span className="info-label">📈 Job Growth</span>
+              <span className="info-label"><GrowthIcon size={14} aria-hidden="true" /> Job Growth</span>
               <span className="info-value">{career.growth}</span>
             </div>
             <div className="info-item">
-              <span className="info-label">🎓 Education</span>
+              <span className="info-label"><EducationIcon size={14} aria-hidden="true" /> Education</span>
               <span className="info-value">{career.education}</span>
             </div>
           </div>
@@ -74,7 +83,7 @@ function CareerPath() {
                 >
                   <div className="node-connector"></div>
                   <div className="node-dot">
-                    {isCompleted ? '✓' : isLocked ? '🔒' : (index + 1)}
+                    {isCompleted ? <CheckIcon size={14} aria-hidden="true" /> : isLocked ? <LockIcon size={14} aria-hidden="true" /> : (index + 1)}
                   </div>
                   <div className="node-content">
                     <h3>{scenario.title}</h3>
@@ -84,7 +93,7 @@ function CareerPath() {
                         className="scenario-btn"
                         onClick={() => navigate(`/simulation/${career.id}/${scenario.id}`)}
                       >
-                        {isCompleted ? 'Replay Scenario' : 'Start Scenario'} →
+                        {isCompleted ? 'Replay Scenario' : 'Start Scenario'} <NextIcon size={14} aria-hidden="true" />
                       </button>
                     )}
                   </div>

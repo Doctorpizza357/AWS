@@ -6,6 +6,7 @@ import MarketPulseHeatmap from '../components/market/MarketPulseHeatmap';
 import PredictiveSalaryArc from '../components/market/PredictiveSalaryArc';
 import ViabilityIndexRadar from '../components/market/ViabilityIndexRadar';
 import careers from '../data/careers';
+import { getIconComponent } from '../utils/iconMap';
 import './MarketIntelligence.css';
 
 function MarketIntelligence() {
@@ -43,6 +44,12 @@ function MarketIntelligence() {
   };
 
   const status = getStatusIndicator();
+  const tabConfig = [
+    { id: 'overview', label: 'Overview', icon: 'market-overview' },
+    { id: 'heatmap', label: 'Market Pulse', icon: 'market-heatmap' },
+    { id: 'salary', label: 'Salary Arc', icon: 'market-salary' },
+    { id: 'viability', label: 'Viability Index', icon: 'market-viability' },
+  ];
 
   return (
     <div className="market-intelligence">
@@ -71,7 +78,7 @@ function MarketIntelligence() {
             >
               {careers.map(career => (
                 <option key={career.id} value={career.id}>
-                  {career.icon} {career.title}
+                  {career.title}
                 </option>
               ))}
             </select>
@@ -86,21 +93,19 @@ function MarketIntelligence() {
 
       {/* Panel Navigation */}
       <nav className="mi-panel-nav">
-        {[
-          { id: 'overview', label: 'Overview', icon: '◉' },
-          { id: 'heatmap', label: 'Market Pulse', icon: '🗺️' },
-          { id: 'salary', label: 'Salary Arc', icon: '📈' },
-          { id: 'viability', label: 'Viability Index', icon: '🎯' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            className={`mi-panel-tab ${activePanel === tab.id ? 'active' : ''}`}
-            onClick={() => setActivePanel(tab.id)}
-          >
-            <span className="tab-icon">{tab.icon}</span>
-            <span className="tab-label">{tab.label}</span>
-          </button>
-        ))}
+        {tabConfig.map(tab => {
+          const TabIcon = getIconComponent(tab.icon);
+          return (
+            <button
+              key={tab.id}
+              className={`mi-panel-tab ${activePanel === tab.id ? 'active' : ''}`}
+              onClick={() => setActivePanel(tab.id)}
+            >
+              <span className="tab-icon"><TabIcon size={16} aria-hidden="true" /></span>
+              <span className="tab-label">{tab.label}</span>
+            </button>
+          );
+        })}
       </nav>
 
       {/* Main Content */}
