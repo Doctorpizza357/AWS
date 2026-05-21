@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { generateScenario } from '../services/aiService';
@@ -16,12 +16,17 @@ function Simulation() {
   const [showOutcome, setShowOutcome] = useState(false);
   const [awardedXp, setAwardedXp] = useState(null);
   const [startTime] = useState(Date.now());
+  const hasCompletedRef = useRef(false);
 
   const career = careers.find(c => c.id === careerId);
   const scenario = career?.scenarios.find(s => s.id === scenarioId);
 
   useEffect(() => {
     if (career && scenario) {
+      hasCompletedRef.current = false;
+      setSelectedOption(null);
+      setShowOutcome(false);
+      setAwardedXp(null);
       loadScenario();
     }
   }, [careerId, scenarioId]);
@@ -41,28 +46,39 @@ function Simulation() {
   const handleChoice = (option) => {
     setSelectedOption(option);
     setShowOutcome(true);
+  };
 
-    // Determine whether this scenario has already been completed
+  const handleComplete = () => {
+    if (hasCompletedRef.current || !selectedOption) {
+      navigate(`/career/${careerId}`);
+      return;
+    }
+
+    hasCompletedRef.current = true;
+
     const alreadyCompleted = user.progress.completedScenarios.includes(scenarioId);
+    const xpToAward = alreadyCompleted ? 0 : selectedOption.xp;
 
-    // Award XP only if the scenario hasn't been completed before
-    const xpToAward = alreadyCompleted ? 0 : option.xp;
-    if (xpToAward > 0) addXP(xpToAward);
+    if (xpToAward > 0) {
+      addXP(xpToAward);
+    }
+
     setAwardedXp(xpToAward);
 
-    // Record decision only if this is the first meaningful completion
     if (!alreadyCompleted) {
       addDecision({
         careerId: career.id,
         careerTitle: career.title,
         scenarioId: scenario.id,
         scenarioTitle: scenario.title,
-        choice: option.text,
+        choice: selectedOption.text,
         xp: xpToAward,
-        traits: option.traits,
+        traits: selectedOption.traits,
         timestamp: Date.now(),
       });
     }
+
+    completeScenario(scenarioId);
 
     // Check for badges
     const elapsed = (Date.now() - startTime) / 1000;
@@ -70,18 +86,14 @@ function Simulation() {
       earnBadge({ id: 'quick-thinker', name: 'Quick Thinker', icon: '💡', description: 'Completed a scenario in under 2 minutes' });
     }
 
-    if (option.traits.includes('collaborative') || option.traits.includes('helpful')) {
+    if (selectedOption.traits.includes('collaborative') || selectedOption.traits.includes('helpful')) {
       const collabCount = user.progress.decisions.filter(d =>
         d.traits && (d.traits.includes('collaborative') || d.traits.includes('helpful'))
-      ).length;
-      if (collabCount >= 4) {
+      ).length + (alreadyCompleted ? 0 : 1);
+      if (collabCount >= 5) {
         earnBadge({ id: 'team-player', name: 'Team Player', icon: '🤝', description: 'Choose collaborative options 5 times' });
       }
     }
-  };
-
-  const handleComplete = () => {
-    completeScenario(scenarioId);
 
     // Check first-step badge
     if (user.progress.completedScenarios.length === 0) {
@@ -180,7 +192,7 @@ function Simulation() {
                     </p>
                     <p className="outcome-result">{selectedOption.outcome}</p>
                     <div className="outcome-rewards">
-                      <span className="reward-xp">+{awardedXp ?? selectedOption.xp} XP earned</span>
+                      <span className="reward-xp">+{awardedXp ?? selectedOption.xp} XP on completion</span>
                       <div className="reward-traits">
                         {selectedOption.traits.map(trait => (
                           <span key={trait} className="trait-tag">{trait}</span>

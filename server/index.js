@@ -34,6 +34,11 @@ const ASSISTANT_SYSTEM_PROMPT = `You are "Pathfinder AI," the elite, omnipresent
 - Adhere strictly to clean markdown principles: use headings (##, ###), bold parameters for visual anchors, and horizontal rules (---) to divide distinct conceptual blocks.`;
 
 const SCENARIO_SYSTEM_PROMPT = 'You are a career simulation engine. Always respond with valid JSON.';
+const DIFFICULTY_XP = {
+  easy: 10,
+  medium: 20,
+  hard: 30,
+};
 
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
@@ -165,6 +170,7 @@ Student profile:
 
 Generate a JSON response with this structure:
 {
+  "difficulty": "easy | medium | hard",
   "narrative": "A 2-3 paragraph immersive description of the scenario",
   "challenge": "The specific challenge or decision point",
   "options": [
@@ -172,7 +178,8 @@ Generate a JSON response with this structure:
       "id": "a",
       "text": "Option description",
       "outcome": "What happens if chosen",
-      "xp": 15,
+      "correct": true,
+      "xp": 20,
       "traits": ["analytical", "collaborative"]
     }
   ]
@@ -182,10 +189,46 @@ Requirements:
 - Create a scenario that feels unique, vivid, and different from stock examples.
 - Use realistic people, stakes, tools, and constraints that fit the career.
 - Include 3-4 realistic options with different approaches.
-- Each option should have different XP rewards between 10 and 25.
+- Mark exactly one option as correct and give only that option XP.
+- Scale the correct option XP by difficulty: easy = 10, medium = 20, hard = 30.
 - Make the scenario engaging for high school and college students.
 - Do not include markdown fences or extra commentary outside the JSON.
 - Avoid reusing the same narrative beats across runs; this should support repeated custom generations.`;
+}
+
+function normalizeScenarioPayload(payload) {
+  const rawDifficulty = String(payload?.difficulty || 'medium').toLowerCase();
+  const difficulty = Object.prototype.hasOwnProperty.call(DIFFICULTY_XP, rawDifficulty) ? rawDifficulty : 'medium';
+  const rewardXp = DIFFICULTY_XP[difficulty];
+  const sourceOptions = Array.isArray(payload?.options) ? payload.options : [];
+
+  const options = sourceOptions.map((option, index) => {
+    const id = option?.id || String.fromCharCode(97 + index);
+    return {
+      ...option,
+      id,
+      correct: Boolean(option?.correct || option?.isCorrect),
+    };
+  });
+
+  let correctIndex = options.findIndex((option) => option.correct);
+  if (correctIndex === -1 && options.length > 0) {
+    correctIndex = 0;
+  }
+
+  return {
+    ...payload,
+    difficulty,
+    rewardXp,
+    correctOptionId: options[correctIndex]?.id || null,
+    options: options.map((option, index) => ({
+      ...option,
+      correct: index === correctIndex,
+      isCorrect: index === correctIndex,
+      xp: index === correctIndex ? rewardXp : 0,
+      rewardXp: index === correctIndex ? rewardXp : 0,
+    })),
+  };
 }
 
 app.post('/api/assistant/message', async (req, res) => {
@@ -247,7 +290,7 @@ app.post('/api/scenarios/generate', async (req, res) => {
     });
 
     const scenarioJson = parseJsonFromResponse(responseText);
-    return res.json({ ok: true, scenario: scenarioJson });
+    return res.json({ ok: true, scenario: normalizeScenarioPayload(scenarioJson) });
   } catch (err) {
     console.error('Scenario generation failed:', err);
     return res.status(500).json({ ok: false, message: 'Scenario generation failed', error: String(err) });
