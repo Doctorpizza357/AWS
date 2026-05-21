@@ -18,12 +18,47 @@ function AIAssistantPopup() {
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
   const responseTimerRef = useRef(null);
+  const lastMessageRef = useRef(null);
+  const justSentByUserRef = useRef(false);
 
+  // Auto-scroll behavior:
+  // - If the user is near the bottom (within 100px), scroll the newest message into view
+  //   and align it to the top so the start of a long assistant response is visible.
+  // - If the user has scrolled up (reading earlier messages), do not force-scroll.
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (!scrollRef.current || !lastMessageRef.current) return;
+
+    const container = scrollRef.current;
+
+    // If the user just sent a message, ensure their message is visible at the bottom
+    if (justSentByUserRef.current) {
+      try {
+        lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      } catch (e) {
+        container.scrollTop = container.scrollHeight;
+      } finally {
+        justSentByUserRef.current = false;
+      }
+      return;
     }
-  }, [messages, isTyping]);
+
+    const distanceFromBottom = container.scrollHeight - (container.scrollTop + container.clientHeight);
+
+    // threshold in pixels to consider the user 'at the bottom'
+    const THRESHOLD = 100;
+    if (distanceFromBottom > THRESHOLD) {
+      // user scrolled up; don't force scrolling for assistant messages
+      return;
+    }
+
+    // bring the newest message into view, aligning its start near the top
+    try {
+      lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      // fallback: jump to bottom
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (isOpen) {
@@ -43,6 +78,7 @@ function AIAssistantPopup() {
     if (!text || isTyping) return;
 
     const userMessage = { id: `user-${Date.now()}`, role: 'user', text };
+    justSentByUserRef.current = true;
     setMessages((current) => [...current, userMessage]);
     setInputValue('');
     setIsTyping(true);
@@ -114,14 +150,17 @@ function AIAssistantPopup() {
           </div>
 
           <div className="ai-conversation" ref={scrollRef} aria-live="polite" aria-relevant="additions text">
-            {messages.map((message) => (
-              <div key={message.id} className={`ai-message-row ${message.role}`}>
-                <div className="ai-message-bubble">
-                  <span className="ai-message-role">{message.role === 'assistant' ? 'Assistant' : 'You'}</span>
-                  <p>{message.text}</p>
+            {messages.map((message, idx) => {
+              const isLast = idx === messages.length - 1;
+              return (
+                <div key={message.id} ref={isLast ? lastMessageRef : undefined} className={`ai-message-row ${message.role}`}>
+                  <div className="ai-message-bubble">
+                    <span className="ai-message-role">{message.role === 'assistant' ? 'Assistant' : 'You'}</span>
+                    <p>{message.text}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {isTyping ? (
               <div className="ai-message-row assistant">
