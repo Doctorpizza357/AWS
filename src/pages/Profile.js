@@ -84,6 +84,10 @@ function Profile() {
     }
   };
 
+  const handleRetakeOnboarding = () => {
+    navigate('/onboarding');
+  };
+
   return (
     <div className="profile-page">
       <div className="container">
@@ -171,9 +175,14 @@ function Profile() {
 
         <section className="profile-section danger-zone">
           <h2>Settings</h2>
-          <button className="reset-btn" onClick={handleReset}>
-            Reset All Progress
-          </button>
+          <div className="settings-actions">
+            <button className="secondary-btn" onClick={handleRetakeOnboarding}>
+              Retake Onboarding Quiz
+            </button>
+            <button className="reset-btn" onClick={handleReset}>
+              Reset All Progress
+            </button>
+          </div>
         </section>
       </div>
     </div>
