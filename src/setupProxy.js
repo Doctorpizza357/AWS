@@ -18,4 +18,13 @@ module.exports = function (app) {
       pathRewrite: { '^/api/assistant': '/api/assistant' },
     })
   );
+
+  app.use(
+    '/api/scenarios',
+    createProxyMiddleware({
+      target: 'http://localhost:5000',
+      changeOrigin: true,
+      pathRewrite: { '^/api/scenarios': '/api/scenarios' },
+    })
+  );
 };

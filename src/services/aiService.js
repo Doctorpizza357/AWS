@@ -1,91 +1,34 @@
-// AI Service - Generates career scenarios using AWS Bedrock
-// For demo purposes, includes fallback mock responses
-
-const AWS_BEARER_TOKEN = process.env.REACT_APP_AWS_BEARER_TOKEN || '';
-const AWS_REGION = process.env.REACT_APP_AWS_REGION || 'us-east-1';
-const MODEL_ID = process.env.REACT_APP_BEDROCK_MODEL_ID || 'anthropic.claude-3-5-sonnet-20241022-v2:0';
-
-const BEDROCK_ENDPOINT = `https://bedrock-runtime.${AWS_REGION}.amazonaws.com/model/${encodeURIComponent(MODEL_ID)}/converse`;
-const SYSTEM_PROMPT = 'You are a career simulation engine. Always respond with valid JSON.';
-
-const generateScenarioPrompt = (career, scenario, userProfile) => {
-  return `You are a career simulation engine for a STEM career exploration platform.
-Generate an interactive "day-in-the-life" scenario for a ${career.title}.
-
-Scenario context: ${scenario.title} - ${scenario.description}
-
-Student profile:
-- Interests: ${userProfile.interests.join(', ')}
-- Skills: ${userProfile.skills.join(', ')}
-
-Generate a JSON response with this structure:
-{
-  "narrative": "A 2-3 paragraph immersive description of the scenario",
-  "challenge": "The specific challenge or decision point",
-  "options": [
-    {
-      "id": "a",
-      "text": "Option description",
-      "outcome": "What happens if chosen",
-      "xp": 15,
-      "traits": ["analytical", "collaborative"]
-    }
-  ]
-}
-
-Include 3-4 realistic options with different approaches.
-Make it engaging for high school/college students.
-Each option should have different XP rewards (10-25) and trait tags.`;
-};
-
 export async function generateScenario(career, scenario, userProfile) {
-  if (AWS_BEARER_TOKEN) {
-    try {
-      const response = await fetch(BEDROCK_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${AWS_BEARER_TOKEN}`,
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          modelId: MODEL_ID,
-          messages: [
-            {
-              role: 'user',
-              content: [{ text: generateScenarioPrompt(career, scenario, userProfile) }],
-            },
-          ],
-          system: [{ text: SYSTEM_PROMPT }],
-          inferenceConfig: {
-            maxTokens: 1000,
-            temperature: 0.8,
-            topP: 0.9,
-          },
-        }),
-      });
+  try {
+    const response = await fetch('/api/scenarios/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        career,
+        scenario,
+        userProfile: userProfile || {},
+        variation: `${career?.id || 'career'}:${scenario?.id || 'scenario'}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+      }),
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Bedrock API error: ${response.status} ${errorText}`);
-      }
+    const json = await response.json().catch(() => null);
 
-      const data = await response.json();
-      const assistantContent = data.output?.message?.content || [];
-      const responseText = assistantContent.map(block => block.text || '').join('\n').trim();
-
-      if (!responseText) {
-        throw new Error('Bedrock response did not include any text content');
-      }
-
-      return parseScenarioJson(responseText);
-    } catch (error) {
-      console.warn('Bedrock API failed, using fallback:', error);
-      return getFallbackScenario(career, scenario);
+    if (!response.ok) {
+      const message = (json && json.message) || `Scenario endpoint returned ${response.status}`;
+      throw new Error(message);
     }
-  }
 
-  return getFallbackScenario(career, scenario);
+    const generatedScenario = json?.scenario || json;
+
+    if (!generatedScenario || typeof generatedScenario !== 'object') {
+      throw new Error('Scenario endpoint returned no structured scenario');
+    }
+
+    return generatedScenario;
+  } catch (error) {
+    console.warn('Scenario backend failed, using fallback:', error);
+    return getFallbackScenario(career, scenario);
+  }
 }
 
 export async function generateCareerRecommendations(profile) {
@@ -154,29 +97,6 @@ function getFallbackScenario(career, scenario) {
   return fallbacks[scenario.id] || genericFallback;
 }
 
-function parseScenarioJson(responseText) {
-  try {
-    return JSON.parse(responseText);
-  } catch (error) {
-    const trimmedText = responseText.trim();
-    const fencedMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-
-    if (fencedMatch) {
-      return JSON.parse(fencedMatch[1]);
-    }
-
-    const startIndex = trimmedText.indexOf('{');
-    const endIndex = trimmedText.lastIndexOf('}');
-
-    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-      return JSON.parse(trimmedText.slice(startIndex, endIndex + 1));
-    }
-
-    throw error;
-  }
-}
-
-// Frontend -> backend assistant relay
 export async function sendAssistantMessage(message) {
   if (!message || typeof message !== 'string') {
     throw new Error('Empty message');
