@@ -5,6 +5,7 @@ import { useMarketIntelligence } from '../context/MarketIntelligenceContext';
 import MarketPulseHeatmap from '../components/market/MarketPulseHeatmap';
 import PredictiveSalaryArc from '../components/market/PredictiveSalaryArc';
 import ViabilityIndexRadar from '../components/market/ViabilityIndexRadar';
+import OpportunityScore from '../components/market/OpportunityScore';
 import careers from '../data/careers';
 import { getIconComponent } from '../utils/iconMap';
 import './MarketIntelligence.css';
@@ -35,6 +36,7 @@ function MarketIntelligence() {
 
   const selectedCareer = careers.find(c => c.id === selectedCareerId) || careers[0];
   const isLoading = Object.values(loadingStates).some(s => s === 'loading');
+  const allSuccess = Object.values(loadingStates).every(s => s === 'success');
 
   const getStatusIndicator = () => {
     if (isLoading) return { text: 'Fetching live data...', color: 'var(--accent)' };
@@ -49,48 +51,11 @@ function MarketIntelligence() {
     { id: 'heatmap', label: 'Market Pulse', icon: 'market-heatmap' },
     { id: 'salary', label: 'Salary Arc', icon: 'market-salary' },
     { id: 'viability', label: 'Viability Index', icon: 'market-viability' },
+    { id: 'opportunity', label: 'Opportunity Score', icon: 'market-opportunity' },
   ];
 
   return (
     <div className="market-intelligence">
-      {/* Header */}
-      <header className="mi-header">
-        <div className="mi-header-left">
-          <div className="mi-title-group">
-            <h1 className="mi-title">
-              <span className="mi-title-accent">STEM</span> Reality Check
-            </h1>
-            <p className="mi-subtitle">Market Intelligence Platform</p>
-          </div>
-          <div className="mi-status">
-            <span className="mi-status-dot" style={{ background: status.color }}></span>
-            <span className="mi-status-text">{status.text}</span>
-          </div>
-        </div>
-
-        <div className="mi-header-right">
-          <div className="mi-career-selector">
-            <label className="mi-selector-label">Analyzing</label>
-            <select
-              className="mi-selector"
-              value={selectedCareerId || ''}
-              onChange={(e) => selectCareer(e.target.value)}
-            >
-              {careers.map(career => (
-                <option key={career.id} value={career.id}>
-                  {career.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          {lastFetchTimestamps.heatmap && (
-            <span className="mi-last-updated">
-              Updated {new Date(lastFetchTimestamps.heatmap).toLocaleTimeString()}
-            </span>
-          )}
-        </div>
-      </header>
-
       {/* Panel Navigation */}
       <nav className="mi-panel-nav">
         {tabConfig.map(tab => {
@@ -149,6 +114,50 @@ function MarketIntelligence() {
               />
             </div>
 
+            <div className="mi-panel mi-panel-opportunity" onClick={() => setActivePanel('opportunity')}>
+              <div className="mi-panel-header">
+                <h3>Opportunity Score</h3>
+                <span className="mi-panel-badge">Composite KPI</span>
+              </div>
+              {(() => {
+                // Derive components from available market data
+                const avgLQ = Array.isArray(heatmapData) && heatmapData.length > 0
+                  ? heatmapData.reduce((s, r) => s + (r.locationQuotient || 0), 0) / heatmapData.length
+                  : 0.6;
+
+                // demandScore: scale avgLQ (typical 0.5-2.0) into 10-90
+                const demandScore = Math.max(10, Math.min(90, Math.round(((avgLQ / 2) * 100))));
+
+                // growthScore: use viabilityData 'supply-demand' value if present
+                const supplyItem = Array.isArray(viabilityData) ? viabilityData.find(i => i.id === 'supply-demand') : null;
+                const growthScore = supplyItem ? Math.max(10, Math.min(90, Math.round(supplyItem.value))) : 50;
+
+                // salaryScore: use most recent median from salaryData.historical and normalize to 150k cap
+                const hist = salaryData?.historical || [];
+                const latestMedian = hist.length ? hist[hist.length - 1].median : null;
+                const salaryScore = latestMedian ? Math.max(10, Math.min(90, Math.round((latestMedian / 150000) * 100))) : 50;
+
+                // viabilityScore: average of viability value fields
+                const viVals = Array.isArray(viabilityData) && viabilityData.length ? viabilityData.map(v => v.value || 50) : [50];
+                const viabilityScore = Math.max(10, Math.min(90, Math.round(viVals.reduce((a,b) => a+b,0)/viVals.length)));
+
+                // Composite weighted scoring
+                const score = Math.round(demandScore * 0.35 + growthScore * 0.25 + salaryScore * 0.25 + viabilityScore * 0.15);
+
+                const breakdown = [
+                  { label: 'Demand', value: Math.round((demandScore/100)*100)/100 },
+                  { label: 'Growth', value: Math.round((growthScore/100)*100)/100 },
+                  { label: 'Salary', value: Math.round((salaryScore/100)*100)/100 },
+                  { label: 'Viability', value: Math.round((viabilityScore/100)*100)/100 },
+                ];
+
+                const trend = hist.slice(-6).map(r => r.median ? Math.round((r.median/150000)*100) : 50);
+
+                return (
+                  <OpportunityScore data={{ score, breakdown, trend }} compact loading={isLoading} />
+                );
+              })()}
+            </div>
             {/* Live Job Stream removed */}
           </div>
         )}
@@ -190,6 +199,44 @@ function MarketIntelligence() {
               careerTitle={selectedCareer.title}
               loading={loadingStates.viability === 'loading'}
             />
+          </div>
+        )}
+
+        {activePanel === 'opportunity' && (
+          <div className="mi-panel mi-panel-full">
+            <div className="mi-panel-header">
+              <h3>Opportunity Score — {selectedCareer.title}</h3>
+              <span className="mi-panel-badge">Composite KPI</span>
+            </div>
+            {allSuccess ? (
+              <OpportunityScore
+                data={(() => {
+                  const avgLQ = Array.isArray(heatmapData) && heatmapData.length > 0
+                    ? heatmapData.reduce((s, r) => s + (r.locationQuotient || 0), 0) / heatmapData.length
+                    : 0;
+                  const demandScore = Math.max(10, Math.min(90, Math.round(((avgLQ / 2) * 100))));
+                  const supplyItem = Array.isArray(viabilityData) ? viabilityData.find(i => i.id === 'supply-demand') : null;
+                  const growthScore = supplyItem ? Math.max(10, Math.min(90, Math.round(supplyItem.value))) : null;
+                  const hist = salaryData?.historical || [];
+                  const latestMedian = hist.length ? hist[hist.length - 1].median : null;
+                  const salaryScore = latestMedian ? Math.max(10, Math.min(90, Math.round((latestMedian / 150000) * 100))) : null;
+                  const viVals = Array.isArray(viabilityData) && viabilityData.length ? viabilityData.map(v => v.value || 50) : [];
+                  const viabilityScore = viVals.length ? Math.max(10, Math.min(90, Math.round(viVals.reduce((a,b) => a+b,0)/viVals.length))) : null;
+                  const score = Math.round(demandScore * 0.35 + growthScore * 0.25 + salaryScore * 0.25 + viabilityScore * 0.15);
+                  const breakdown = [
+                    { label: 'Demand', value: demandScore / 100 },
+                    { label: 'Growth', value: growthScore / 100 },
+                    { label: 'Salary', value: salaryScore / 100 },
+                    { label: 'Viability', value: viabilityScore / 100 },
+                  ];
+                  const trend = hist.slice(-12).map(r => r.median ? Math.round((r.median/150000)*100) : 0);
+                  return { score, breakdown, trend };
+                })()}
+                loading={false}
+              />
+            ) : (
+              <OpportunityScore loading={true} />
+            )}
           </div>
         )}
 
