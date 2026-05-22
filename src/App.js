@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -78,6 +78,28 @@ function AppContent() {
             </Routes>
           </Suspense>
         </main>
+        <footer className="site-footer">
+          <div className="site-footer__inner">
+            <div className="site-footer__brand">
+              <span className="site-footer__name">STEM PathfindR</span>
+              <p className="site-footer__text">
+                Personalized STEM career discovery, powered by AI.
+              </p>
+            </div>
+
+            <div className="site-footer__links" aria-label="Footer links">
+              <Link to="/" className="site-footer__link">Home</Link>
+              <Link to="/dashboard" className="site-footer__link">Dashboard</Link>
+              <Link to="/market-intelligence" className="site-footer__link">Market Intel</Link>
+              <Link to="/profile" className="site-footer__link">Profile</Link>
+            </div>
+
+            <div className="site-footer__meta">
+              <span>© 2026 STEM PathfindR</span>
+              <span>Built for students, educators, and career explorers.</span>
+            </div>
+          </div>
+        </footer>
         <AIAssistantPopup />
       </div>
     </UserProvider>
