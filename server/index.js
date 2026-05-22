@@ -4,6 +4,36 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const aws4 = require('aws4');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+
+function parsePdfBuffer(buffer) {
+  // Support v1 simple function API
+  if (typeof pdfParse === 'function') return pdfParse(buffer);
+
+  // Support default export function shape
+  if (pdfParse && typeof pdfParse.default === 'function') return pdfParse.default(buffer);
+
+  const PDFParseClass = (pdfParse && pdfParse.PDFParse) || (pdfParse && pdfParse.default && pdfParse.default.PDFParse);
+  if (typeof PDFParseClass === 'function') {
+    const parser = new PDFParseClass({ data: buffer });
+    // parser.getText() returns an object with `.text` and other metadata
+    return parser.getText();
+  }
+
+  try {
+    const nodeModule = require('pdf-parse/dist/node/cjs/index.cjs');
+    const NodePDFParse = nodeModule && nodeModule.PDFParse;
+    if (typeof NodePDFParse === 'function') {
+      const parser = new NodePDFParse({ data: buffer });
+      return parser.getText();
+    }
+  } catch (err) {
+  }
+
+  console.error('pdf-parse diagnostics:', { type: typeof pdfParse, keys: pdfParse && Object.keys ? Object.keys(pdfParse) : undefined });
+  throw new Error('pdf-parse export not found');
+}
 const { URL } = require('url');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -43,6 +73,19 @@ const DIFFICULTY_XP = {
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
+
+// Multer config for PDF uploads (max 5MB, in-memory)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are accepted'), false);
+    }
+  },
+});
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'pathfindr-backend' });
@@ -294,6 +337,110 @@ app.post('/api/scenarios/generate', async (req, res) => {
   } catch (err) {
     console.error('Scenario generation failed:', err);
     return res.status(500).json({ ok: false, message: 'Scenario generation failed', error: String(err) });
+  }
+});
+
+// ─── Resume Analysis Endpoint ───────────────────────────────────────────────
+
+const RESUME_ANALYSIS_SYSTEM_PROMPT = `You are a resume analysis engine for a STEM career exploration platform aimed at students. Your job is to extract structured career profile information from resumes.
+
+Analyze the resume text and determine if it contains ENOUGH information to build a complete career profile. A complete profile needs:
+1. The person's name
+2. At least 2 clear interests/fields of interest
+3. At least 2 identifiable skills
+4. Some indication of work style preference (office/lab/field/mixed)
+5. Some indication of career motivation
+
+If the resume IS COMPLETE (has enough info for all 5 areas), respond with:
+{
+  "status": "complete",
+  "profile": {
+    "name": "<extracted name>",
+    "interests": ["<interest1>", "<interest2>", ...],
+    "skills": ["<skill1>", "<skill2>", ...],
+    "preferences": {
+      "workstyle": "<one of: Office / Remote (Computer-based work), Laboratory (Research & experiments), Field Work (Outdoors & travel), Mixed (Variety of settings)>",
+      "motivation": "<one of: Making a positive impact on society, Solving complex technical challenges, Financial stability and growth, Innovation and creating new things>"
+    }
+  }
+}
+
+If the resume is INCOMPLETE (missing key areas), respond with:
+{
+  "status": "incomplete",
+  "extractedData": {
+    "name": "<name if found, or empty string>",
+    "interests": ["<any interests found>"],
+    "skills": ["<any skills found>"],
+    "workstyle": "<if determinable, or empty string>",
+    "motivation": "<if determinable, or empty string>"
+  },
+  "followUpQuestions": [
+    {
+      "id": "<unique_id>",
+      "question": "<question text>",
+      "type": "multi-select | single-select | text",
+      "options": ["<option1>", "<option2>", ...]
+    }
+  ]
+}
+
+Rules for follow-up questions:
+- Only ask about information that is MISSING or UNCLEAR from the resume
+- Use the same question style as an onboarding quiz (friendly, encouraging)
+- For interests/skills use "multi-select" with relevant options
+- For workstyle/motivation use "single-select" with the exact options listed above
+- For name use "text" type
+- Maximum 3 follow-up questions
+- Options for interests should come from: Coding & Programming, Mathematics, Biology & Life Sciences, Physics & Space, Chemistry, Environmental Science, Robotics & Hardware, Data & Analytics, Design & UX, Healthcare & Medicine, AI & Machine Learning, Sustainability
+- Options for skills should come from: Problem Solving, Creative Thinking, Teamwork, Writing & Communication, Math & Numbers, Research, Leadership, Attention to Detail, Critical Thinking, Hands-on Building, Public Speaking, Organization
+
+Always respond with valid JSON only. No markdown fences or extra text.`;
+
+app.post('/api/resume/analyze', upload.single('resume'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ ok: false, message: 'No PDF file uploaded' });
+  }
+
+  if (!hasBedrockConfig()) {
+    return res.status(501).json({
+      ok: false,
+      message: 'Resume analysis backend not configured. Ensure AWS Bedrock credentials are set.',
+    });
+  }
+
+  try {
+    // Extract text from PDF
+    const pdfData = await parsePdfBuffer(req.file.buffer);
+    const resumeText = pdfData.text;
+
+    if (!resumeText || resumeText.trim().length < 50) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Could not extract sufficient text from the PDF. Please ensure it is not a scanned image.',
+      });
+    }
+
+    // Send to Bedrock for analysis
+    const responseText = await invokeBedrockConverse({
+      messages: [
+        {
+          role: 'user',
+          content: [{ text: `Analyze this resume and extract career profile information:\n\n${resumeText}` }],
+        },
+      ],
+      systemPrompt: RESUME_ANALYSIS_SYSTEM_PROMPT,
+      maxTokens: 1200,
+      temperature: 0.3,
+      topP: 0.9,
+    });
+
+    const analysis = parseJsonFromResponse(responseText);
+
+    return res.json({ ok: true, analysis });
+  } catch (err) {
+    console.error('Resume analysis failed:', err);
+    return res.status(500).json({ ok: false, message: 'Resume analysis failed', error: String(err) });
   }
 });
 

@@ -196,3 +196,167 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
 }
+
+/* ─── Choose Mode ─────────────────────────────────────────────────────────── */
+
+.choose-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 28px;
+}
+
+.choose-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.choose-card {
+  padding: 28px 20px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.choose-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
+}
+
+.choose-card h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.choose-card p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.choose-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.quiz-icon {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+}
+
+.resume-icon {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+/* ─── Resume File Preview ─────────────────────────────────────────────────── */
+
+.resume-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--bg-dark);
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+.resume-filename {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-remove-btn {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  transition: color 0.2s;
+}
+
+.resume-remove-btn:hover {
+  color: #ef4444;
+}
+
+.resume-analyze-btn {
+  margin-left: auto;
+  padding: 8px 18px !important;
+  font-size: 0.88rem !important;
+}
+
+/* ─── Resume Analyzing State ──────────────────────────────────────────────── */
+
+.resume-analyzing {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.resume-analyzing .quiz-question {
+  margin-top: 20px;
+}
+
+.resume-analyzing-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Resume Follow-up Banner ─────────────────────────────────────────────── */
+
+.resume-followup-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  color: var(--primary-light);
+}
+
+/* ─── Error Message ───────────────────────────────────────────────────────── */
+
+.onboarding-error {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 6px;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 560px) {
+  .choose-options {
+    grid-template-columns: 1fr;
+  }
+}

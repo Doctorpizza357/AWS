@@ -14,7 +14,34 @@ import { MarketIntelligenceProvider } from './context/MarketIntelligenceContext'
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 
-const MarketIntelligence = lazy(() => import('./pages/MarketIntelligence'));
+const lazyWithRetry = (importFn, key) =>
+  lazy(async () => {
+    const storageKey = `lazy-retry-${key}`;
+    const hasRefreshed = sessionStorage.getItem(storageKey) === 'true';
+
+    try {
+      const module = await importFn();
+      sessionStorage.setItem(storageKey, 'false');
+      return module;
+    } catch (error) {
+      const errorMessage = String(error && error.message ? error.message : error);
+      const isChunkLoadError =
+        /ChunkLoadError/i.test(errorMessage) ||
+        /Loading chunk [\w-]+ failed/i.test(errorMessage) ||
+        /Failed to fetch dynamically imported module/i.test(errorMessage);
+
+      // Refresh once when a stale chunk is requested, then surface the error if it persists.
+      if (isChunkLoadError && !hasRefreshed) {
+        sessionStorage.setItem(storageKey, 'true');
+        window.location.reload();
+        return new Promise(() => {});
+      }
+
+      throw error;
+    }
+  });
+
+const MarketIntelligence = lazyWithRetry(() => import('./pages/MarketIntelligence'), 'market-intelligence');
 
 // Inner component that uses useAuth (must be inside AuthProvider)
 function AppContent() {

@@ -1,3 +1,22 @@
+export async function analyzeResume(file) {
+  const formData = new FormData();
+  formData.append('resume', file);
+
+  const response = await fetch('/api/resume/analyze', {
+    method: 'POST',
+    body: formData,
+  });
+
+  const json = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message = (json && json.message) || `Resume analysis returned ${response.status}`;
+    throw new Error(message);
+  }
+
+  return json.analysis;
+}
+
 export async function generateScenario(career, scenario, userProfile) {
   try {
     const response = await fetch('/api/scenarios/generate', {

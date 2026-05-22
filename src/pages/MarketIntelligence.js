@@ -35,8 +35,13 @@ function MarketIntelligence() {
   if (!user.isOnboarded) return null;
 
   const selectedCareer = careers.find(c => c.id === selectedCareerId) || careers[0];
+  const availableCareers = user.recommendedCareers.length > 0 ? user.recommendedCareers : careers;
   const isLoading = Object.values(loadingStates).some(s => s === 'loading');
   const allSuccess = Object.values(loadingStates).every(s => s === 'success');
+  const latestUpdatedAt = Object.values(lastFetchTimestamps || {})
+    .filter(Boolean)
+    .map(ts => new Date(ts))
+    .sort((a, b) => b - a)[0] || null;
 
   const getStatusIndicator = () => {
     if (isLoading) return { text: 'Fetching live data...', color: 'var(--accent)' };
@@ -56,6 +61,40 @@ function MarketIntelligence() {
 
   return (
     <div className="market-intelligence">
+      <header className="mi-header">
+        <div className="mi-header-left">
+          <h1 className="mi-title">
+            Market <span className="mi-title-accent">Intelligence</span>
+          </h1>
+          <p className="mi-subtitle">Live Career Signal Dashboard</p>
+          <div className="mi-status">
+            <span className="mi-status-dot" style={{ backgroundColor: status.color }} />
+            <span className="mi-status-text">{status.text}</span>
+          </div>
+        </div>
+
+        <div className="mi-header-right">
+          <div className="mi-career-selector">
+            <label className="mi-selector-label" htmlFor="mi-career-selector">Career</label>
+            <select
+              id="mi-career-selector"
+              className="mi-selector"
+              value={selectedCareerId || selectedCareer.id}
+              onChange={(e) => selectCareer(e.target.value)}
+            >
+              {availableCareers.map((career) => (
+                <option key={career.id} value={career.id}>
+                  {career.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          <span className="mi-last-updated">
+            Last updated: {latestUpdatedAt ? latestUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Pending'}
+          </span>
+        </div>
+      </header>
+
       {/* Panel Navigation */}
       <nav className="mi-panel-nav">
         {tabConfig.map(tab => {
