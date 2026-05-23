@@ -217,3 +217,14 @@ All market data is fetched live and projected forward using compound annual grow
 ## 📄 License
 
 This project was created for the AWS Hackathon.
+
+---
+
+## 🔔 New Backend Features
+
+- **Server-side AI endpoints**: The backend now exposes robust AI endpoints for scenario generation and resume analysis that communicate with AWS Bedrock via SigV4-signed requests.
+- **Scenario generation:** `POST /api/scenarios/generate` accepts a career, scenario, and optional `userProfile`/`variation` and returns a normalized JSON scenario with difficulty, XP rewards, options, and a marked correct choice. Scenarios are generated using structured prompts so the frontend can reliably parse and present branching decisions.
+- **Resume analysis:** `POST /api/resume/analyze` accepts a PDF resume upload (multipart/form-data, `resume` file field, max 5MB) and returns structured JSON describing whether the resume is `complete` or `incomplete` plus extracted profile data and follow-up onboarding questions when needed.
+- **PDF handling & validation:** The server uses `multer` (in-memory) and `pdf-parse` to extract text. Scanned image PDFs may not extract correctly; users should upload digital-text PDFs for reliable results.
+- **XP scaling & scenario normalization:** Scenario difficulty maps to XP (`easy`=10, `medium`=20, `hard`=30) and the server returns `rewardXp`, `correctOptionId`, and per-option `xp` values so the frontend can immediately award progress.
+- **Operational persona & system prompts:** Backend includes curated system prompts (assistant persona and scenario/resume analysis system prompts) to ensure consistent, scannable, and parseable AI responses used across the app.

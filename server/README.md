@@ -36,6 +36,35 @@ Make sure `server/.env` is listed in `.gitignore` and never commit it.
 - `GET /health` — returns basic service health. Example response: `{ ok: true, service: 'pathfindr-backend' }`
 - `POST /api/assistant/message` — send user text and receive assistant reply.
 
+### New Endpoints
+
+- `POST /api/scenarios/generate` — Generate an AI-powered scenario for a career path. Request body (JSON):
+
+```json
+{
+	"career": { "title": "Software Engineer", "field": "Technology" },
+	"scenario": { "title": "On-call outage", "description": "..." },
+	"userProfile": { "interests": ["Coding & Programming"], "skills": ["Problem Solving"] },
+	"variation": "seed-1"
+}
+```
+
+Response: normalized JSON scenario including `difficulty`, `rewardXp`, `options`, and `correctOptionId`.
+
+- `POST /api/resume/analyze` — Analyze a PDF resume and extract a structured career profile.
+
+Requirements and notes:
+- Upload via `multipart/form-data` with field name `resume` (PDF only). The server enforces a 5MB file size limit.
+- The server uses `multer` (memory storage) and `pdf-parse` to extract text. Scanned image PDFs may not return usable text; prefer digital-text PDFs.
+- The analysis response is strict JSON indicating `status: "complete"` with a `profile`, or `status: "incomplete"` with `extractedData` and `followUpQuestions` (max 3 follow-ups) to drive the onboarding quiz.
+
+Example curl (resume analysis):
+
+```bash
+curl -X POST http://localhost:5000/api/resume/analyze \
+	-F "resume=@/path/to/resume.pdf"
+```
+
 Request body (JSON):
 
 ```json
@@ -72,4 +101,9 @@ curl -X POST http://localhost:5000/api/assistant/message \
 
 ## Notes
 - The server signs requests and forwards them to the Bedrock runtime endpoint. If you change the model or region, restart the server.
+
+## Implementation details
+- Uses `aws4` for SigV4 signing of Bedrock requests and `node-fetch` (or global `fetch`) to call Bedrock's Converse endpoint.
+- Robust `pdf-parse` handling supports multiple module export shapes so the server works with different package versions.
+- Scenario prompt construction and response parsing include helper functions to normalize difficulty, scale XP, and extract JSON from model responses even when the model includes small formatting noise.
 
