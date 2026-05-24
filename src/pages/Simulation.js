@@ -197,6 +197,9 @@ function Simulation() {
                       <strong>Your choice:</strong> {selectedOption.text}
                     </p>
                     <p className="outcome-result">{selectedOption.outcome}</p>
+                    <p className="outcome-correct-answer">
+                      <strong>Correct answer:</strong> {scenarioData.options.find(option => option.correct)?.text || selectedOption.text}
+                    </p>
                     <div className="outcome-rewards">
                       <span className="reward-xp">+{awardedXp ?? selectedOption.xp} XP on completion</span>
                       <div className="reward-traits">
