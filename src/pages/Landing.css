@@ -222,7 +222,7 @@
 .cta-section {
   text-align: center;
   padding: 80px 20px;
-  background: var(--bg-card);
+  background: transparent;
   border-top: 1px solid var(--border);
 }
 

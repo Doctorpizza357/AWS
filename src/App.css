@@ -11,9 +11,7 @@
 
 .site-footer {
   border-top: 1px solid var(--border);
-  background:
-    linear-gradient(180deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%),
-    var(--bg-card);
+  background: var(--bg-dark);
 }
 
 .site-footer__inner {
