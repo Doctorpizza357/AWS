@@ -5,6 +5,7 @@ import './AIAssistantPopup.css';
 
 function AIAssistantPopup() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState([
@@ -20,6 +21,7 @@ function AIAssistantPopup() {
   const responseTimerRef = useRef(null);
   const lastMessageRef = useRef(null);
   const justSentByUserRef = useRef(false);
+  const closeTimerRef = useRef(null);
 
   // Auto-scroll behavior:
   // - If the user is near the bottom (within 100px), scroll the newest message into view
@@ -63,11 +65,24 @@ function AIAssistantPopup() {
   useEffect(() => {
     if (isOpen) {
       inputRef.current?.focus();
+      setIsPanelVisible(true);
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+      return;
     }
+
+    closeTimerRef.current = window.setTimeout(() => {
+      setIsPanelVisible(false);
+    }, 220);
 
     return () => {
       if (responseTimerRef.current) {
         window.clearTimeout(responseTimerRef.current);
+      }
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
       }
     };
   }, [isOpen]);
@@ -125,10 +140,22 @@ function AIAssistantPopup() {
 
   return (
     <div className={`ai-assistant ${isOpen ? 'open' : ''}`}>
-      {isOpen ? <button type="button" className="ai-backdrop" aria-label="Close AI assistant" onClick={() => setIsOpen(false)} /> : null}
+      {isPanelVisible ? (
+        <button
+          type="button"
+          className={`ai-backdrop ${isOpen ? 'visible' : 'closing'}`}
+          aria-label="Close AI assistant"
+          onClick={() => setIsOpen(false)}
+        />
+      ) : null}
 
-      {isOpen ? (
-        <div className="ai-panel" role="dialog" aria-modal="false" aria-label="AI assistant preview">
+      {isPanelVisible ? (
+        <div
+          className={`ai-panel ${isOpen ? 'panel-enter' : 'panel-exit'}`}
+          role="dialog"
+          aria-modal="false"
+          aria-label="AI assistant preview"
+        >
           <div className="ai-panel-header">
             <div className="ai-panel-title-wrap">
               <p className="ai-panel-eyebrow">
