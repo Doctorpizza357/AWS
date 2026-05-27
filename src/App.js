@@ -11,6 +11,7 @@ import Profile from './pages/Profile';
 import AIAssistantPopup from './components/AIAssistantPopup';
 import { UserProvider } from './context/UserContext';
 import { MarketIntelligenceProvider } from './context/MarketIntelligenceContext';
+import { InterviewProvider } from './context/InterviewContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 
@@ -42,6 +43,10 @@ const lazyWithRetry = (importFn, key) =>
   });
 
 const MarketIntelligence = lazyWithRetry(() => import('./pages/MarketIntelligence'), 'market-intelligence');
+const InterviewHub = lazyWithRetry(() => import('./pages/InterviewHub'), 'interview-hub');
+const MockInterview = lazyWithRetry(() => import('./pages/MockInterview'), 'mock-interview');
+const ResumeTailor = lazyWithRetry(() => import('./pages/ResumeTailor'), 'resume-tailor');
+const TechnicalAssessment = lazyWithRetry(() => import('./pages/TechnicalAssessment'), 'technical-assessment');
 
 // Inner component that uses useAuth (must be inside AuthProvider)
 function AppContent() {
@@ -57,6 +62,7 @@ function AppContent() {
 
   return (
     <UserProvider>
+      <InterviewProvider>
       <div className="app">
         {showNavbar && <Navbar />}
         <main className="main-content">
@@ -74,6 +80,10 @@ function AppContent() {
                   <MarketIntelligence />
                 </MarketIntelligenceProvider>
               } />
+              <Route path="/interview" element={<InterviewHub />} />
+              <Route path="/interview/mock" element={<MockInterview />} />
+              <Route path="/interview/resume" element={<ResumeTailor />} />
+              <Route path="/interview/technical" element={<TechnicalAssessment />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Suspense>
@@ -91,6 +101,7 @@ function AppContent() {
               <Link to="/" className="site-footer__link">Home</Link>
               <Link to="/dashboard" className="site-footer__link">Dashboard</Link>
               <Link to="/market-intelligence" className="site-footer__link">Market Intel</Link>
+              <Link to="/interview" className="site-footer__link">Interview AI</Link>
               <Link to="/profile" className="site-footer__link">Profile</Link>
             </div>
 
@@ -102,6 +113,7 @@ function AppContent() {
         </footer>
         <AIAssistantPopup />
       </div>
+      </InterviewProvider>
     </UserProvider>
   );
 }

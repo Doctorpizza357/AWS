@@ -1,4 +1,4 @@
-const path = require('path');
+﻿const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
@@ -161,26 +161,43 @@ async function invokeBedrockConverse({ messages, systemPrompt, maxTokens = 800, 
   return responseText;
 }
 
+
 function parseJsonFromResponse(responseText) {
-  try {
-    return JSON.parse(responseText);
-  } catch (error) {
-    const trimmedText = responseText.trim();
-    const fencedMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-
-    if (fencedMatch) {
-      return JSON.parse(fencedMatch[1]);
+  try { return JSON.parse(responseText); } catch (_) {}
+  let text = responseText.trim();
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenced) text = fenced[1].trim();
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end <= start) throw new Error('No JSON found');
+  let raw = text.slice(start, end + 1);
+  try { return JSON.parse(raw); } catch (_) {}
+  // Walk char-by-char: escape newlines/tabs/backticks only inside strings
+  let fixed = '', inStr = false, esc = false;
+  for (let i = 0; i < raw.length; i++) {
+    const c = raw[i];
+    if (esc) { fixed += c; esc = false; continue; }
+    if (c === '\\') { fixed += c; esc = true; continue; }
+    if (c === '"') { inStr = !inStr; fixed += c; continue; }
+    if (inStr) {
+      if (c === '\n') { fixed += '\\n'; continue; }
+      if (c === '\r') { continue; }
+      if (c === '\t') { fixed += '\\t'; continue; }
+      if (c === '`') { fixed += "'"; continue; }
     }
-
-    const startIndex = trimmedText.indexOf('{');
-    const endIndex = trimmedText.lastIndexOf('}');
-
-    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-      return JSON.parse(trimmedText.slice(startIndex, endIndex + 1));
-    }
-
-    throw error;
+    fixed += c;
   }
+  try { return JSON.parse(fixed); } catch (_) {}
+  // Truncate at last complete value and close
+  const lastComma = fixed.lastIndexOf('",');
+  if (lastComma > 0) {
+    let trunc = fixed.substring(0, lastComma + 1);
+    const open = (trunc.match(/{/g) || []).length;
+    const close = (trunc.match(/}/g) || []).length;
+    trunc += '}'.repeat(Math.max(0, open - close));
+    try { return JSON.parse(trunc); } catch (_) {}
+  }
+  throw new Error('Failed to parse AI response as JSON');
 }
 
 function normalizeProfileList(value) {
@@ -340,7 +357,7 @@ app.post('/api/scenarios/generate', async (req, res) => {
   }
 });
 
-// ─── Resume Analysis Endpoint ───────────────────────────────────────────────
+// â”€â”€â”€ Resume Analysis Endpoint â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const RESUME_ANALYSIS_SYSTEM_PROMPT = `You are a resume analysis engine for a STEM career exploration platform aimed at students. Your job is to extract structured career profile information from resumes.
 
@@ -443,6 +460,104 @@ app.post('/api/resume/analyze', upload.single('resume'), async (req, res) => {
     return res.status(500).json({ ok: false, message: 'Resume analysis failed', error: String(err) });
   }
 });
+
+// â”€â”€â”€ Interview Intelligence Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+const INTERVIEW_SYSTEM = 'You are an expert interview coach and career advisor. Always respond with valid JSON only.';
+
+app.post('/api/interview/analyze-response', async (req, res) => {
+  const { question, answer, role, difficulty } = req.body || {};
+  if (!question || !answer) return res.status(400).json({ ok: false, message: 'Missing question or answer' });
+  if (!hasBedrockConfig()) return res.status(501).json({ ok: false, message: 'Bedrock not configured' });
+  try {
+    const prompt = `Analyze this interview response.\nRole: ${role}\nDifficulty: ${difficulty}\nQuestion: ${question}\nAnswer: ${answer}\n\nReturn JSON:\n{"technicalAccuracy":{"score":0-100,"feedback":"..."},"communicationClarity":{"score":0-100,"feedback":"..."},"depth":{"score":0-100,"feedback":"..."},"relevance":{"score":0-100,"feedback":"..."},"overallScore":0-100,"strengths":["..."],"improvements":["..."],"sampleAnswer":"brief ideal answer","followUpQuestions":["..."]}`;
+    const text = await invokeBedrockConverse({ messages: [{ role: 'user', content: [{ text: prompt }] }], systemPrompt: INTERVIEW_SYSTEM, maxTokens: 1500, temperature: 0.7 });
+    res.json({ ok: true, analysis: parseJsonFromResponse(text) });
+  } catch (err) { console.error('Interview analysis failed:', err); res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+app.post('/api/interview/generate-questions', async (req, res) => {
+  const { jobDescription, type, difficulty } = req.body || {};
+  if (!jobDescription) return res.status(400).json({ ok: false, message: 'Missing jobDescription' });
+  if (!hasBedrockConfig()) return res.status(501).json({ ok: false, message: 'Bedrock not configured' });
+  try {
+    const prompt = `Based on this job description, generate 5 ${type || 'technical'} interview questions (${difficulty || 'mid'} level).\n\nJob Description:\n${jobDescription}\n\nReturn JSON:\n{"questions":[{"id":"q1","question":"...","type":"${type || 'technical'}","difficulty":"${difficulty || 'mid'}","expectedTopics":["..."],"timeLimit":120,"tips":"..."}]}`;
+    const text = await invokeBedrockConverse({ messages: [{ role: 'user', content: [{ text: prompt }] }], systemPrompt: INTERVIEW_SYSTEM, maxTokens: 1500, temperature: 0.8 });
+    const parsed = parseJsonFromResponse(text);
+    res.json({ ok: true, questions: parsed.questions || [] });
+  } catch (err) { console.error('Question generation failed:', err); res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+app.post('/api/interview/analyze-resume', async (req, res) => {
+  const { resumeText, jobDescription } = req.body || {};
+  if (!resumeText || !jobDescription) return res.status(400).json({ ok: false, message: 'Missing resumeText or jobDescription' });
+  if (!hasBedrockConfig()) return res.status(501).json({ ok: false, message: 'Bedrock not configured' });
+  try {
+    const prompt = `You are an ATS optimization specialist.\n\nResume:\n${resumeText}\n\nJob Description:\n${jobDescription}\n\nAnalyze and return JSON:\n{"matchScore":0-100,"atsScore":0-100,"keywordMatches":["..."],"missingKeywords":["..."],"strengths":["..."],"improvements":[{"section":"...","suggestion":"...","priority":"high|medium|low"}],"skillsGap":[{"skill":"...","importance":"critical|important|nice-to-have","suggestion":"..."}],"formatSuggestions":["..."],"overallFeedback":"2-3 sentences"}`;
+    const text = await invokeBedrockConverse({ messages: [{ role: 'user', content: [{ text: prompt }] }], systemPrompt: INTERVIEW_SYSTEM, maxTokens: 2000, temperature: 0.5 });
+    res.json({ ok: true, analysis: parseJsonFromResponse(text) });
+  } catch (err) { console.error('Resume analysis failed:', err); res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+app.post('/api/interview/generate-resume', async (req, res) => {
+  const { resumeText, jobDescription, analysis } = req.body || {};
+  if (!resumeText || !jobDescription) return res.status(400).json({ ok: false, message: 'Missing resumeText or jobDescription' });
+  if (!hasBedrockConfig()) return res.status(501).json({ ok: false, message: 'Bedrock not configured' });
+  try {
+    const missing = analysis?.missingKeywords?.join(', ') || 'N/A';
+    const improvements = analysis?.improvements?.map(i => i.suggestion).join('; ') || 'N/A';
+    const prompt = `You are an expert resume writer. Rewrite this resume optimized for the job.\n\nRULES: Keep truthful. Incorporate missing keywords. Use action verbs. Quantify achievements.\nStructure: NAME (centered), CONTACT, PROFESSIONAL SUMMARY (2-3 sentences), EXPERIENCE (bullets with action verbs), SKILLS, EDUCATION\n\nOriginal Resume:\n${resumeText}\n\nJob Description:\n${jobDescription}\n\nMissing Keywords: ${missing}\nImprovements: ${improvements}\n\nReturn JSON:\n{"optimizedResume":"the COMPLETE rewritten resume with \\n for line breaks, ALL CAPS section headers, bullets with bullet char","changesSummary":["change1","change2"],"estimatedNewScore":85}\n\nThe optimizedResume MUST be the full resume text ready to send to an employer.`;
+    const text = await invokeBedrockConverse({ messages: [{ role: 'user', content: [{ text: prompt }] }], systemPrompt: INTERVIEW_SYSTEM, maxTokens: 4000, temperature: 0.5 });
+    res.json({ ok: true, resume: parseJsonFromResponse(text) });
+  } catch (err) { console.error('Resume generation failed:', err); res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+app.post('/api/interview/extract-pdf', upload.single('resume'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ ok: false, message: 'No PDF file uploaded' });
+  try {
+    const pdfData = await parsePdfBuffer(req.file.buffer);
+    const text = typeof pdfData === 'string' ? pdfData : (pdfData.text || '');
+    if (!text || text.trim().length < 20) return res.status(400).json({ ok: false, message: 'Could not extract text. PDF may be image-based.' });
+    res.json({ ok: true, text: text.trim() });
+  } catch (err) { console.error('PDF extraction failed:', err); res.status(500).json({ ok: false, message: 'PDF extraction failed', error: String(err) }); }
+});
+
+app.post('/api/interview/code-review', async (req, res) => {
+  const { code, language, problemDescription } = req.body || {};
+  if (!code) return res.status(400).json({ ok: false, message: 'Missing code' });
+  if (!hasBedrockConfig()) return res.status(501).json({ ok: false, message: 'Bedrock not configured' });
+  try {
+    const prompt = `You are a senior software engineer conducting a code review.
+
+PROBLEM: ${problemDescription || 'General coding problem'}
+
+CANDIDATE'S CODE:
+\`\`\`
+${code}
+\`\`\`
+
+Analyze their actual code. Return ONLY this JSON structure:
+{"correctness":{"score":0,"issues":["list specific bugs"]},"efficiency":{"score":0,"timeComplexity":"O(?)","spaceComplexity":"O(?)","suggestions":["optimization tips"]},"codeQuality":{"score":0,"feedback":["style feedback"]},"edgeCases":["cases handled or missed"],"overallScore":0,"improvements":["what to fix"],"alternativeApproaches":["other approaches"],"solutionHint":"One sentence describing the optimal approach and key insight"}
+
+Fill in real scores 0-100 and specific feedback about THEIR code. Be specific - reference their actual logic.`;
+    const text = await invokeBedrockConverse({ messages: [{ role: 'user', content: [{ text: prompt }] }], systemPrompt: INTERVIEW_SYSTEM, maxTokens: 3000, temperature: 0.5 });
+    res.json({ ok: true, review: parseJsonFromResponse(text) });
+  } catch (err) { console.error('Code review failed:', err); res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+app.post('/api/interview/tailored-problems', async (req, res) => {
+  const { jobDescription } = req.body || {};
+  if (!jobDescription) return res.status(400).json({ ok: false, message: 'Missing jobDescription' });
+  if (!hasBedrockConfig()) return res.status(501).json({ ok: false, message: 'Bedrock not configured' });
+  try {
+    const prompt = `Generate 3 coding problems for this role's technical interview.\n\nJob Description:\n${jobDescription}\n\nReturn JSON:\n{"problems":[{"id":"p1","title":"...","difficulty":"easy|medium|hard","category":"...","description":"full problem","examples":[{"input":"...","output":"...","explanation":"..."}],"constraints":["..."],"starterCode":{"javascript":"function solution() {\\n  \\n}","python":"def solution():\\n    pass"},"hints":["..."],"optimalComplexity":{"time":"O(...)","space":"O(...)"},"relevance":"why relevant"}]}`;
+    const text = await invokeBedrockConverse({ messages: [{ role: 'user', content: [{ text: prompt }] }], systemPrompt: INTERVIEW_SYSTEM, maxTokens: 3000, temperature: 0.7 });
+    const parsed = parseJsonFromResponse(text);
+    res.json({ ok: true, problems: parsed.problems || [] });
+  } catch (err) { console.error('Problem generation failed:', err); res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+// â”€â”€â”€ 404 & Listen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 app.use((_req, res) => {
   res.status(404).json({ ok: false, message: 'Not found' });

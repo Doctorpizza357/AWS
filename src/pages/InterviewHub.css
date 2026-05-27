@@ -1,0 +1,18 @@
+.interview-hub { padding: 100px 0 60px; min-height: 100vh; }
+.hub-header { text-align: center; margin-bottom: 40px; }
+.hub-badge { display: inline-block; background: rgba(99,102,241,0.15); color: var(--primary-light); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; border: 1px solid rgba(99,102,241,0.3); }
+.hub-header h1 { font-size: 2.5rem; font-weight: 800; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }
+.hub-header p { color: var(--text-secondary); font-size: 1.05rem; max-width: 550px; margin: 0 auto; }
+.hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 24px; }
+.hub-card { position: relative; display: block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s; }
+.hub-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+.hub-card-glow { position: absolute; top: 0; left: 0; right: 0; height: 4px; opacity: 0.8; }
+.hub-card:hover .hub-card-glow { height: 6px; opacity: 1; }
+.hub-card-content { padding: 28px; }
+.hub-card-icon { font-size: 2.5rem; display: block; margin-bottom: 14px; }
+.hub-card-content h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+.hub-card-content p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 18px; }
+.hub-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.hub-card-tag { font-size: 0.75rem; color: var(--text-muted); background: rgba(99,102,241,0.1); padding: 3px 10px; border-radius: 10px; }
+.hub-card-arrow { font-size: 1.2rem; color: var(--primary); transition: transform 0.2s; }
+.hub-card:hover .hub-card-arrow { transform: translateX(4px); }

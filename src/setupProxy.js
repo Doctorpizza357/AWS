@@ -36,4 +36,13 @@ module.exports = function (app) {
       pathRewrite: { '^/api/resume': '/api/resume' },
     })
   );
+
+  app.use(
+    '/api/interview',
+    createProxyMiddleware({
+      target: 'http://localhost:5000',
+      changeOrigin: true,
+      pathRewrite: { '^/api/interview': '/api/interview' },
+    })
+  );
 };

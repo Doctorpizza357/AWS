@@ -1,0 +1,40 @@
+.resume-tailor { padding: 100px 0 60px; min-height: 100vh; }
+.rt-header { text-align: center; margin-bottom: 30px; }
+.rt-header h1 { font-size: 2rem; margin-bottom: 8px; }
+.rt-header p { color: var(--text-secondary); font-size: 1rem; }
+.rt-upload { display: flex; align-items: center; gap: 12px; padding: 18px 24px; background: var(--bg-card); border: 2px dashed var(--border); border-radius: 12px; cursor: pointer; margin-bottom: 20px; transition: border-color 0.2s; color: var(--text-secondary); }
+.rt-upload:hover { border-color: var(--primary); }
+.rt-upload-icon { font-size: 1.5rem; }
+.rt-error { color: #ef4444; font-size: 0.85rem; margin-bottom: 12px; }
+.rt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.rt-field label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+.rt-field textarea { width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; color: var(--text-primary); font-size: 0.9rem; line-height: 1.6; resize: vertical; }
+.rt-field textarea:focus { border-color: var(--primary); outline: none; }
+.rt-actions { margin-bottom: 30px; }
+.btn-primary { background: var(--gradient-1); color: white; padding: 12px 28px; border-radius: 8px; font-size: 1rem; font-weight: 600; border: none; cursor: pointer; transition: transform 0.2s; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: border-color 0.2s; }
+.btn-secondary:hover { border-color: var(--primary); }
+.rt-results { border-top: 1px solid var(--border); padding-top: 30px; }
+.rt-scores { display: flex; gap: 24px; justify-content: center; margin-bottom: 24px; }
+.rt-score { text-align: center; }
+.rt-score-val { display: block; font-size: 2rem; font-weight: 700; color: var(--primary-light); }
+.rt-score span:last-child { font-size: 0.8rem; color: var(--text-muted); }
+.rt-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.rt-section h3 { font-size: 1rem; margin-bottom: 10px; }
+.rt-section p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+.rt-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag-good { background: rgba(16,185,129,0.15); color: #10b981; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; }
+.tag-bad { background: rgba(239,68,68,0.15); color: #ef4444; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; }
+.rt-imp { display: flex; gap: 10px; align-items: flex-start; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px; }
+.rt-imp span:first-child { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; color: white; text-transform: uppercase; white-space: nowrap; }
+.rt-imp strong { font-size: 0.9rem; display: block; margin-bottom: 2px; }
+.rt-imp p { color: var(--text-secondary); font-size: 0.8rem; margin: 0; }
+.rt-generate { text-align: center; border: 2px dashed var(--primary); background: rgba(99,102,241,0.05); }
+.rt-gen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.rt-changes { list-style: none; padding: 0; margin-bottom: 12px; background: rgba(16,185,129,0.05); border-radius: 8px; padding: 12px; }
+.rt-changes li { font-size: 0.8rem; color: var(--text-secondary); padding: 2px 0 2px 16px; position: relative; }
+.rt-changes li::before { content: '✓'; position: absolute; left: 0; color: #10b981; }
+.rt-resume-text { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-size: 0.85rem; line-height: 1.7; color: var(--text-primary); white-space: pre-wrap; max-height: 500px; overflow-y: auto; }
+@media (max-width: 768px) { .rt-grid { grid-template-columns: 1fr; } }

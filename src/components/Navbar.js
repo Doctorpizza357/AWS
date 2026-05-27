@@ -90,6 +90,13 @@ function Navbar() {
                 Market Intel
               </Link>
               <Link
+                to="/interview"
+                className={`nav-link ${location.pathname.startsWith('/interview') ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Interview AI
+              </Link>
+              <Link
                 to="/profile"
                 className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
