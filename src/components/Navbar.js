@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 import { Trophy } from 'lucide-react';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo_orange.png';
 import './Navbar.css';
 
 function Navbar() {

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import favicon from './assets/logo.png';
+import favicon from './assets/logo_orange.png';
 
 // Set favicon dynamically from bundled asset
 try {

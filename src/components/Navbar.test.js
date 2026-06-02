@@ -72,7 +72,7 @@ jest.mock('firebase/analytics', () => ({
 // out. The Navbar only references the import as the `src` of an `<img>`
 // tag, and the resolved value of the stub doesn't affect the property
 // under test.
-jest.mock('../assets/logo.png', () => 'logo.png', { virtual: true });
+jest.mock('../assets/logo_orange.png', () => 'logo_orange.png', { virtual: true });
 
 // `useUser` and `useAuth` are driven by the test below via these
 // `jest.fn()` references. `act()` flushes Navbar's `useEffect` after
