@@ -13,7 +13,7 @@ module.exports = function (app) {
   app.use(
     '/api/assistant',
     createProxyMiddleware({
-      target: 'http://localhost:5001',
+      target: 'http://localhost:5000',
       changeOrigin: true,
       pathRewrite: { '^/api/assistant': '/api/assistant' },
     })
@@ -22,7 +22,7 @@ module.exports = function (app) {
   app.use(
     '/api/scenarios',
     createProxyMiddleware({
-      target: 'http://localhost:5001',
+      target: 'http://localhost:5000',
       changeOrigin: true,
       pathRewrite: { '^/api/scenarios': '/api/scenarios' },
     })
@@ -31,7 +31,7 @@ module.exports = function (app) {
   app.use(
     '/api/resume',
     createProxyMiddleware({
-      target: 'http://localhost:5001',
+      target: 'http://localhost:5000',
       changeOrigin: true,
       pathRewrite: { '^/api/resume': '/api/resume' },
     })
@@ -43,6 +43,15 @@ module.exports = function (app) {
       target: 'http://localhost:5000',
       changeOrigin: true,
       pathRewrite: { '^/api/interview': '/api/interview' },
+    })
+  );
+
+  app.use(
+    '/api/tts',
+    createProxyMiddleware({
+      target: 'http://localhost:5000',
+      changeOrigin: true,
+      pathRewrite: { '^/api/tts': '/api/tts' },
     })
   );
 };

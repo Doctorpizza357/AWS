@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInterview } from '../context/InterviewContext';
 import { generateInterviewQuestions, analyzeInterviewResponse } from '../services/interviewService';
+import { speakText, stopSpeaking, isSpeaking } from '../services/ttsService';
 import { MLBodyAnalyzer } from '../services/poseAnalyzer';
 import './MockInterview.css';
 import { getIconComponent } from '../utils/iconMap';
@@ -134,6 +135,8 @@ export default function MockInterview() {
   const [error, setError] = useState('');
   const [trackingMode, setTrackingMode] = useState('ml');
   const [showPoseOverlay, setShowPoseOverlay] = useState(false);
+  const [ttsPlaying, setTtsPlaying] = useState(false);
+  const [ttsLoading, setTtsLoading] = useState(false);
 
   const videoRef = useRef(null);
   const overlayRef = useRef(null);
@@ -830,6 +833,8 @@ export default function MockInterview() {
   };
 
   const handleNext = () => {
+    stopSpeaking();
+    setTtsPlaying(false);
     setFollowUpQuestions([]);
     setActiveFollowUp(null);
     if (qIdx < questions.length - 1) {
@@ -873,6 +878,26 @@ export default function MockInterview() {
   const currentPrompt = phase === 'followup' && activeFollowUp ? activeFollowUp : questions[qIdx]?.question;
   const currentPromptLabel = phase === 'followup' ? 'Adaptive follow-up' : `Q${qIdx+1}/${questions.length}`;
 
+  const handleReadAloud = async () => {
+    if (isSpeaking()) {
+      stopSpeaking();
+      setTtsPlaying(false);
+      return;
+    }
+    if (!currentPrompt) return;
+    setTtsLoading(true);
+    setTtsPlaying(true);
+    try {
+      const audio = await speakText(currentPrompt);
+      audio.addEventListener('ended', () => setTtsPlaying(false));
+      audio.addEventListener('error', () => setTtsPlaying(false));
+    } catch (err) {
+      console.error('TTS failed:', err);
+      setTtsPlaying(false);
+    }
+    setTtsLoading(false);
+  };
+
   // ─── SETUP ───────────────────────────────────────────────────────────────────
   if (phase === 'setup') return (
     <div className="mock-interview"><div className="container">
@@ -914,7 +939,26 @@ export default function MockInterview() {
       </div>
       <div className="mi-question-panel">
         <span className="mi-qnum">{currentPromptLabel} • {selectedType}</span>
-        <h2>{currentPrompt}</h2>
+        <div className="mi-question-row">
+          <h2>{currentPrompt}</h2>
+          <button
+            type="button"
+            className={`mi-read-aloud-btn ${ttsPlaying ? 'active' : ''}`}
+            onClick={handleReadAloud}
+            disabled={ttsLoading && !ttsPlaying}
+            aria-label={ttsPlaying ? 'Stop reading' : 'Read question aloud'}
+            title={ttsPlaying ? 'Stop reading' : 'Read question aloud'}
+          >
+            {ttsLoading && !ttsPlaying ? (
+              <span className="mi-tts-spinner" />
+            ) : ttsPlaying ? (
+              (() => { const Icon = getIconComponent('x'); return <Icon size={16} />; })()
+            ) : (
+              (() => { const Icon = getIconComponent('play'); return <Icon size={16} />; })()
+            )}
+            <span>{ttsPlaying ? 'Stop' : 'Listen'}</span>
+          </button>
+        </div>
         {questions[qIdx]?.tips && <p className="mi-tip">{(() => { const Icon = getIconComponent('badge-quick-thinker'); return <><Icon size={14} style={{marginRight:8}}/> {questions[qIdx].tips}</>; })()}</p>}
         {recording && <p className="mi-speech-status-inline">{speechStatus.message}{speechStatus.error ? ` • ${speechStatus.error}` : ''}{speechDebug ? ` • ${speechDebug}` : ''}</p>}
         {recording && (
@@ -986,7 +1030,26 @@ export default function MockInterview() {
       </div>
       <div className="mi-question-panel">
         <span className="mi-qnum">Adaptive follow-up • {selectedType}</span>
-        <h2>{activeFollowUp}</h2>
+        <div className="mi-question-row">
+          <h2>{activeFollowUp}</h2>
+          <button
+            type="button"
+            className={`mi-read-aloud-btn ${ttsPlaying ? 'active' : ''}`}
+            onClick={handleReadAloud}
+            disabled={ttsLoading && !ttsPlaying}
+            aria-label={ttsPlaying ? 'Stop reading' : 'Read question aloud'}
+            title={ttsPlaying ? 'Stop reading' : 'Read question aloud'}
+          >
+            {ttsLoading && !ttsPlaying ? (
+              <span className="mi-tts-spinner" />
+            ) : ttsPlaying ? (
+              (() => { const Icon = getIconComponent('x'); return <Icon size={16} />; })()
+            ) : (
+              (() => { const Icon = getIconComponent('play'); return <Icon size={16} />; })()
+            )}
+            <span>{ttsPlaying ? 'Stop' : 'Listen'}</span>
+          </button>
+        </div>
         <p className="mi-tip">{(() => { const Icon = getIconComponent('zap'); return <><Icon size={14} style={{marginRight:8}}/> This follow-up was generated from your previous answer.</>; })()}</p>
         {recording && <p className="mi-speech-status-inline">{speechStatus.message}{speechStatus.error ? ` • ${speechStatus.error}` : ''}{speechDebug ? ` • ${speechDebug}` : ''}</p>}
         {recording && (

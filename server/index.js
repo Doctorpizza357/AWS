@@ -1152,6 +1152,48 @@ app.post('/api/skillbridge/projects', async (req, res) => {
   return res.status(200).json({ ok: true, projects: candidate.projects });
 });
 
+// ─── Text-to-Speech (Edge TTS — free neural voices) ─────────────────────────
+const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
+
+app.post('/api/tts', async (req, res) => {
+  const { text, voice } = req.body || {};
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({ ok: false, message: 'Missing text' });
+  }
+
+  try {
+    const tts = new MsEdgeTTS();
+    // Use a natural-sounding neural voice; default to a US English male voice
+    const selectedVoice = voice || 'en-US-GuyNeural';
+    await tts.setMetadata(selectedVoice, OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
+
+    const { audioStream } = tts.toStream(text);
+
+    if (!audioStream || typeof audioStream.pipe !== 'function') {
+      throw new Error('TTS provider did not return a readable audio stream');
+    }
+
+    res.set({
+      'Content-Type': 'audio/mpeg',
+      'Cache-Control': 'no-cache',
+    });
+
+    audioStream.pipe(res);
+
+    audioStream.on('error', (err) => {
+      console.error('TTS stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ ok: false, message: 'TTS generation failed' });
+      } else {
+        res.end();
+      }
+    });
+  } catch (err) {
+    console.error('TTS failed:', err);
+    res.status(500).json({ ok: false, message: 'TTS generation failed', error: String(err) });
+  }
+});
+
 app.use((_req, res) => {
   res.status(404).json({ ok: false, message: 'Not found' });
 });
