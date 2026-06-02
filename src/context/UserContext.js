@@ -23,6 +23,7 @@ const initialState = {
     decisions: [],
   },
   recommendedCareers: [],
+  resume: null,
 };
 
 const getUserStorageKey = (uid) => (uid ? `stemPathfindr_user_${uid}` : 'stemPathfindr_guest_user');
@@ -88,6 +89,7 @@ export function UserProvider({ children }) {
             ...(data.progress || {}),
           },
           recommendedCareers: data.recommendedCareers || [],
+          resume: data.resume || null,
         };
 
         setUser(newUserState);
@@ -114,12 +116,39 @@ export function UserProvider({ children }) {
     }
   }, [user, authUser?.uid, isHydrating]);
 
-  const completeOnboarding = (profile, careers) => {
+  const saveResume = (resume) => {
+    const normalizedResume = resume
+      ? {
+          ...resume,
+          uploadedAt: resume.uploadedAt || new Date().toISOString(),
+        }
+      : null;
+
+    setUser(prev => ({
+      ...prev,
+      resume: normalizedResume,
+    }));
+
+    (async () => {
+      try {
+        if (authUser && authUser.uid) {
+          await setDoc(doc(db, 'users', authUser.uid), {
+            resume: normalizedResume,
+          }, { merge: true });
+        }
+      } catch (err) {
+        console.error('UserContext: failed to persist resume to Firestore', err);
+      }
+    })();
+  };
+
+  const completeOnboarding = (profile, careers, resume) => {
     setUser(prev => ({
       ...prev,
       isOnboarded: true,
       profile,
       recommendedCareers: careers,
+      resume: resume === undefined ? prev.resume : resume,
       progress: {
         ...prev.progress,
         unlockedPaths: careers.map(c => c.id),
@@ -136,6 +165,7 @@ export function UserProvider({ children }) {
             profile,
             recommendedCareers: careers,
             isOnboarded: true,
+            ...(resume !== undefined ? { resume } : {}),
           }, { merge: true });
         }
       } catch (err) {
@@ -254,6 +284,7 @@ export function UserProvider({ children }) {
       user,
       isHydrating: effectiveIsHydrating,
       completeOnboarding,
+      saveResume,
       addXP,
       earnBadge,
       completeScenario,

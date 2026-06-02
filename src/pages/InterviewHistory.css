@@ -1,0 +1,54 @@
+.interview-history .ih-inner { padding: 24px 0; }
+.ih-actions { margin: 12px 0; }
+.ih-list { display: grid; gap: 12px; }
+.ih-card { border: 1px solid var(--border); padding: 16px; border-radius: 14px; background: var(--bg-card); box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
+.ih-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.ih-card-head strong { font-size: 1rem; }
+.ih-date { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+.ih-card-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.ih-card-actions .btn-link,
+.ih-card-actions .btn-danger,
+.ih-card-actions .btn-secondary {
+	min-height: 38px;
+	padding: 8px 12px;
+	border-radius: 10px;
+	font-weight: 600;
+	border: 1px solid var(--border);
+	background: rgba(255,255,255,0.02);
+	color: var(--text-primary);
+}
+.ih-card-actions .btn-link:hover,
+.ih-card-actions .btn-secondary:hover {
+	border-color: var(--primary);
+	background: rgba(99,102,241,0.08);
+}
+.ih-card-actions .btn-danger {
+	color: #ef4444;
+	border-color: rgba(239,68,68,0.35);
+	background: rgba(239,68,68,0.08);
+}
+.ih-card-actions .btn-danger:hover {
+	background: #ef4444;
+	color: white;
+}
+.interview-history h1 { color: var(--text-primary); margin-bottom: 8px; }
+.interview-history > .ih-inner > p,
+.ih-card strong,
+.ih-card-body h4 { color: var(--text-primary); }
+.ih-card-body { color: var(--text-secondary); }
+.ih-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 8px 0 12px; }
+.ih-summary > div { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 12px; color: var(--text-secondary); }
+.ih-analysis { display: grid; gap: 10px; }
+.ih-answer { border-top: 1px dashed rgba(255,255,255,0.08); padding: 10px 0; }
+.ih-answer-meta { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4; }
+.ih-answer-text { background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; color: var(--text-primary); line-height: 1.55; }
+.ih-empty { padding: 24px; color: var(--text-secondary); background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
+
+@media (max-width: 768px) {
+	.ih-card-head { flex-direction: column; }
+	.ih-card-actions { width: 100%; justify-content: flex-start; }
+	.ih-card-actions .btn-link,
+	.ih-card-actions .btn-danger,
+	.ih-card-actions .btn-secondary { flex: 1 1 auto; text-align: center; }
+	.ih-summary { grid-template-columns: 1fr; }
+}

@@ -9,6 +9,7 @@ import CareerPath from './pages/CareerPath';
 import Simulation from './pages/Simulation';
 import Profile from './pages/Profile';
 import SkillBridge from './pages/SkillBridge';
+import InterviewHistory from './pages/InterviewHistory';
 import AIAssistantPopup from './components/AIAssistantPopup';
 import ProtectedRoute from './components/ProtectedRoute';
 import { UserProvider } from './context/UserContext';
@@ -48,6 +49,7 @@ const lazyWithRetry = (importFn, key) =>
 const MarketIntelligence = lazyWithRetry(() => import('./pages/MarketIntelligence'), 'market-intelligence');
 const InterviewHub = lazyWithRetry(() => import('./pages/InterviewHub'), 'interview-hub');
 const MockInterview = lazyWithRetry(() => import('./pages/MockInterview'), 'mock-interview');
+// InterviewHistory imported directly (not lazy) to avoid lazy resolution issues
 const ResumeTailor = lazyWithRetry(() => import('./pages/ResumeTailor'), 'resume-tailor');
 const TechnicalAssessment = lazyWithRetry(() => import('./pages/TechnicalAssessment'), 'technical-assessment');
 
@@ -87,6 +89,7 @@ function AppContent() {
                   } />
                   <Route path="/interview" element={<InterviewHub />} />
                   <Route path="/interview/mock" element={<MockInterview />} />
+                  <Route path="/interview/history" element={<InterviewHistory />} />
                   <Route path="/interview/resume" element={<ResumeTailor />} />
                   <Route path="/interview/technical" element={<TechnicalAssessment />} />
                   <Route path="*" element={<Navigate to="/" />} />

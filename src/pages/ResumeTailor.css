@@ -5,8 +5,12 @@
 .rt-upload { display: flex; align-items: center; gap: 12px; padding: 18px 24px; background: var(--bg-card); border: 2px dashed var(--border); border-radius: 12px; cursor: pointer; margin-bottom: 20px; transition: border-color 0.2s; color: var(--text-secondary); }
 .rt-upload:hover { border-color: var(--primary); }
 .rt-upload-icon { font-size: 1.5rem; }
+.rt-help { color: var(--text-muted); font-size: 0.85rem; margin: -8px 0 16px; }
+.rt-saved-resume-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; margin-bottom: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; color: var(--text-secondary); font-size: 0.9rem; }
+.rt-replace-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 12px; border-radius: 999px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+.rt-replace-btn:hover { color: var(--text-primary); border-color: var(--primary); }
 .rt-error { color: #ef4444; font-size: 0.85rem; margin-bottom: 12px; }
-.rt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.rt-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 20px; }
 .rt-field label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
 .rt-field textarea { width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; color: var(--text-primary); font-size: 0.9rem; line-height: 1.6; resize: vertical; }
 .rt-field textarea:focus { border-color: var(--primary); outline: none; }

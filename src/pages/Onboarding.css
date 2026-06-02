@@ -306,25 +306,172 @@
 
 .resume-analyzing {
   text-align: center;
-  padding: 40px 0;
+  padding: 28px 0 40px;
 }
 
 .resume-analyzing .quiz-question {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
+.resume-analyzing-orbit {
+  position: relative;
+  width: min(360px, 100%);
+  height: 260px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.resume-analyzing-core {
+  position: relative;
+  z-index: 2;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.18), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset, 0 18px 40px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--primary-light);
+}
+
+.resume-highlight-caption {
+  margin-top: 10px;
+  color: var(--primary-light);
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.resume-highlight-stream {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.resume-orbit-item {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  animation: orbitSpin 20s linear infinite;
+  animation-delay: var(--orbit-delay, 0s);
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.resume-orbit-pill {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+  transform: scale(0.85);
+  opacity: 0;
+  animation: pillPop 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, pillGlow 3.2s ease-out 0.35s forwards;
+  animation-delay: 0s, 0s;
+  will-change: transform, opacity;
+}
+
+.resume-orbit-item-1 .resume-orbit-pill { background: rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.32); }
+.resume-orbit-item-2 .resume-orbit-pill { background: rgba(14, 165, 233, 0.14); border-color: rgba(14, 165, 233, 0.32); }
+.resume-orbit-item-3 .resume-orbit-pill { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.32); }
+.resume-orbit-item-4 .resume-orbit-pill { background: rgba(168, 85, 247, 0.14); border-color: rgba(168, 85, 247, 0.32); }
+.resume-orbit-item-5 .resume-orbit-pill { background: rgba(236, 72, 153, 0.14); border-color: rgba(236, 72, 153, 0.32); }
+.resume-orbit-item-6 .resume-orbit-pill { background: rgba(99, 102, 241, 0.18); border-color: rgba(99, 102, 241, 0.35); }
+
 .resume-analyzing-spinner {
-  width: 48px;
-  height: 48px;
-  border: 3px solid var(--border);
+  width: 54px;
+  height: 54px;
+  border: 3px solid rgba(255,255,255,0.12);
   border-top-color: var(--primary);
   border-radius: 50%;
-  margin: 0 auto;
   animation: spin 0.8s linear infinite;
 }
 
+.resume-analyzing-orbit::before,
+.resume-analyzing-orbit::after {
+  content: '';
+  position: absolute;
+  inset: 24px;
+  border-radius: 50%;
+  border: 1px dashed rgba(99, 102, 241, 0.16);
+}
+
+.resume-skill-bubble {
+  position: absolute;
+  z-index: 1;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  background: rgba(15, 23, 42, 0.88);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+  animation: bubbleFloat 3.8s ease-in-out infinite;
+}
+
+.resume-skill-bubble::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  opacity: 0;
+  animation: bubblePulse 3.8s ease-in-out infinite;
+}
+
+.resume-skill-bubble-1 { top: 18px; left: 26px; animation-delay: 0s; }
+.resume-skill-bubble-2 { top: 12px; right: 18px; animation-delay: 0.25s; }
+.resume-skill-bubble-3 { top: 92px; right: -8px; animation-delay: 0.5s; }
+.resume-skill-bubble-4 { bottom: 18px; right: 22px; animation-delay: 0.75s; }
+.resume-skill-bubble-5 { bottom: 12px; left: 18px; animation-delay: 1s; }
+.resume-skill-bubble-6 { top: 94px; left: -8px; animation-delay: 1.25s; }
+
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes bubbleFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.9; }
+  50% { transform: translateY(-8px) scale(1.04); opacity: 1; }
+}
+
+@keyframes bubblePulse {
+  0%, 100% { transform: scale(0.96); opacity: 0; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes orbitSpin {
+  from { transform: translate(-50%, -50%) rotate(calc(var(--angle) * 1deg)) translateX(var(--radius)) rotate(calc(var(--angle) * -1deg)); }
+  to { transform: translate(-50%, -50%) rotate(calc((var(--angle) + 360) * 1deg)) translateX(var(--radius)) rotate(calc((var(--angle) + 360) * -1deg)); }
+}
+
+@keyframes pillPop {
+  0% { transform: translateY(12px) scale(0.7); opacity: 0; }
+  60% { transform: translateY(-2px) scale(1.04); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes pillGlow {
+  0% { opacity: 0; transform: scale(0.92); }
+  18% { opacity: 1; }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.08); }
 }
 
 /* ─── Resume Follow-up Banner ─────────────────────────────────────────────── */
@@ -358,5 +505,35 @@
 @media (max-width: 560px) {
   .choose-options {
     grid-template-columns: 1fr;
+  }
+
+  .resume-analyzing-orbit {
+    width: 100%;
+    height: 220px;
+  }
+
+  .resume-skill-bubble {
+    font-size: 0.72rem;
+    padding: 7px 10px;
+  }
+
+  .resume-skill-bubble-1 { left: 12px; }
+  .resume-skill-bubble-2 { right: 8px; }
+  .resume-skill-bubble-3 { right: 0; }
+  .resume-skill-bubble-4 { right: 12px; }
+  .resume-skill-bubble-5 { left: 10px; }
+  .resume-skill-bubble-6 { left: 0; }
+
+  .resume-analyzing-orbit {
+    height: 280px;
+  }
+
+  .resume-orbit-pill {
+    font-size: 0.72rem;
+    padding: 7px 10px;
+  }
+
+  .resume-orbit-item {
+    animation-duration: 22s;
   }
 }

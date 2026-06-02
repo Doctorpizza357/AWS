@@ -7,8 +7,11 @@ import {
   Briefcase,
   Circle,
   CircleDot,
+  Play,
   ClipboardList,
   Cloud,
+  Download,
+  FileText,
   Code2,
   Compass,
   DollarSign,
@@ -32,7 +35,14 @@ import {
   Trophy,
   Waves,
   Zap,
+  Upload,
+  Search,
+  X,
+  Camera,
+  Mic,
+  User,
   Check,
+  Settings,
 } from 'lucide-react';
 
 export var iconMap = {
@@ -80,6 +90,16 @@ export var iconMap = {
   'badge-portfolio': FolderOpen,
   'badge-gap-closer': Target,
   lock: Lock,
+  upload: Upload,
+  'file-text': FileText,
+  download: Download,
+  search: Search,
+  x: X,
+  camera: Camera,
+  mic: Mic,
+  user: User,
+  settings: Settings,
+  play: Play,
 };
 
 export function getIconComponent(iconName) {

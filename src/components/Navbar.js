@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
@@ -31,7 +31,7 @@ function Navbar() {
     setMenuOpen(false);
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const updateIndicator = () => {
       const container = navbarLinksRef.current;
       if (!container) return setIndicatorStyle({ left: 0, width: 0, opacity: 0 });
@@ -46,10 +46,13 @@ function Navbar() {
       setIndicatorStyle({ left, width, opacity: 1 });
     };
 
-    updateIndicator();
+    const frame = window.requestAnimationFrame(updateIndicator);
     window.addEventListener('resize', updateIndicator);
-    return () => window.removeEventListener('resize', updateIndicator);
-  }, [location.pathname, menuOpen]);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', updateIndicator);
+    };
+  }, [location.pathname, menuOpen, user?.isOnboarded, authUser?.uid]);
 
   return (
     <nav className="navbar">
@@ -103,6 +106,7 @@ function Navbar() {
               >
                 Interview AI
               </Link>
+              
               <Link
                 to="/profile"
                 className={`nav-link ${isActive('/profile') ? 'active' : ''}`}

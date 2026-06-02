@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 
 const InterviewContext = createContext();
 
@@ -21,12 +21,31 @@ function reducer(state, action) {
     case 'SET_LOADING': return { ...state, loading: action.payload };
     case 'SET_ERROR': return { ...state, error: action.payload, loading: false };
     case 'ADD_SESSION': return { ...state, sessions: [action.payload, ...state.sessions] };
+    case 'SET_SESSIONS': return { ...state, sessions: action.payload };
     default: return state;
   }
 }
 
 export function InterviewProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const loadSessions = () => {
+    try {
+      const raw = localStorage.getItem('interview_sessions');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const [state, dispatch] = useReducer(reducer, { ...initialState, sessions: loadSessions() });
+
+  // Persist sessions whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('interview_sessions', JSON.stringify(state.sessions || []));
+    } catch (e) {
+      // ignore
+    }
+  }, [state.sessions]);
 
   const setJobDescription = useCallback((jd) => dispatch({ type: 'SET_JOB_DESCRIPTION', payload: jd }), []);
   const setResumeText = useCallback((t) => dispatch({ type: 'SET_RESUME_TEXT', payload: t }), []);
@@ -35,9 +54,10 @@ export function InterviewProvider({ children }) {
   const setLoading = useCallback((l) => dispatch({ type: 'SET_LOADING', payload: l }), []);
   const setError = useCallback((e) => dispatch({ type: 'SET_ERROR', payload: e }), []);
   const addSession = useCallback((s) => dispatch({ type: 'ADD_SESSION', payload: s }), []);
+  const setSessions = useCallback((arr) => dispatch({ type: 'SET_SESSIONS', payload: arr }), []);
 
   return (
-    <InterviewContext.Provider value={{ ...state, setJobDescription, setResumeText, setResumeAnalysis, setGeneratedResume, setLoading, setError, addSession }}>
+    <InterviewContext.Provider value={{ ...state, setJobDescription, setResumeText, setResumeAnalysis, setGeneratedResume, setLoading, setError, addSession, setSessions }}>
       {children}
     </InterviewContext.Provider>
   );

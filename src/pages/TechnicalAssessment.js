@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useInterview } from '../context/InterviewContext';
 import { generateCodeReview, generateTailoredProblems } from '../services/interviewService';
 import './TechnicalAssessment.css';
+import { getIconComponent } from '../utils/iconMap';
 
 const defaultProblems = [
   { id: 'two-sum', title: 'Two Sum', difficulty: 'easy', category: 'arrays', description: 'Given an array of integers and a target, return indices of two numbers that add up to target.', examples: [{ input: 'nums=[2,7,11,15], target=9', output: '[0,1]', explanation: '2+7=9' }], starterCode: { javascript: 'function twoSum(nums, target) {\n  // Your code here\n}', python: 'def two_sum(nums, target):\n    pass' }, hints: ['Use a hash map'], optimalComplexity: { time: 'O(n)', space: 'O(n)' } },
@@ -104,15 +105,15 @@ export default function TechnicalAssessment() {
   if (view === 'list') return (
     <div className="tech-assess"><div className="container">
       <motion.header className="ta-header" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}>
-        <h1>💻 Technical Assessment</h1>
-        <p>Practice coding with AI code review</p>
-      </motion.header>
+            <h1>{(() => { const Icon = getIconComponent('career-software'); return <><Icon size={22} style={{marginRight:8}}/> Technical Assessment</>; })()}</h1>
+            <p>Practice coding with AI code review</p>
+          </motion.header>
       {loadingTailored && <p className="ta-loading">Generating problems for your job description...</p>}
       {tailored.length > 0 && (<>
-        <h3 className="ta-section-title">🎯 Tailored to Your Job</h3>
+        <h3 className="ta-section-title">{(() => { const Icon = getIconComponent('decision-point'); return <><Icon size={16} style={{marginRight:8}}/> Tailored to Your Job</>; })()}</h3>
         <div className="ta-list">{tailored.map((p,i) => <div key={p.id||i} className="ta-card tailored" onClick={() => selectProblem(p)}><h4>{p.title}</h4><span className={`ta-diff ${p.difficulty}`}>{p.difficulty}</span>{p.relevance && <small>{p.relevance}</small>}</div>)}</div>
       </>)}
-      <h3 className="ta-section-title">📚 Practice Problems</h3>
+      <h3 className="ta-section-title">{(() => { const Icon = getIconComponent('book-open'); return <><Icon size={16} style={{marginRight:8}}/> Practice Problems</>; })()}</h3>
       <div className="ta-list">{defaultProblems.map(p => <div key={p.id} className="ta-card" onClick={() => selectProblem(p)}><h4>{p.title}</h4><span className={`ta-diff ${p.difficulty}`}>{p.difficulty}</span><small>{p.category}</small></div>)}</div>
     </div></div>
   );
@@ -125,18 +126,18 @@ export default function TechnicalAssessment() {
         <p>{problem?.description}</p>
         {problem?.examples?.map((ex,i) => <div key={i} className="ta-example"><code>Input: {ex.input}</code><code>Output: {ex.output}</code>{ex.explanation && <small>{ex.explanation}</small>}</div>)}
         {problem?.optimalComplexity && <p className="ta-complexity">Target: {problem.optimalComplexity.time} time, {problem.optimalComplexity.space} space</p>}
-        {problem?.hints && <details className="ta-hints"><summary>💡 Hints</summary>{problem.hints.map((h,i)=><p key={i}>{h}</p>)}</details>}
+        {problem?.hints && <details className="ta-hints"><summary>{(() => { const Icon = getIconComponent('badge-quick-thinker'); return <><Icon size={14} style={{marginRight:8}}/> Hints</>; })()}</summary>{problem.hints.map((h,i)=><p key={i}>{h}</p>)}</details>}
       </div>
       <div className="ta-code-panel">
         <div className="ta-code-header">
           <span className="ta-lang-label">JavaScript</span>
-          <div><button className="ta-run" onClick={runCode}>▶ Run</button><button className="ta-review-btn" onClick={getReview} disabled={loading}>{loading?'Reviewing...':'🤖 AI Review'}</button></div>
+          <div><button className="ta-run" onClick={runCode}>▶ Run</button><button className="ta-review-btn" onClick={getReview} disabled={loading}>{loading?'Reviewing...':(() => { const Icon = getIconComponent('bot'); return <><Icon size={14} style={{marginRight:8}}/> AI Review</>; })()}</button></div>
         </div>
         <textarea className="ta-editor" value={code} onChange={e => setCode(e.target.value)} spellCheck={false} />
         {output && <pre className="ta-output">{output}</pre>}
         {review && (
           <div className="ta-review">
-            <h4>🤖 AI Code Review</h4>
+            <h4>{(() => { const Icon = getIconComponent('bot'); return <><Icon size={14} style={{marginRight:8}}/> AI Code Review</>; })()}</h4>
             <div className="ta-review-scores">
               <span>Correctness: {review.correctness?.score}</span>
               <span>Efficiency: {review.efficiency?.score}</span>
@@ -144,11 +145,11 @@ export default function TechnicalAssessment() {
               <span>Overall: {review.overallScore}</span>
             </div>
             {review.efficiency && <p className="ta-complexity">Time: {review.efficiency.timeComplexity} | Space: {review.efficiency.spaceComplexity}</p>}
-            {review.correctness?.issues?.length > 0 && <div><strong>⚠️ Issues Found:</strong><ul>{review.correctness.issues.map((s,i)=><li key={i}>{s}</li>)}</ul></div>}
-            {review.improvements?.length > 0 && <div><strong>🔧 Improvements:</strong><ul>{review.improvements.map((s,i)=><li key={i}>{s}</li>)}</ul></div>}
-            {review.edgeCases?.length > 0 && <div><strong>🎯 Edge Cases:</strong><ul>{review.edgeCases.map((s,i)=><li key={i}>{s}</li>)}</ul></div>}
-            {review.alternativeApproaches?.length > 0 && <div><strong>💡 Alternative Approaches:</strong><ul>{review.alternativeApproaches.map((s,i)=><li key={i}>{s}</li>)}</ul></div>}
-            {review.solutionHint && <div className="ta-solution"><strong>✅ Optimal Approach:</strong><p>{review.solutionHint}</p></div>}
+            {review.correctness?.issues?.length > 0 && <div><strong>{(() => { const Icon = getIconComponent('x'); return <><Icon size={14} style={{marginRight:8}}/> Issues Found:</>; })()}</strong><ul>{review.correctness.issues.map((s,i)=><li key={i}>{s}</li>)}</ul></div>}
+            {review.improvements?.length > 0 && <div><strong>{(() => { const Icon = getIconComponent('zap'); return <><Icon size={14} style={{marginRight:8}}/> Improvements:</>; })()}</strong><ul>{review.improvements.map((s,i)=><li key={i}>{s}</li>)}</ul></div>}
+            {review.edgeCases?.length > 0 && <div><strong>{(() => { const Icon = getIconComponent('decision-point'); return <><Icon size={14} style={{marginRight:8}}/> Edge Cases:</>; })()}</strong><ul>{review.edgeCases.map((s,i)=><li key={i}>{s}</li>)}</ul></div>}
+            {review.alternativeApproaches?.length > 0 && <div><strong>{(() => { const Icon = getIconComponent('badge-quick-thinker'); return <><Icon size={14} style={{marginRight:8}}/> Alternative Approaches:</>; })()}</strong><ul>{review.alternativeApproaches.map((s,i)=><li key={i}>{s}</li>)}</ul></div>}
+            {review.solutionHint && <div className="ta-solution">{(() => { const Icon = getIconComponent('check'); return <strong><Icon size={14} style={{marginRight:8}}/> Optimal Approach:</strong>; })()}<p>{review.solutionHint}</p></div>}
           </div>
         )}
       </div>

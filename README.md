@@ -1,65 +1,110 @@
-# 🧭 STEM PathFindr
+# STEM PathfindR
 
-> **Gamified STEM Career Discovery Platform — Built for the AWS Hackathon**
+> **AI-Powered Gamified STEM Career Discovery Platform — AWS Hackathon 2026**
 
-STEM PathFindr is an interactive web application that helps high school and college students discover their ideal STEM career through AI-powered simulations, real-time labor market data, and gamified exploration. Instead of reading about careers, students *live* them — making decisions in realistic day-in-the-life scenarios and seeing how their choices shape their professional path.
+<p align="center">
+  <img src="src/assets/landing.gif" alt="STEM PathfindR Landing Page" width="700" />
+</p>
 
----
-
-## 💡 Why We Built This
-
-Students choosing a career path often rely on outdated guidance, vague descriptions, or word-of-mouth. They can't experience what a job *actually feels like* before committing years of education to it. Meanwhile, labor market conditions shift rapidly — salaries change, demand fluctuates, and entire fields emerge or decline.
-
-STEM PathFindr combines:
-- **AI-generated career simulations** (AWS Bedrock / Claude) that let students make real decisions in realistic scenarios
-- **Live labor market intelligence** (Bureau of Labor Statistics API) so students see actual salary data, geographic demand, and career viability
-- **Gamification** (XP, levels, badges) to keep students engaged and exploring
+STEM PathfindR helps high school and college students discover their ideal STEM career through AI-powered simulations, real-time labor market intelligence, and a full interview preparation suite. Instead of reading about careers, students *live* them — making decisions in realistic day-in-the-life scenarios, practicing interviews with pose detection, and seeing how their choices map to real market data.
 
 ---
 
-## ✨ Features
+## Screenshots
 
-### 🎮 Interactive Career Simulations
-- AI-powered day-in-the-life scenarios for each career path
-- Branching decision points with meaningful outcomes
+<p align="center">
+  <img src="src/assets/career-simulation.png" alt="AI Career Simulation" width="700" /><br/>
+  <em>AI-generated career simulations with branching decisions and XP rewards</em>
+</p>
+
+<p align="center">
+  <img src="src/assets/market-intel.png" alt="Market Intelligence Dashboard" width="700" /><br/>
+  <em>Live market intelligence with BLS data — heatmaps, salary projections, and viability analysis</em>
+</p>
+
+<p align="center">
+  <img src="src/assets/ai-assistant.png" alt="AI Career Assistant" width="700" /><br/>
+  <em>Persistent AI career coach powered by AWS Bedrock</em>
+</p>
+
+---
+
+## Problem Statement
+
+Students choosing a career path rely on outdated guidance, vague job descriptions, or word-of-mouth. They can't experience what a job *actually feels like* before committing years of education. Meanwhile, labor market conditions shift rapidly — salaries change, demand fluctuates, and AI is reshaping entire fields.
+
+STEM PathfindR solves this by combining:
+- **AI-generated career simulations** that let students make real decisions in realistic scenarios
+- **Live labor market intelligence** from Bureau of Labor Statistics so students see actual salary data, geographic demand, and career viability
+- **A complete interview prep pipeline** — from resume optimization to mock interviews with body language analysis
+
+---
+
+## Features
+
+### Interactive Career Simulations
+- AI-powered day-in-the-life scenarios for 9 career paths (27 unique scenarios)
+- Branching decision points with meaningful outcomes and correct answer feedback
 - Trait discovery based on choices (analytical, collaborative, leadership, etc.)
 - Powered by **AWS Bedrock** (Claude 3.5 Sonnet) with intelligent fallbacks
 
-### 📝 Personalized Onboarding Quiz
-- 5-step quiz covering interests, skills, work style, and motivation
-- AI-driven career matching algorithm
-- Personalized career recommendations based on profile analysis
-
-### 📊 Market Intelligence Dashboard
-Real-time labor market data visualizations:
+### Market Intelligence Dashboard
+Live BLS data visualizations with 5 analysis panels:
 - **Market Pulse Heatmap** — Geographic demand by state (BLS Location Quotients)
-- **Predictive Salary Arc** — Historical wages + 10-year projections with confidence intervals
-- **Viability Index Radar** — 5-dimension career health analysis (AI displacement risk, capital inflow, supply/demand, wage growth, COLA-adjusted value)
-- **Live Job Stream** — Real-time job listings (coming soon)
+- **Predictive Salary Arc** — Historical wages + 10-year CAGR projections with confidence intervals
+- **Viability Index Radar** — 5-dimension career health (AI displacement risk, capital inflow, supply/demand, wage growth, COLA-adjusted value)
+- **Opportunity Score** — Composite KPI derived from all market signals
+- **Overview** — All panels at a glance
 
-### 🏅 Gamification & Progress Tracking
-- XP system with leveling
-- Achievement badges (Quick Thinker, Team Player, Deep Diver, First Step, and more)
-- Decision history tracking
-- Progress persistence via Firebase
+### Interview Intelligence Suite
+Three integrated tools powered by AWS Bedrock:
 
-### 👤 User Profiles
-- Google authentication via Firebase Auth
+| Tool | Capabilities |
+|------|-------------|
+| **Smart Resume Engine** | Upload PDF → ATS scoring → keyword gap analysis → AI-optimized resume generation → PDF download |
+| **AI Mock Interview** | Video + speech recognition → real-time body language analysis (TensorFlow.js MoveNet) → AI response scoring → follow-up questions |
+| **Technical Assessment** | Coding problems tailored to job description → in-browser execution (JS + Python via Pyodide) → AI code review with complexity analysis |
+
+### AI Career Assistant
+- Persistent chat popup available on every page
+- Curated persona: career coach + technical mentor + app navigator
+- Context-aware guidance on STEM concepts, career roadmaps, and platform usage
+
+### Smart Onboarding
+- 5-step quiz covering interests, skills, work style, and motivation
+- Optional PDF resume upload for AI-based profile extraction
+- If resume is incomplete, AI generates follow-up questions to fill gaps
+- AI-driven career matching algorithm produces personalized recommendations
+
+### Gamification & Progress Tracking
+- XP system with leveling (scaling XP requirements)
+- Achievement badges (Quick Thinker, Team Player, Deep Diver, First Step)
+- Decision history and trait tracking
+- Progress persistence via Firebase Firestore
+
+### User Profiles
+- Google + Email/Password authentication via Firebase Auth
 - Downloadable PDF profile reports (jsPDF)
 - Skills visualization and progress stats
 - Badge collection display
 
-### 🗺️ Career Paths
-Five fully-developed STEM career paths:
-| Career | Field | Salary Range |
-|--------|-------|-------------|
-| 💻 Software Engineer | Technology | $85K – $180K |
-| 📊 Data Scientist | Technology & Mathematics | $90K – $160K |
-| 🧬 Biomedical Engineer | Engineering & Healthcare | $70K – $140K |
-| 🚀 Aerospace Engineer | Engineering | $80K – $160K |
-| 🌍 Environmental Scientist | Science | $60K – $120K |
+---
 
-Each career includes 3 unique simulation scenarios with multiple decision paths.
+## Career Paths
+
+9 fully-developed STEM career paths, each with 3 simulation scenarios:
+
+| Career | Field | Salary Range | Growth |
+|--------|-------|-------------|--------|
+| Software Engineer | Technology | $85K – $180K | 25% |
+| Data Scientist | Technology & Mathematics | $90K – $160K | 36% |
+| Biomedical Engineer | Engineering & Healthcare | $70K – $140K | 10% |
+| Aerospace Engineer | Engineering | $80K – $160K | 8% |
+| Environmental Scientist | Science | $60K – $120K | 8% |
+| Cybersecurity Analyst | Technology & Security | $90K – $170K | 32% |
+| Cloud Architect | Technology & Cloud | $120K – $210K | 26% |
+| Robotics Engineer | Engineering & Automation | $95K – $175K | 14% |
+| Renewable Energy Engineer | Engineering & Sustainability | $85K – $155K | 12% |
 
 ---
 
@@ -68,25 +113,28 @@ Each career includes 3 unique simulation scenarios with multiple decision paths.
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 18, React Router 6, Framer Motion |
-| AI Engine | AWS Bedrock (Claude 3.5 Sonnet) |
-| Authentication | Firebase Auth (Google Sign-In) |
+| AI Engine | AWS Bedrock (Claude 3.5 Sonnet) via SigV4 |
+| Pose Detection | TensorFlow.js + MoveNet (body language analysis) |
+| Authentication | Firebase Auth (Google + Email/Password) |
 | Database | Firebase Firestore |
-| Market Data | Bureau of Labor Statistics API v2 |
+| Market Data | Bureau of Labor Statistics API v2 (live) |
 | Visualizations | Recharts, Chart.js, React Simple Maps, D3-Geo |
-| PDF Export | jsPDF + jsPDF-AutoTable |
+| PDF Processing | jsPDF (export), pdfjs-dist (client extraction), pdf-parse (server extraction) |
+| Code Execution | In-browser JS eval + Pyodide (Python WASM runtime) |
+| Backend | Express.js with aws4 (SigV4 signing), multer |
 | Icons | Lucide React |
-| Styling | Custom CSS with CSS variables, animations |
+| Styling | Custom CSS with variables, animations, dark theme |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-- Node.js 16+
-- npm or yarn
+- Node.js 18+
+- npm
 - Firebase project (for auth & database)
-- AWS account with Bedrock access (for AI simulations)
-- BLS API key (for market data — free at [bls.gov](https://data.bls.gov/registrationEngine/))
+- AWS account with Bedrock access (for AI features)
+- BLS API key (free at [bls.gov](https://data.bls.gov/registrationEngine/))
 
 ### Installation
 
@@ -95,19 +143,23 @@ Each career includes 3 unique simulation scenarios with multiple decision paths.
 git clone <repository-url>
 cd AWS
 
-# Install dependencies
+# Install frontend dependencies
 npm install
+
+# Install backend dependencies
+cd server
+npm install
+cd ..
 
 # Set up environment variables
 cp .env.example .env
+cp server/.env.example server/.env
 ```
 
 ### Environment Variables
 
-Edit `.env` with your credentials:
-
+**Frontend** (`.env`):
 ```env
-# Firebase
 REACT_APP_FIREBASE_API_KEY=your_api_key_here
 REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 REACT_APP_FIREBASE_PROJECT_ID=your_project_id
@@ -115,22 +167,30 @@ REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 REACT_APP_FIREBASE_APP_ID=your_app_id
 
-# AWS Bedrock (AI Simulations)
-REACT_APP_AWS_BEARER_TOKEN=your_aws_token
-REACT_APP_AWS_REGION=us-east-1
-REACT_APP_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
-
-# Bureau of Labor Statistics
 REACT_APP_BLS_API_KEY=your_bls_v2_key
+REACT_APP_API_URL=http://localhost:5000
+```
+
+**Backend** (`server/.env`):
+```env
+PORT=5000
+AWS_ACCESS_KEY_ID=your_access_key_id
+AWS_SECRET_ACCESS_KEY=your_secret_access_key
+AWS_REGION=us-east-1
+AWS_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
 ```
 
 ### Running Locally
 
 ```bash
+# Terminal 1: Start the backend
+npm run server
+
+# Terminal 2: Start the frontend
 npm start
 ```
 
-The app runs at `http://localhost:3000`. A proxy is configured for BLS API requests to avoid CORS issues in development.
+The frontend runs at `http://localhost:3000` with a CRA proxy forwarding `/api` requests to the backend at port 5000.
 
 ### Building for Production
 
@@ -140,91 +200,121 @@ npm run build
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-src/
-├── assets/              # Static assets (logo, images)
-├── components/
-│   ├── market/          # Market Intelligence visualizations
-│   │   ├── MarketPulseHeatmap.js
-│   │   ├── PredictiveSalaryArc.js
-│   │   ├── ViabilityIndexRadar.js
-│   │   └── StreamMatrix.js
-│   ├── CareerCard.js    # Career path card component
-│   ├── Navbar.js        # Navigation bar
-│   ├── ProgressBar.js   # XP progress indicator
-│   ├── ProtectedRoute.js
-│   └── DownloadProfileButton.js
-├── context/
-│   ├── AuthContext.js   # Firebase authentication state
-│   ├── UserContext.js   # User profile & progress state
-│   └── MarketIntelligenceContext.js
-├── data/
-│   ├── careers.js       # Career definitions & scenarios
-│   └── badges.js        # Achievement badge definitions
-├── pages/
-│   ├── Landing.js       # Homepage / hero
-│   ├── Login.js         # Authentication page
-│   ├── Onboarding.js    # Quiz / profile setup
-│   ├── Dashboard.js     # Main user dashboard
-│   ├── CareerPath.js    # Individual career detail
-│   ├── Simulation.js    # Interactive AI scenarios
-│   ├── MarketIntelligence.js  # Market data dashboard
-│   └── Profile.js       # User profile & settings
-├── services/
-│   ├── aiService.js     # AWS Bedrock integration
-│   ├── firebase.js      # Firebase initialization
-│   └── marketDataService.js   # BLS API integration
-└── setupProxy.js        # Dev proxy for BLS API
+├── server/                    # Express backend (AWS Bedrock proxy)
+│   ├── index.js               # All API endpoints + SigV4 signing
+│   └── package.json
+├── src/
+│   ├── components/
+│   │   ├── market/            # Market Intelligence visualizations
+│   │   │   ├── MarketPulseHeatmap.js
+│   │   │   ├── PredictiveSalaryArc.js
+│   │   │   ├── ViabilityIndexRadar.js
+│   │   │   └── OpportunityScore.js
+│   │   ├── AIAssistantPopup.js
+│   │   ├── CareerCard.js
+│   │   ├── Navbar.js
+│   │   ├── ProgressBar.js
+│   │   └── ProtectedRoute.js
+│   ├── context/
+│   │   ├── AuthContext.js     # Firebase auth state
+│   │   ├── UserContext.js     # User profile, XP, badges, Firestore sync
+│   │   ├── InterviewContext.js
+│   │   └── MarketIntelligenceContext.js
+│   ├── data/
+│   │   ├── careers.js         # 9 career definitions + 27 scenarios
+│   │   └── badges.js          # Badge definitions
+│   ├── pages/
+│   │   ├── Landing.js         # Hero + feature showcase
+│   │   ├── Login.js           # Auth page
+│   │   ├── Onboarding.js      # Quiz + resume upload
+│   │   ├── Dashboard.js       # Main hub (stats, careers, badges)
+│   │   ├── CareerPath.js      # Individual career detail
+│   │   ├── Simulation.js      # AI scenario engine
+│   │   ├── MarketIntelligence.js  # Market data dashboard
+│   │   ├── InterviewHub.js    # Interview suite navigation
+│   │   ├── MockInterview.js   # Video mock interview + pose detection
+│   │   ├── ResumeTailor.js    # Resume analysis + optimization
+│   │   ├── TechnicalAssessment.js  # Code problems + AI review
+│   │   ├── InterviewHistory.js
+│   │   └── Profile.js
+│   ├── services/
+│   │   ├── aiService.js       # Scenario generation + assistant + career matching
+│   │   ├── firebase.js        # Firebase initialization
+│   │   ├── interviewService.js # Interview API client
+│   │   ├── marketDataService.js # BLS API integration
+│   │   └── poseAnalyzer.js    # TensorFlow.js body language ML
+│   └── App.js                 # Routing + providers
+└── public/
+    └── index.html
 ```
 
 ---
 
-## 🔑 Key AWS Integration
+## AWS Integration
 
 ### AWS Bedrock (Claude 3.5 Sonnet)
-- Generates dynamic, personalized career simulation scenarios
-- Produces branching narratives with realistic decision points
-- Adapts content based on student profile (interests, skills)
-- Graceful fallback to curated scenarios when API is unavailable
+All AI features route through the Express backend which signs requests using SigV4:
+- Career simulation scenario generation
+- Resume analysis and profile extraction
+- Interview question generation and response analysis
+- Code review and problem generation
+- Career assistant chat
 
-The AI service uses the Bedrock Converse API with structured JSON prompts to ensure consistent, parseable responses that drive the simulation engine.
+The backend handles authentication, request signing, and response parsing — no AWS credentials are exposed to the frontend.
 
----
+### Architecture
 
-## 📈 Data Sources
-
-- **Bureau of Labor Statistics (BLS) API v2** — Occupational Employment and Wage Statistics (OEWS), CPI-U inflation data
-- **SOC Codes** — Standard Occupational Classification for precise career data mapping
-- **State-level FIPS codes** — Geographic employment distribution
-
-All market data is fetched live and projected forward using compound annual growth rates (CAGR) derived from historical observations.
-
----
-
-## 🎯 How It Works
-
-1. **Onboard** — Student takes a 5-step quiz about interests, skills, and preferences
-2. **Discover** — AI matches them with personalized career recommendations
-3. **Explore** — Browse career paths with salary data, growth projections, and required skills
-4. **Simulate** — Enter immersive AI-generated scenarios and make real decisions
-5. **Analyze** — View live market intelligence (salary trends, geographic demand, viability)
-6. **Progress** — Earn XP, level up, collect badges, and refine career direction
+```
+Browser ──► React App ──► Express Backend ──► AWS Bedrock (SigV4)
+                │                   │
+                │                   └──► pdf-parse (resume extraction)
+                │
+                ├──► Firebase Auth (Google OAuth)
+                ├──► Firebase Firestore (user data persistence)
+                ├──► BLS API v2 (live market data, via CRA proxy)
+                └──► TensorFlow.js MoveNet (in-browser pose detection)
+```
 
 ---
 
-## 📄 License
+## Data Sources
 
-This project was created for the AWS Hackathon.
+- **Bureau of Labor Statistics API v2** — OEWS employment/wage data, CPI-U inflation, Location Quotients
+- **SOC Codes** — Standard Occupational Classification for precise career-to-data mapping
+- **State FIPS codes** — Geographic employment distribution across 50 states
+- **CPI-U** — Consumer Price Index for real wage growth calculations
+
+All market data is fetched live and projected forward using CAGR derived from historical observations.
 
 ---
 
-## 🔔 New Backend Features
+## How It Works
 
-- **Server-side AI endpoints**: The backend now exposes robust AI endpoints for scenario generation and resume analysis that communicate with AWS Bedrock via SigV4-signed requests.
-- **Scenario generation:** `POST /api/scenarios/generate` accepts a career, scenario, and optional `userProfile`/`variation` and returns a normalized JSON scenario with difficulty, XP rewards, options, and a marked correct choice. Scenarios are generated using structured prompts so the frontend can reliably parse and present branching decisions.
-- **Resume analysis:** `POST /api/resume/analyze` accepts a PDF resume upload (multipart/form-data, `resume` file field, max 5MB) and returns structured JSON describing whether the resume is `complete` or `incomplete` plus extracted profile data and follow-up onboarding questions when needed.
-- **PDF handling & validation:** The server uses `multer` (in-memory) and `pdf-parse` to extract text. Scanned image PDFs may not extract correctly; users should upload digital-text PDFs for reliable results.
-- **XP scaling & scenario normalization:** Scenario difficulty maps to XP (`easy`=10, `medium`=20, `hard`=30) and the server returns `rewardXp`, `correctOptionId`, and per-option `xp` values so the frontend can immediately award progress.
-- **Operational persona & system prompts:** Backend includes curated system prompts (assistant persona and scenario/resume analysis system prompts) to ensure consistent, scannable, and parseable AI responses used across the app.
+1. **Onboard** → Take a 5-step quiz or upload your resume for AI profile extraction
+2. **Discover** → AI matches you with personalized career recommendations
+3. **Simulate** → Enter immersive AI-generated scenarios and make decisions that earn XP
+4. **Analyze** → View live market intelligence (salary trends, geographic demand, viability)
+5. **Prepare** → Upload a resume, get ATS feedback, practice mock interviews with AI coaching
+6. **Progress** → Level up, collect badges, and refine your career direction
+
+---
+
+## Hackathon Highlights
+
+| Differentiator | Description |
+|----------------|-------------|
+| **Live BLS Data** | Real salary/employment data, not mock — with 10-year projections and CPI-U adjustments |
+| **Full-stack AI** | SigV4-signed Bedrock integration keeping secrets server-side |
+| **Pose Detection** | TensorFlow.js MoveNet for real-time body language scoring during interviews |
+| **In-browser Python** | Pyodide WASM runtime lets users write and run Python in the code editor |
+| **9 Career Paths** | 27 unique branching scenarios with AI-generated variations on every play |
+| **End-to-end Interview Pipeline** | Resume → ATS analysis → optimized resume → tailored questions → mock interview → code review |
+
+---
+
+## License
+
+This project was created for the AWS Hackathon 2026.

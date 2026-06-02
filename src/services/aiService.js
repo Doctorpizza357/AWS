@@ -17,6 +17,25 @@ export async function analyzeResume(file) {
   return json.analysis;
 }
 
+export async function extractTextFromPDF(file) {
+  const formData = new FormData();
+  formData.append('resume', file);
+
+  const response = await fetch('/api/interview/extract-pdf', {
+    method: 'POST',
+    body: formData,
+  });
+
+  const json = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message = (json && json.message) || `PDF extraction returned ${response.status}`;
+    throw new Error(message);
+  }
+
+  return json.text;
+}
+
 export async function generateScenario(career, scenario, userProfile) {
   try {
     const response = await fetch('/api/scenarios/generate', {

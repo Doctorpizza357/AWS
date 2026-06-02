@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Rocket, Upload, FileText, X } from 'lucide-react';
 import { useUser } from '../context/UserContext';
-import { generateCareerRecommendations, analyzeResume } from '../services/aiService';
+import { generateCareerRecommendations, analyzeResume, extractTextFromPDF } from '../services/aiService';
 import './Onboarding.css';
 
 const quizSteps = [
@@ -60,8 +60,9 @@ const quizSteps = [
 
 function Onboarding() {
   const navigate = useNavigate();
-  const { completeOnboarding } = useUser();
+  const { completeOnboarding, saveResume } = useUser();
   const fileInputRef = useRef(null);
+  const highlightTimerRef = useRef(null);
 
   // Mode: 'choose' | 'quiz' | 'resume-uploading' | 'resume-followup'
   const [mode, setMode] = useState('choose');
@@ -78,10 +79,62 @@ function Onboarding() {
 
   // Resume-specific state
   const [resumeFile, setResumeFile] = useState(null);
+  const [resumeHighlights, setResumeHighlights] = useState([]);
+  const [revealedHighlights, setRevealedHighlights] = useState([]);
   const [followUpQuestions, setFollowUpQuestions] = useState([]);
   const [followUpAnswers, setFollowUpAnswers] = useState({});
   const [followUpStep, setFollowUpStep] = useState(0);
   const [extractedData, setExtractedData] = useState(null);
+
+  const extractResumeHighlights = (text) => {
+    const source = String(text || '').toLowerCase();
+    const keywordGroups = [
+      { label: 'Python', terms: ['python', 'pandas', 'numpy', 'scikit', 'jupyter'] },
+      { label: 'JavaScript', terms: ['javascript', 'js', 'react', 'node.js', 'nodejs', 'next.js', 'nextjs', 'typescript'] },
+      { label: 'AWS', terms: ['aws', 'cloud', 'lambda', 's3', 'ec2', 'bedrock', 'serverless', 'devops'] },
+      { label: 'SQL', terms: ['sql', 'database', 'databases', 'postgres', 'mysql', 'query', 'data warehouse'] },
+      { label: 'Machine Learning', terms: ['machine learning', 'ml', 'ai', 'artificial intelligence', 'model', 'predictive'] },
+      { label: 'Data Analysis', terms: ['data analysis', 'analytics', 'analysis', 'dashboard', 'reporting', 'insights'] },
+      { label: 'Problem Solving', terms: ['problem solving', 'problem-solving', 'debug', 'troubleshoot', 'investigate', 'root cause'] },
+      { label: 'Leadership', terms: ['leadership', 'led', 'lead', 'manage', 'management', 'mentored', 'ownership'] },
+      { label: 'Teamwork', terms: ['teamwork', 'team', 'collaborate', 'collaboration', 'cross-functional', 'partnered'] },
+      { label: 'Communication', terms: ['communication', 'communicate', 'presented', 'presentation', 'stakeholder', 'client'] },
+      { label: 'Research', terms: ['research', 'literature review', 'experiment', 'experimented', 'survey', 'analysis'] },
+      { label: 'Project Management', terms: ['project management', 'project manager', 'roadmap', 'timeline', 'planning', 'agile', 'scrum'] },
+      { label: 'Git', terms: ['git', 'github', 'gitlab', 'version control', 'commit', 'pull request'] },
+      { label: 'Linux', terms: ['linux', 'bash', 'shell', 'terminal', 'command line'] },
+      { label: 'Docker', terms: ['docker', 'container', 'kubernetes', 'k8s', 'orchestration'] },
+      { label: 'Cybersecurity', terms: ['cybersecurity', 'security', 'encryption', 'authentication', 'authorization', 'threat'] },
+      { label: 'Public Speaking', terms: ['public speaking', 'spoken', 'presented', 'speaker', 'conference', 'talk'] },
+      { label: 'Critical Thinking', terms: ['critical thinking', 'critical analysis', 'reasoning', 'evaluation'] },
+      { label: 'Hands-on Building', terms: ['hands-on', 'building', 'prototype', 'hardware', 'assembled', 'fabrication'] },
+      { label: 'Mathematics', terms: ['mathematics', 'math', 'algebra', 'calculus', 'statistics', 'quantitative'] },
+      { label: 'Biology', terms: ['biology', 'bio', 'life sciences', 'biomedical', 'healthcare', 'medical'] },
+      { label: 'Engineering', terms: ['engineering', 'engineer', 'systems', 'mechanical', 'electrical', 'software'] },
+      { label: 'Design', terms: ['design', 'ux', 'ui', 'user experience', 'user interface', 'figma', 'prototyping'] },
+      { label: 'Attention to Detail', terms: ['attention to detail', 'detail-oriented', 'accuracy', 'quality assurance', 'qa'] },
+      { label: 'Testing', terms: ['testing', 'test', 'unit test', 'integration test', 'automation'] },
+    ];
+
+    const detected = [];
+    keywordGroups.forEach(({ label, terms }) => {
+      const matched = terms.some((term) => source.includes(term));
+      if (matched && !detected.includes(label)) {
+        detected.push(label);
+      }
+    });
+
+    return detected.slice(0, 12);
+  };
+
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const clearHighlightAnimation = () => {
+    if (highlightTimerRef.current) {
+      clearInterval(highlightTimerRef.current);
+      highlightTimerRef.current = null;
+    }
+  };
 
   // Determine current quiz steps based on mode
   const currentSteps = mode === 'resume-followup' ? followUpQuestions : quizSteps;
@@ -245,9 +298,31 @@ function Onboarding() {
     setMode('resume-uploading');
     setLoading(true);
     setError('');
+    setResumeHighlights([]);
+    setRevealedHighlights([]);
+    clearHighlightAnimation();
 
     try {
+      const resumeText = await extractTextFromPDF(resumeFile);
+      const highlights = extractResumeHighlights(resumeText);
+      setResumeHighlights(highlights);
+      setRevealedHighlights([]);
+      saveResume({
+        fileName: resumeFile.name,
+        text: resumeText,
+        source: 'onboarding',
+      });
+
+      // Keep the loading screen alive long enough for the personalized orbit to become visible.
+      await wait(Math.min(6500, 2600 + highlights.length * 520));
+
       const analysis = await analyzeResume(resumeFile);
+      saveResume({
+        fileName: resumeFile.name,
+        text: resumeText,
+        source: 'onboarding',
+        analysis,
+      });
 
       if (analysis.status === 'complete') {
         // Resume has all the info we need — go straight to recommendations
@@ -274,8 +349,43 @@ function Onboarding() {
 
   const removeFile = () => {
     setResumeFile(null);
+    setResumeHighlights([]);
+    setRevealedHighlights([]);
+    clearHighlightAnimation();
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  useEffect(() => {
+    if (mode !== 'resume-uploading') {
+      clearHighlightAnimation();
+      return;
+    }
+
+    if (!resumeHighlights.length) return;
+
+    setRevealedHighlights([resumeHighlights[0]]);
+    let index = 1;
+    clearHighlightAnimation();
+    highlightTimerRef.current = setInterval(() => {
+      setRevealedHighlights((current) => {
+        if (index >= resumeHighlights.length) {
+          clearHighlightAnimation();
+          return current;
+        }
+
+        const nextValue = resumeHighlights[index];
+        index += 1;
+        if (current.includes(nextValue)) return current;
+        return [...current, nextValue];
+      });
+
+      if (index >= resumeHighlights.length) {
+        clearHighlightAnimation();
+      }
+    }, 420);
+
+    return () => clearHighlightAnimation();
+  }, [mode, resumeHighlights]);
 
   // ─── Choose Mode (initial screen) ─────────────────────────────────────────
 
@@ -347,7 +457,14 @@ function Onboarding() {
       <div className="onboarding">
         <div className="onboarding-container fade-in">
           <div className="resume-analyzing">
-            <div className="resume-analyzing-spinner"></div>
+            <div className="resume-analyzing-orbit" aria-hidden="true">
+              <div className="resume-analyzing-core">
+                <div className="resume-analyzing-spinner" />
+                <FileText size={18} aria-hidden="true" />
+              </div>
+              {revealHighlightsToBubbles(revealedHighlights)}
+            </div>
+            <div className="resume-highlight-caption">Scanning for skills and strengths from your resume</div>
             <h2 className="quiz-question">Analyzing your resume...</h2>
             <p className="choose-subtitle">
               Our AI is reading through your experience to build your career profile.
@@ -454,6 +571,22 @@ function Onboarding() {
       </div>
     </div>
   );
+}
+
+function revealHighlightsToBubbles(items) {
+  return (items || []).map((item, index) => {
+    const angle = Math.round((index * 137.508) % 360);
+    const radius = '138px';
+    return (
+      <div
+        key={`${item}-${index}`}
+        className={`resume-orbit-item resume-orbit-item-${(index % 6) + 1}`}
+        style={{ '--angle': angle, '--radius': radius, '--orbit-delay': '0s' }}
+      >
+        <span className="resume-orbit-pill">{item}</span>
+      </div>
+    );
+  });
 }
 
 export default Onboarding;
