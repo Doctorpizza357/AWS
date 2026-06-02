@@ -3,9 +3,9 @@
   flex-direction: column;
   gap: 0.5rem;
   padding: 1rem;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
-  background: var(--surface-color, #ffffff);
+  background: var(--bg-card);
   /* Non-interactive: no hover/focus affordance, no pointer cursor. */
   cursor: default;
   user-select: text;
@@ -30,12 +30,12 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted);
 }
 
 .resource-card-value {
   font-size: 0.95rem;
-  color: var(--text-color, #111827);
+  color: var(--text-primary);
   word-break: break-word;
 }
 

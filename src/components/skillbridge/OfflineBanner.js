@@ -6,17 +6,17 @@ import './OfflineBanner.css';
  * OfflineBanner
  *
  * Renders the active banners stack from `SkillBridgeContext` plus any
- * non-expired success toasts. Two reachability conditions surface a
- * banner even when the context's `banners` array doesn't include them
+ * non-expired success toasts. One reachability condition surfaces a
+ * banner even when the context's `banners` array doesn't include it
  * directly:
  *
- *   - `requirementsSource === 'fallback'` → the "Using offline
- *     requirements" warning (Req 2.5). The context already pushes
- *     `using-offline-requirements` here, but we surface the same banner
- *     defensively so the offline visualization is always visible.
  *   - `isFirestoreReachable === 'unreachable'` → the "Working offline"
  *     warning (Req 21.4). When Firestore recovers (`'reachable'`) the
  *     banner disappears (Req 21.6).
+ *
+ * The `using-offline-requirements` banner is intentionally suppressed at
+ * the render layer — the context still tracks the fallback state, but
+ * the user-visible "Using offline requirements" pop-up is hidden.
  *
  * Each banner is rendered as a styled box keyed by `kind`:
  *   - `error`   → red surface
@@ -44,7 +44,6 @@ function OfflineBanner() {
   const {
     banners,
     toasts,
-    requirementsSource,
     isFirestoreReachable,
   } = useSkillBridge();
 
@@ -83,23 +82,18 @@ function OfflineBanner() {
         message: 'Working offline',
       });
     }
-    if (requirementsSource === 'fallback') {
-      push({
-        id: 'using-offline-requirements',
-        kind: 'warning',
-        message: 'Using offline requirements',
-      });
-    }
 
     // Then everything from context.
     if (Array.isArray(banners)) {
       for (const banner of banners) push(banner);
     }
     return list;
-  }, [banners, isFirestoreReachable, requirementsSource]);
+  }, [banners, isFirestoreReachable]);
 
   const visibleBanners = useMemo(
-    () => composedBanners.filter((b) => !dismissedIds.has(b.id)),
+    () => composedBanners.filter(
+      (b) => !dismissedIds.has(b.id) && b.id !== 'using-offline-requirements',
+    ),
     [composedBanners, dismissedIds],
   );
 
