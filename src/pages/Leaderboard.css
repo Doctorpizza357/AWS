@@ -1,0 +1,231 @@
+.leaderboard {
+  padding: 40px 0;
+}
+
+.leaderboard-header {
+  margin-bottom: 32px;
+}
+
+.leaderboard-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.leaderboard-title-row h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.leaderboard-trophy {
+  color: #f59e0b;
+}
+
+.leaderboard-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.leaderboard-your-rank {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  display: inline-block;
+}
+
+.leaderboard-your-rank strong {
+  color: var(--primary-light);
+}
+
+.leaderboard-loading,
+.leaderboard-error,
+.leaderboard-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+}
+
+.leaderboard-error {
+  color: var(--error, #ef4444);
+}
+
+/* Table layout */
+.leaderboard-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 80px 120px 80px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.leaderboard-row:hover:not(.leaderboard-row--header) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.leaderboard-row--header {
+  background: transparent;
+  border: none;
+  padding: 8px 18px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.leaderboard-row--you {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.leaderboard-row--gold {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.leaderboard-row--silver {
+  border-color: rgba(156, 163, 175, 0.4);
+  background: rgba(156, 163, 175, 0.05);
+}
+
+.leaderboard-row--bronze {
+  border-color: rgba(180, 83, 9, 0.3);
+  background: rgba(180, 83, 9, 0.05);
+}
+
+/* Columns */
+.lb-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.lb-col--rank {
+  justify-content: center;
+}
+
+.lb-col--xp {
+  font-weight: 600;
+  color: var(--success, #10b981);
+}
+
+.lb-col--level,
+.lb-col--badges {
+  color: var(--text-secondary);
+}
+
+/* Rank badge */
+.rank-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.rank-badge.gold {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1f2937;
+  border: none;
+}
+
+.rank-badge.silver {
+  background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+  color: #1f2937;
+  border: none;
+}
+
+.rank-badge.bronze {
+  background: linear-gradient(135deg, #d97706, #92400e);
+  color: #fff;
+  border: none;
+}
+
+/* Avatar */
+.lb-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.lb-avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary-light);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.lb-username {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.lb-you-tag {
+  font-size: 0.65rem;
+  background: var(--primary-light);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .leaderboard-row {
+    grid-template-columns: 44px 1fr 60px 90px;
+    padding: 12px 14px;
+  }
+
+  .lb-col--badges {
+    display: none;
+  }
+
+  .leaderboard-row--header .lb-col--badges {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .leaderboard-row {
+    grid-template-columns: 40px 1fr 70px;
+  }
+
+  .lb-col--level {
+    display: none;
+  }
+
+  .leaderboard-row--header .lb-col--level {
+    display: none;
+  }
+}

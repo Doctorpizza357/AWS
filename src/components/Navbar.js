@@ -2,6 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
+import { Trophy } from 'lucide-react';
 import logo from '../assets/logo.png';
 import './Navbar.css';
 
@@ -106,13 +107,13 @@ function Navbar() {
               >
                 Interview AI
               </Link>
-              
               <Link
-                to="/profile"
-                className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
+                to="/leaderboard"
+                className={`nav-link lb-link ${isActive('/leaderboard') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
+                title="Leaderboard"
               >
-                Profile
+                <Trophy size={18} aria-hidden="true" />
               </Link>
             </>
           )}
@@ -140,6 +141,20 @@ function Navbar() {
               >
                 Sign Out
               </button>
+              <Link
+                to="/profile"
+                className="nav-profile-avatar"
+                onClick={() => setMenuOpen(false)}
+                title="Profile"
+              >
+                {authUser.photoURL ? (
+                  <img src={authUser.photoURL} alt="Profile" className="nav-avatar-img" />
+                ) : (
+                  <span className="nav-avatar-placeholder">
+                    {(authUser.displayName || authUser.email || '?').charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </Link>
             </>
           ) : (
             // User is not logged in - show login button
