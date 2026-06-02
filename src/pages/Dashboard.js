@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import CareerCard from '../components/CareerCard';
 import DashboardSummaryCard from '../components/skillbridge/DashboardSummaryCard';
+import NextSteps from '../components/NextSteps';
 import careers from '../data/careers';
 import { getIconComponent } from '../utils/iconMap';
 import './Dashboard.css';
@@ -25,11 +26,19 @@ function Dashboard() {
     return null;
   }
 
+  const handleChangeGoal = () => {
+    const target = document.getElementById('recommended-paths');
+    if (target && typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const { profile, progress, recommendedCareers } = user;
   const LevelIcon = getIconComponent('stat-level');
   const ScenarioIcon = getIconComponent('stat-scenarios');
   const BadgeCountIcon = getIconComponent('stat-badges');
   const DecisionIcon = getIconComponent('stat-decisions');
+  const GoalIcon = getIconComponent('zap');
 
   return (
     <div className="dashboard">
@@ -71,6 +80,19 @@ function Dashboard() {
           </div>
         </header>
 
+        {user.activeCareerGoal && (
+          <div className="career-goal-banner">
+            <span className="career-goal-banner-icon"><GoalIcon size={20} aria-hidden="true" /></span>
+            <div className="career-goal-banner-text">
+              <strong>Active Goal: {user.activeCareerGoal.title}</strong>
+              <span>All features are tailored to this career path</span>
+            </div>
+              <button className="career-goal-banner-change" onClick={handleChangeGoal}>Change</button>
+          </div>
+        )}
+
+        <NextSteps />
+
         <section
           className="skillbridge-summary-section"
           aria-labelledby="skillbridge-summary-heading"
@@ -84,7 +106,7 @@ function Dashboard() {
           <DashboardSummaryCard />
         </section>
 
-        <section className="careers-section">
+        <section className="careers-section" id="recommended-paths">
           <h2 className="section-heading">Your Recommended Paths</h2>
           <p className="section-desc">Based on your interests and skills, these careers are a great match for you.</p>
           <div className="careers-grid">

@@ -1,16 +1,25 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 import { getIconComponent } from '../utils/iconMap';
 import './CareerCard.css';
 
 function CareerCard({ career, matchScore, locked }) {
   const navigate = useNavigate();
+  const { user, setActiveCareerGoal } = useUser();
   const CareerIcon = getIconComponent(career.icon);
   const LockIcon = getIconComponent('lock');
 
+  const isActiveGoal = user.activeCareerGoal?.id === career.id;
+
+  const handleSetGoal = (e) => {
+    e.stopPropagation();
+    setActiveCareerGoal(career);
+  };
+
   return (
     <div
-      className={`career-card ${locked ? 'locked' : ''}`}
+      className={`career-card ${locked ? 'locked' : ''} ${isActiveGoal ? 'is-goal' : ''}`}
       style={{ '--card-color': career.color }}
       onClick={() => !locked && navigate(`/career/${career.id}`)}
       role="button"
@@ -24,6 +33,7 @@ function CareerCard({ career, matchScore, locked }) {
             {Math.round(matchScore * 100)}% Match
           </span>
         )}
+        {isActiveGoal && <span className="goal-badge">Active Goal</span>}
         {locked && <span className="lock-badge"><LockIcon size={18} aria-hidden="true" /></span>}
       </div>
 
@@ -48,11 +58,18 @@ function CareerCard({ career, matchScore, locked }) {
         ))}
       </div>
 
-      {!locked && (
-        <button className="explore-btn">
-          Explore This Path →
-        </button>
-      )}
+      <div className="career-card-actions">
+        {!locked && (
+          <button className="explore-btn">
+            Explore This Path →
+          </button>
+        )}
+        {!locked && !isActiveGoal && (
+          <button className="set-goal-btn" onClick={handleSetGoal} title="Set as your active career goal">
+            Set as Goal
+          </button>
+        )}
+      </div>
     </div>
   );
 }

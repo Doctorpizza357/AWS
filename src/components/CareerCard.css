@@ -132,3 +132,46 @@
   background: var(--card-color);
   color: white;
 }
+
+/* ─── Career Goal ─────────────────────────────────────────────────────────── */
+.career-card.is-goal {
+  border-color: var(--card-color);
+  box-shadow: 0 0 0 1px var(--card-color), 0 4px 16px rgba(99, 102, 241, 0.1);
+}
+
+.goal-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.career-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.career-card-actions .explore-btn {
+  flex: 1;
+}
+
+.set-goal-btn {
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #10b981;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.set-goal-btn:hover {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: #10b981;
+}

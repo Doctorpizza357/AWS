@@ -24,6 +24,7 @@ const initialState = {
   },
   recommendedCareers: [],
   resume: null,
+  activeCareerGoal: null, // { id, title, field } — shared across all features
 };
 
 const getUserStorageKey = (uid) => (uid ? `stemPathfindr_user_${uid}` : 'stemPathfindr_guest_user');
@@ -90,6 +91,7 @@ export function UserProvider({ children }) {
           },
           recommendedCareers: data.recommendedCareers || [],
           resume: data.resume || null,
+          activeCareerGoal: data.activeCareerGoal || null,
         };
 
         setUser(newUserState);
@@ -273,6 +275,25 @@ export function UserProvider({ children }) {
     }
   };
 
+  const setActiveCareerGoal = (career) => {
+    // career should be { id, title, field } or null
+    const goal = career ? { id: career.id, title: career.title, field: career.field } : null;
+    setUser(prev => ({ ...prev, activeCareerGoal: goal }));
+
+    // Persist to Firestore
+    (async () => {
+      try {
+        if (authUser && authUser.uid) {
+          await setDoc(doc(db, 'users', authUser.uid), {
+            activeCareerGoal: goal,
+          }, { merge: true });
+        }
+      } catch (err) {
+        console.error('UserContext: failed to persist activeCareerGoal to Firestore', err);
+      }
+    })();
+  };
+
   // isHydrating should be true if:
   // 1. The internal hydrating state is true (actively fetching), OR
   // 2. There's an authenticated user but we haven't finished hydrating their data yet
@@ -290,6 +311,7 @@ export function UserProvider({ children }) {
       completeScenario,
       addDecision,
       resetProgress,
+      setActiveCareerGoal,
     }}>
       {children}
     </UserContext.Provider>

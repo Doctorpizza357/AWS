@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../context/UserContext';
@@ -48,6 +48,7 @@ function SkillBridgePage() {
   const userCtx = useUser();
   const sb = useSkillBridge();
   const location = useLocation();
+  const activeCareerGoalId = userCtx.user?.activeCareerGoal?.id ?? null;
 
   // Req 14.3 — unauthenticated users are redirected to /login *before* any
   // other gating. `replace` keeps `/skillbridge` out of history so a back
@@ -71,6 +72,20 @@ function SkillBridgePage() {
     requirements,
     skillAssessment,
   } = sb;
+
+  // Auto-select the user's active career goal as the dream job.
+  // If the persisted SkillBridge dream job differs from the dashboard's
+  // active career goal, treat the dashboard goal as the source of truth and
+  // re-sync the selection.
+  useEffect(() => {
+    if (
+      !sb.isHydrating &&
+      activeCareerGoalId &&
+      dreamJobId !== activeCareerGoalId
+    ) {
+      sb.selectDreamJob(activeCareerGoalId);
+    }
+  }, [sb.isHydrating, dreamJobId, activeCareerGoalId, sb.selectDreamJob]);
 
   const hasRequirements =
     Array.isArray(requirements) && requirements.length > 0;

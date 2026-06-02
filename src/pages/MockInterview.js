@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInterview } from '../context/InterviewContext';
+import { useUser } from '../context/UserContext';
 import { generateInterviewQuestions, analyzeInterviewResponse } from '../services/interviewService';
 import { speakText, stopSpeaking, isSpeaking } from '../services/ttsService';
 import { MLBodyAnalyzer } from '../services/poseAnalyzer';
@@ -102,6 +103,7 @@ class BodyAnalyzer {
 export default function MockInterview() {
   const navigate = useNavigate();
   const { jobDescription, addSession } = useInterview();
+  const { user } = useUser();
   const [phase, setPhase] = useState('setup');
   const [selectedType, setSelectedType] = useState('technical');
   const [questions, setQuestions] = useState([]);
@@ -502,7 +504,7 @@ export default function MockInterview() {
       setInterim('');
       transcriptRef.current = '';
       interimRef.current = '';
-      const qs = await generateInterviewQuestions(jobDescription || 'General software engineering role', selectedType, 'mid');
+      const qs = await generateInterviewQuestions(jobDescription || (user.activeCareerGoal ? `${user.activeCareerGoal.title} in ${user.activeCareerGoal.field || 'STEM'}` : 'General software engineering role'), selectedType, 'mid');
       if (!qs || qs.length === 0) throw new Error('No questions generated');
       setQuestions(qs);
       setTrackingLoadingState('Opening camera...');
@@ -905,6 +907,7 @@ export default function MockInterview() {
         <h1>{(() => { const Icon = getIconComponent('bot'); return <><Icon size={22} className="mi-header-icon"/> AI Mock Interview</>; })()}</h1>
         <p>Practice with AI-generated questions. Get feedback on speech, body language, and answer quality.</p>
         {jobDescription && <div className="mi-jd-notice">{(() => { const Icon = getIconComponent('check'); return <><Icon size={14} style={{marginRight:8}}/> Questions tailored to your job description</>; })()}</div>}
+        {!jobDescription && user.activeCareerGoal && <div className="mi-jd-notice">{(() => { const Icon = getIconComponent('check'); return <><Icon size={14} style={{marginRight:8}}/> Questions tailored to your goal: {user.activeCareerGoal.title}</>; })()}</div>}
         <div className="mi-types">
           {['technical','behavioral','situational'].map(t => (
             <button key={t} className={`mi-type-btn ${selectedType===t?'active':''}`} onClick={() => setSelectedType(t)}>{t}</button>
@@ -1233,6 +1236,7 @@ export default function MockInterview() {
         <div className="mi-done-actions">
           <button className="btn-primary" onClick={() => { setPhase('setup'); setQIdx(0); setResults([]); setAnalysis(null); setBodyResults(null); setSpeechStats(null); setFollowUpQuestions([]); setReplayEntries([]); setActiveFollowUp(null); setSpeechStatus({ supported: false, active: false, error: '', message: 'Speech recognition idle' }); setError(''); }}>Practice Again</button>
           <button className="btn-secondary" onClick={() => navigate('/interview')}>Back to Hub</button>
+          <button className="btn-secondary" onClick={() => navigate('/skillbridge')}>Improve Skills →</button>
         </div>
       </motion.div>
     </div></div>
