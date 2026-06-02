@@ -1,0 +1,195 @@
+/*
+ * GapBarList — "progress toward target" view.
+ *
+ * Each row stacks a label line above a two-tone progress track:
+ *   - The progress segment (left) encodes `current / target` as a
+ *     percentage and uses a green-ish gradient so wins read as wins at a
+ *     glance.
+ *   - The remaining-gap segment (right) fills the rest of the track up
+ *     to 100% of the target with a muted color, so the user sees both
+ *     progress AND the remaining deficit on the same row.
+ *
+ * The two segments are flexed inside the track and always sum to 100%
+ * width — `progress + remaining === 100` — which keeps the bar visually
+ * stable even when the assessment is at 0% or 100%.
+ */
+
+.gap-bar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gap-bar-list__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  outline: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.gap-bar-list__item:hover {
+  background: var(--bg-card, rgba(255, 255, 255, 0.04));
+  transform: translateY(-1px);
+}
+
+.gap-bar-list__item:focus-visible {
+  background: var(--bg-card, rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 0 2px var(--accent, #6c8cff);
+}
+
+.gap-bar-list__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.92rem;
+}
+
+.gap-bar-list__name {
+  color: var(--text-primary, #e6e9f2);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.gap-bar-list__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text-muted, #98a2b3);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+.gap-bar-list__value-raw {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--text-secondary, #cbd5e1);
+}
+
+.gap-bar-list__value-separator {
+  margin: 0 1px;
+  color: var(--text-muted, #98a2b3);
+  opacity: 0.7;
+}
+
+.gap-bar-list__value-pct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.25em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+/* Two-tone track. Flex so the two fill children always span the full
+ * track width together — the segment widths come from the inline style
+ * the component sets (`progress%` and `100 - progress%`).
+ */
+.gap-bar-list__track {
+  display: flex;
+  height: 10px;
+  background: rgba(148, 163, 184, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.gap-bar-list__fill {
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gap-bar-list__fill--progress {
+  background: linear-gradient(
+    90deg,
+    rgba(16, 185, 129, 0.95) 0%,
+    rgba(34, 197, 94, 0.95) 100%
+  );
+  border-radius: 999px 0 0 999px;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.25);
+}
+
+.gap-bar-list__fill--remaining {
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(148, 163, 184, 0.18) 0px,
+    rgba(148, 163, 184, 0.18) 6px,
+    rgba(148, 163, 184, 0.08) 6px,
+    rgba(148, 163, 184, 0.08) 12px
+  );
+  border-radius: 0 999px 999px 0;
+}
+
+/* When progress is 100% the remaining segment is 0-width; round both
+ * ends of the progress segment so it doesn't look square at the right
+ * edge. Targets the inline width="100%" set by the component.
+ */
+.gap-bar-list__fill--progress[style*="width: 100%"] {
+  border-radius: 999px;
+}
+
+/* Symmetric: when progress is 0% the remaining segment owns the full
+ * track and should round both ends.
+ */
+.gap-bar-list__fill--remaining[style*="width: 100%"] {
+  border-radius: 999px;
+}
+
+/* Empty-state copy (Req 7.6) */
+.gap-bar-list--empty {
+  padding: 16px;
+  text-align: center;
+}
+
+.gap-bar-list__empty-message {
+  margin: 0;
+  color: var(--text-muted, #98a2b3);
+  font-size: 0.95rem;
+}
+
+/* Empty-state CTA (Req 7.4) */
+.gap-bar-list--cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.gap-bar-list__cta-message {
+  margin: 0;
+  color: var(--text-primary, #e6e9f2);
+  font-size: 1rem;
+}
+
+.gap-bar-list__cta-button {
+  background: var(--gradient-1, linear-gradient(90deg, #6c8cff, #b06cff));
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gap-bar-list__cta-button:hover,
+.gap-bar-list__cta-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(108, 140, 255, 0.35);
+  outline: none;
+}

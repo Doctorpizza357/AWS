@@ -3,7 +3,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Chart from 'chart.js/auto';
 
-export default function DownloadProfileButton({ quizResults = {}, marketInsights = {}, actionPlan = {}, progress = {}, badges = [] }) {
+export default function DownloadProfileButton({ quizResults = {}, marketInsights = {}, actionPlan = {}, progress = {}, badges = [], portfolio = [] }) {
 
   const generatePDF = () => {
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -591,6 +591,63 @@ export default function DownloadProfileButton({ quizResults = {}, marketInsights
     doc.setTextColor('#94A3B8');
     doc.text('This report is a snapshot of your current exploration. Return to the platform to unlock', margin + 16, y + 38);
     doc.text('new scenarios, earn badges, and track real-time market shifts in your chosen field.', margin + 16, y + 50);
+
+    // ===== PORTFOLIO =====
+    doc.addPage();
+    y = 50;
+    drawPageHeader();
+    drawSectionTitle('Portfolio', 'Projects completed on your SkillBridge roadmap');
+
+    const portfolioList = Array.isArray(portfolio) ? portfolio : [];
+    if (portfolioList.length === 0) {
+      ensureSpace(40);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(colors.textLight);
+      doc.text('No projects completed yet', margin, y + 4);
+      y += 24;
+    } else {
+      const sortedPortfolio = [...portfolioList].sort(
+        (a, b) => safeText(b && b.completedAt).localeCompare(safeText(a && a.completedAt))
+      );
+
+      const formatCompletedAt = (iso) => {
+        const s = safeText(iso);
+        if (!s) return '';
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return s;
+        return d.toLocaleDateString();
+      };
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Title', 'Skills', 'Difficulty', 'Completed', 'Notes']],
+        body: sortedPortfolio.map((entry) => {
+          const skills = Array.isArray(entry && entry.skills) ? entry.skills.join(', ') : '';
+          const notesParts = [];
+          if (entry && entry.notes) notesParts.push(safeText(entry.notes));
+          if (entry && entry.url) notesParts.push(safeText(entry.url));
+          return [
+            safeText(entry && (entry.title || entry.projectId)) || 'Untitled project',
+            skills,
+            safeText(entry && entry.difficulty),
+            formatCompletedAt(entry && entry.completedAt),
+            notesParts.join(' — '),
+          ];
+        }),
+        theme: 'striped',
+        styles: { fontSize: 9, textColor: colors.text, cellPadding: 7, overflow: 'linebreak' },
+        headStyles: { fillColor: colors.primaryDark, textColor: colors.white },
+        alternateRowStyles: { fillColor: '#F8FAFC' },
+        columnStyles: {
+          0: { cellWidth: 110 },
+          2: { cellWidth: 60, halign: 'center' },
+          3: { cellWidth: 70, halign: 'center' },
+        },
+        margin: { left: margin, right: margin },
+      });
+      y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 16 : y + 80;
+    }
 
     // ===== FOOTER ON ALL PAGES =====
     const pageCount = doc.internal.getNumberOfPages();

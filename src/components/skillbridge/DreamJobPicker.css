@@ -1,0 +1,196 @@
+.dream-job-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dream-job-picker__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dream-job-picker__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dream-job-picker__subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.dream-job-picker__banners {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dream-job-picker__banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.dream-job-picker__banner--error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #b91c1c;
+}
+
+.dream-job-picker__banner--warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #b45309;
+}
+
+.dream-job-picker__banner--info {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: var(--primary-light);
+}
+
+.dream-job-picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.dream-job-picker__item {
+  display: flex;
+}
+
+.dream-job-picker__card {
+  width: 100%;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  font: inherit;
+  color: inherit;
+}
+
+.dream-job-picker__card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-color, var(--primary));
+}
+
+.dream-job-picker__card:hover {
+  transform: translateY(-2px);
+  border-color: var(--card-color, var(--primary));
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12);
+}
+
+.dream-job-picker__card:focus-visible {
+  outline: 2px solid var(--card-color, var(--primary));
+  outline-offset: 2px;
+}
+
+.dream-job-picker__card--selected {
+  border-color: var(--card-color, var(--primary));
+  box-shadow: 0 0 0 2px var(--card-color, var(--primary)) inset;
+}
+
+.dream-job-picker__card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary, inherit);
+}
+
+.dream-job-picker__card-field {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.dream-job-picker__card-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.dream-job-picker__card-selected-tag {
+  align-self: flex-start;
+  background: var(--card-color, var(--primary));
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.dream-job-picker__confirm {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dream-job-picker__confirm-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dream-job-picker__confirm-message {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.dream-job-picker__confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dream-job-picker__confirm-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary, inherit);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dream-job-picker__confirm-btn:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.dream-job-picker__confirm-btn--primary {
+  background: var(--primary, #6366f1);
+  border-color: var(--primary, #6366f1);
+  color: white;
+}
+
+.dream-job-picker__confirm-btn--primary:hover {
+  background: var(--primary-light, #818cf8);
+  border-color: var(--primary-light, #818cf8);
+  color: white;
+}

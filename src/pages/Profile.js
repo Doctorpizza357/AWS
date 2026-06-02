@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
+import { useSkillBridge } from '../context/SkillBridgeContext';
 import badges from '../data/badges';
 import './Profile.css';
 import DownloadProfileButton from '../components/DownloadProfileButton';
@@ -12,6 +13,21 @@ function Profile() {
   const navigate = useNavigate();
   const { user, resetProgress, isHydrating } = useUser();
   const { user: authUser } = useAuth();
+  const { portfolio } = useSkillBridge();
+
+  const sortedPortfolio = useMemo(() => {
+    const list = Array.isArray(portfolio) ? portfolio : [];
+    return [...list].sort(
+      (a, b) => (b?.completedAt || '').localeCompare(a?.completedAt || '')
+    );
+  }, [portfolio]);
+
+  const formatCompletedAt = (iso) => {
+    if (typeof iso !== 'string' || iso.length === 0) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString();
+  };
 
   useEffect(() => {
     if (!isHydrating && !user.isOnboarded) {
@@ -112,6 +128,7 @@ function Profile() {
               actionPlan={actionPlan}
               progress={progress}
               badges={badges}
+              portfolio={sortedPortfolio}
             />
           </div>
         </div>
@@ -135,6 +152,56 @@ function Profile() {
             </div>
           </section>
         </div>
+
+        <section className="profile-section portfolio-section">
+          <h2>Portfolio</h2>
+          {sortedPortfolio.length === 0 ? (
+            <p className="portfolio-empty">No projects completed yet</p>
+          ) : (
+            <ul className="portfolio-list">
+              {sortedPortfolio.map((entry, idx) => {
+                const skills = Array.isArray(entry?.skills) ? entry.skills : [];
+                const key = `${entry?.projectId || 'project'}-${idx}`;
+                return (
+                  <li key={key} className="portfolio-item">
+                    <div className="portfolio-item-header">
+                      <h3 className="portfolio-item-title">
+                        {entry?.title || entry?.projectId || 'Untitled project'}
+                      </h3>
+                      {entry?.difficulty && (
+                        <span className={`portfolio-difficulty difficulty-${entry.difficulty}`}>
+                          {entry.difficulty}
+                        </span>
+                      )}
+                    </div>
+                    <div className="portfolio-item-meta">
+                      {skills.length > 0 && (
+                        <span className="portfolio-skills">
+                          {skills.join(', ')}
+                        </span>
+                      )}
+                      {entry?.completedAt && (
+                        <span className="portfolio-completed-at">
+                          Completed {formatCompletedAt(entry.completedAt)}
+                        </span>
+                      )}
+                    </div>
+                    {entry?.url && (
+                      <p className="portfolio-url">
+                        <a href={entry.url} target="_blank" rel="noopener noreferrer">
+                          {entry.url}
+                        </a>
+                      </p>
+                    )}
+                    {entry?.notes && (
+                      <p className="portfolio-notes">{entry.notes}</p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
 
         <section className="profile-section">
           <h2>Progress Stats</h2>

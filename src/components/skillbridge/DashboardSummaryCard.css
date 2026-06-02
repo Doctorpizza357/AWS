@@ -1,0 +1,141 @@
+.skillbridge-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skillbridge-summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-1, linear-gradient(90deg, #6366f1, #06b6d4));
+}
+
+.skillbridge-summary-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skillbridge-summary-card__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted, #6b7280);
+}
+
+.skillbridge-summary-card__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.skillbridge-summary-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+.skillbridge-summary-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  min-width: 0;
+}
+
+.skillbridge-summary-card__stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted, #6b7280);
+  margin: 0;
+}
+
+.skillbridge-summary-card__stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  word-break: break-word;
+}
+
+.skillbridge-summary-card__stat-value--closed {
+  color: #16a34a;
+}
+
+.skillbridge-summary-card__link {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: var(--primary, #6366f1);
+  color: #ffffff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.skillbridge-summary-card__link:hover,
+.skillbridge-summary-card__link:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.25);
+}
+
+/* CTA variant — shown when no roadmap or roadmap has zero projects. */
+.skillbridge-summary-card--cta {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.skillbridge-summary-card__cta-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.skillbridge-summary-card__cta-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.skillbridge-summary-card__cta-subtitle {
+  margin: 0;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.skillbridge-summary-card__cta-link {
+  align-self: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  background: var(--primary, #6366f1);
+  color: #ffffff;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.skillbridge-summary-card__cta-link:hover,
+.skillbridge-summary-card__cta-link:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.25);
+}

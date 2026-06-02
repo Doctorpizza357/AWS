@@ -1,0 +1,71 @@
+/*
+ * GapClosedCelebration
+ *
+ * Confirmation card surfaced when every active skill gap reaches zero.
+ * Visual style mirrors the success / achievement treatments used elsewhere
+ * in the app (badge cards on the Profile page) so the celebration reads
+ * as part of the existing gamification system.
+ */
+
+.gap-closed-celebration {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1rem 0;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.12),
+    rgba(59, 130, 246, 0.12)
+  );
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: var(--text-primary, #1f2937);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.08);
+}
+
+.gap-closed-celebration-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.18);
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.gap-closed-celebration-icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.gap-closed-celebration-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.gap-closed-celebration-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+}
+
+.gap-closed-celebration-message {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--text-secondary, #4b5563);
+}
+
+@media (max-width: 480px) {
+  .gap-closed-celebration {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+}

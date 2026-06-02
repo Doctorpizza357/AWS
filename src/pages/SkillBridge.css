@@ -1,0 +1,106 @@
+/* SkillBridge page layout
+ *
+ * Hosts the SkillBridge subsystem at `/skillbridge`. Sections stack
+ * vertically on small viewports and the gap panel splits into a two-column
+ * radar + bar list layout on wider viewports.
+ */
+
+.skillbridge-page {
+  padding: 32px 0 48px;
+  min-height: 100%;
+  background: var(--bg-app, #f7f8fb);
+}
+
+.skillbridge-page__container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.skillbridge-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.skillbridge-page__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary, #111827);
+}
+
+.skillbridge-page__lead {
+  margin: 0;
+  color: var(--text-secondary, #4b5563);
+  font-size: 1rem;
+  max-width: 720px;
+}
+
+/* Generic section styling — every panel sits inside a card-like surface
+ * so the visual hierarchy of dream job → assessment → gap → roadmap is
+ * obvious on first scan.
+ */
+.skillbridge-page__section {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.skillbridge-page__section--dreamjob,
+.skillbridge-page__section--assessment,
+.skillbridge-page__section--roadmap {
+  /* Sections that host their own internal headers shouldn't double up. */
+  padding-top: 16px;
+}
+
+/* Gap panel: radar on the left, bar list on the right at >= 880px wide.
+ * Below that, the radar stacks above the bars and both panels fill the
+ * full container width.
+ */
+.skillbridge-page__gap-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 880px) {
+  .skillbridge-page__gap-grid {
+    grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr);
+    align-items: start;
+  }
+}
+
+.skillbridge-page__gap-radar,
+.skillbridge-page__gap-bars {
+  min-width: 0;
+}
+
+/* Read-only preview fallback (Req 14.5/14.6).
+ *
+ * When the page is rendered inside a `<fieldset disabled>` wrapper as
+ * the read-only preview fallback, the form-associated descendants are
+ * already disabled by the browser. This rule visually communicates the
+ * disabled state so users understand why the controls don't respond.
+ */
+.skillbridge-page fieldset[disabled] .skillbridge-page__section,
+.skillbridge-page fieldset[disabled].skillbridge-page__section {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.skillbridge-page__readonly-message {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--warning-bg, #fef3c7);
+  color: var(--warning-fg, #92400e);
+  font-size: 0.95rem;
+  border: 1px solid var(--warning-border, #fcd34d);
+}

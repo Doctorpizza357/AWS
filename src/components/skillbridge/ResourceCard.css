@@ -1,0 +1,44 @@
+.resource-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 0.5rem;
+  background: var(--surface-color, #ffffff);
+  /* Non-interactive: no hover/focus affordance, no pointer cursor. */
+  cursor: default;
+  user-select: text;
+}
+
+.resource-card:focus,
+.resource-card:focus-visible {
+  /* Defensive: even if a browser somehow focuses it, suppress the ring
+     since this card is intentionally non-focusable (Req 9.4). */
+  outline: none;
+  box-shadow: none;
+}
+
+.resource-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.resource-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #6b7280);
+}
+
+.resource-card-value {
+  font-size: 0.95rem;
+  color: var(--text-color, #111827);
+  word-break: break-word;
+}
+
+.resource-card-title {
+  font-weight: 600;
+}

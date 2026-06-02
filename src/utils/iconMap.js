@@ -4,6 +4,7 @@ import {
   BarChart3,
   BookOpen,
   Bot,
+  Briefcase,
   Circle,
   CircleDot,
   ClipboardList,
@@ -12,6 +13,7 @@ import {
   Compass,
   DollarSign,
   Dna,
+  FolderOpen,
   Globe,
   Gamepad2,
   GraduationCap,
@@ -73,6 +75,10 @@ export var iconMap = {
   'badge-level-5': Star,
   'badge-quick-thinker': Lightbulb,
   'badge-team-player': HeartHandshake,
+  'badge-roadmap': Map,
+  'badge-project': Briefcase,
+  'badge-portfolio': FolderOpen,
+  'badge-gap-closer': Target,
   lock: Lock,
 };
 

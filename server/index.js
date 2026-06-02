@@ -61,7 +61,7 @@ const ASSISTANT_SYSTEM_PROMPT = `You are "Pathfinder AI," the elite, omnipresent
 ### OPERATIONAL GUARDRAILS
 - Keep your responses punchy and direct. Never use generic conversational filler like "Sure, I can help you with that!" or "As an AI assistant...". Dive straight into the value.
 - If a user asks a question completely unrelated to STEM, technology, learning, or career advancement, gently but firmly pivot them back to their career exploration journey (e.g., "That sounds interesting, but let's keep our focus on mapping out your next big breakthrough in tech!").
-- Adhere strictly to clean markdown principles: use headings (##, ###), bold parameters for visual anchors, and horizontal rules (---) to divide distinct conceptual blocks.`;
+- Adhere strictly to clean markdown principles: use headings, bold parameters for visual anchors, and horizontal rules (---) to divide distinct conceptual blocks.`;
 
 const SCENARIO_SYSTEM_PROMPT = 'You are a career simulation engine. Always respond with valid JSON.';
 const DIFFICULTY_XP = {
@@ -91,7 +91,16 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'pathfindr-backend' });
 });
 
+// Test seam: when set, routes call this override instead of issuing a
+// SigV4-signed request to AWS Bedrock. Production callers leave it `null` and
+// the real fetch path runs unchanged. See `__setTestBedrockInvoker` below.
+let _testBedrockInvoker = null;
+
 function hasBedrockConfig() {
+  // When a test override is registered, treat the backend as configured so
+  // routes do not short-circuit with HTTP 501 just because the test env lacks
+  // AWS credentials.
+  if (_testBedrockInvoker) return true;
   return Boolean(MODEL_ID && AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY);
 }
 
@@ -124,6 +133,11 @@ function signBedrockRequest(body) {
 }
 
 async function invokeBedrockConverse({ messages, systemPrompt, maxTokens = 800, temperature = 0.8, topP = 0.9 }) {
+  // Test seam: bypass SigV4 + network when an override is registered.
+  if (_testBedrockInvoker) {
+    return _testBedrockInvoker({ messages, systemPrompt, maxTokens, temperature, topP });
+  }
+
   const body = JSON.stringify({
     modelId: MODEL_ID,
     messages,
@@ -559,10 +573,623 @@ app.post('/api/interview/tailored-problems', async (req, res) => {
 
 // â”€â”€â”€ 404 & Listen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+// ─── SkillBridge helpers (Task 17) ──────────────────────────────────────────
+// Pure helpers used by the /api/skillbridge/* routes added in tasks 18–21.
+// Mirrors the validators that live in src/services/skillbridgeService.js so
+// the server can independently enforce request and response shapes per
+// Requirement 15. Endpoint wiring is intentionally deferred to later tasks.
+
+const SKILLBRIDGE_REQUIREMENTS_SYSTEM_PROMPT = 'You are a STEM-career skills analyst. Always respond with valid JSON.';
+const SKILLBRIDGE_SEED_ASSESSMENT_SYSTEM_PROMPT = 'You are a self-assessment seeding engine. Always respond with valid JSON.';
+const SKILLBRIDGE_ROADMAP_SYSTEM_PROMPT = 'You are a personalized career-roadmap planner. Always respond with valid JSON.';
+const SKILLBRIDGE_PROJECTS_SYSTEM_PROMPT = 'You are a project recommendation engine. Always respond with valid JSON.';
+
+const SKILLBRIDGE_DIFFICULTIES = ['easy', 'medium', 'hard'];
+
+const ISO_8601_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isStringWithLen(value, minLen, maxLen) {
+  return typeof value === 'string' && value.length >= minLen && value.length <= maxLen;
+}
+
+function isNonEmptyString(value, maxLen = Number.MAX_SAFE_INTEGER) {
+  return typeof value === 'string' && value.length >= 1 && value.length <= maxLen;
+}
+
+function isIntegerInRange(value, min, max) {
+  return typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max;
+}
+
+function isFiniteNumberInRange(value, min, max) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function isIso8601String(value) {
+  if (typeof value !== 'string' || !ISO_8601_REGEX.test(value)) return false;
+  return Number.isFinite(Date.parse(value));
+}
+
+// ─── Request validators (Req 15.1, 15.2, 15.3, 15.4) ────────────────────────
+
+function validateRequirementsRequest(body) {
+  if (!isPlainObject(body)) return false;
+  return isStringWithLen(body.careerId, 1, 128);
+}
+
+function validateSeedAssessmentRequest(body) {
+  if (!isPlainObject(body)) return false;
+  if (!isStringWithLen(body.resumeText, 0, 50000)) return false;
+  if (body.profile !== undefined && !isPlainObject(body.profile)) return false;
+  if (body.requirements !== undefined && !Array.isArray(body.requirements)) return false;
+  return true;
+}
+
+function validateRoadmapRequest(body) {
+  if (!isPlainObject(body)) return false;
+  if (!isStringWithLen(body.dreamJobId, 1, 128)) return false;
+  if (!Array.isArray(body.requirements)) return false;
+  if (!isPlainObject(body.assessment)) return false;
+  if (!isPlainObject(body.assessment.skills)) return false;
+  if (body.profile !== undefined && !isPlainObject(body.profile)) return false;
+  return true;
+}
+
+function validateProjectsRequest(body) {
+  if (!isPlainObject(body)) return false;
+  if (!isStringWithLen(body.careerId, 1, 128)) return false;
+  if (!Array.isArray(body.focusSkills) || body.focusSkills.length > 50) return false;
+  if (!isIntegerInRange(body.count, 1, 10)) return false;
+  if (!Array.isArray(body.excludeIds) || body.excludeIds.length > 200) return false;
+  return true;
+}
+
+// ─── Response validators (Properties 20, 21, 22 + seed assessment) ──────────
+
+function validateRequirementsResponse(payload) {
+  if (!isPlainObject(payload)) return false;
+  if (payload.ok !== true) return false;
+  if (!Array.isArray(payload.requirements)) return false;
+  if (payload.requirements.length < 5 || payload.requirements.length > 15) return false;
+
+  for (const requirement of payload.requirements) {
+    if (!isPlainObject(requirement)) return false;
+    if (!isStringWithLen(requirement.skillId, 1, 64)) return false;
+    if (!isStringWithLen(requirement.name, 1, 120)) return false;
+    if (typeof requirement.rationale !== 'string' || requirement.rationale.length > 500) return false;
+    if (!isIntegerInRange(requirement.targetLevel, 0, 100)) return false;
+    if (!isFiniteNumberInRange(requirement.weight, 0, 1)) return false;
+  }
+
+  return true;
+}
+
+function validateRoadmapResponse(payload) {
+  if (!isPlainObject(payload)) return false;
+  if (payload.ok !== true) return false;
+
+  const roadmap = payload.roadmap;
+  if (!isPlainObject(roadmap)) return false;
+  if (!isNonEmptyString(roadmap.id, 256)) return false;
+  if (!isNonEmptyString(roadmap.dreamJobId, 128)) return false;
+  if (!isIso8601String(roadmap.generatedAt)) return false;
+  if (!Array.isArray(roadmap.phases)) return false;
+  if (roadmap.phases.length < 3 || roadmap.phases.length > 6) return false;
+
+  for (const phase of roadmap.phases) {
+    if (!isPlainObject(phase)) return false;
+    if (!isIntegerInRange(phase.weekStart, 1, Number.MAX_SAFE_INTEGER)) return false;
+    if (!isIntegerInRange(phase.weekEnd, 1, Number.MAX_SAFE_INTEGER)) return false;
+    if (phase.weekStart > phase.weekEnd) return false;
+    if (!Array.isArray(phase.projectIds)) return false;
+    if (phase.projectIds.length < 1 || phase.projectIds.length > 3) return false;
+  }
+
+  return true;
+}
+
+function isValidProjectShape(project) {
+  if (!isPlainObject(project)) return false;
+  if (!isNonEmptyString(project.id)) return false;
+  if (!Array.isArray(project.careerIds)) return false;
+  if (!Array.isArray(project.skills)) return false;
+  if (!SKILLBRIDGE_DIFFICULTIES.includes(project.difficulty)) return false;
+  if (!isNonEmptyString(project.title)) return false;
+  if (typeof project.summary !== 'string') return false;
+  if (!Array.isArray(project.deliverables)) return false;
+  if (project.deliverables.length < 1 || project.deliverables.length > 10) return false;
+  if (!isIntegerInRange(project.estHours, 1, 200)) return false;
+  return true;
+}
+
+function validateProjectsResponse(payload) {
+  if (!isPlainObject(payload)) return false;
+  if (payload.ok !== true) return false;
+  if (!Array.isArray(payload.projects)) return false;
+  if (payload.projects.length < 1 || payload.projects.length > 5) return false;
+
+  for (const project of payload.projects) {
+    if (!isValidProjectShape(project)) return false;
+    if (project.aiGenerated !== true) return false;
+  }
+
+  return true;
+}
+
+function validateSeedAssessmentResponse(payload) {
+  if (!isPlainObject(payload)) return false;
+  if (payload.ok !== true) return false;
+  if (!isPlainObject(payload.levels)) return false;
+
+  for (const value of Object.values(payload.levels)) {
+    if (!isIntegerInRange(value, 0, 100)) return false;
+  }
+
+  return true;
+}
+
+// ─── Prompt builders (mirroring design.md outlines) ─────────────────────────
+
+function buildRequirementsPrompt(careerId) {
+  return `Career: ${careerId}.
+List 5 to 15 skill requirements for an entry-level role in this career.
+
+Respond with this exact JSON shape and no markdown fences:
+{
+  "requirements": [
+    { "skillId": "kebab-case-id", "name": "Display Name", "targetLevel": 80, "weight": 0.15, "rationale": "Why this skill matters" }
+  ]
+}
+
+Rules:
+- skillId: kebab-case, non-empty, at most 64 characters; never duplicated.
+- name: non-empty, at most 120 characters.
+- targetLevel: integer in [0, 100].
+- weight: number in [0, 1] inclusive; the array sums to approximately 1.0.
+- rationale: string of at most 500 characters.
+- Provide between 5 and 15 entries inclusive.`;
+}
+
+function buildSeedAssessmentPrompt({ resumeText, profile, requirements }) {
+  const profileJson = JSON.stringify(profile || {}, null, 2);
+  const requirementsJson = JSON.stringify(requirements || [], null, 2);
+  const resume = typeof resumeText === 'string' && resumeText.length > 0 ? resumeText : '(none provided)';
+
+  return `Given the resume, profile, and required skills below, estimate the student's current proficiency for each required skill on a 0–100 scale.
+
+Profile:
+${profileJson}
+
+Required skills:
+${requirementsJson}
+
+Resume text:
+${resume}
+
+Respond with this exact JSON shape and no markdown fences:
+{
+  "levels": { "skill-id": 50 }
+}
+
+Rules:
+- Provide one entry per required skillId.
+- Each level must be an integer in [0, 100].
+- Default unknown skills to 50.`;
+}
+
+function buildRoadmapPrompt({ dreamJobId, requirements, assessment, profile }) {
+  const requirementsJson = JSON.stringify(requirements || [], null, 2);
+  const assessmentJson = JSON.stringify(assessment || {}, null, 2);
+  const profileJson = JSON.stringify(profile || {}, null, 2);
+
+  return `Build a 3–6 phase weekly roadmap for "${dreamJobId}" that closes the highest-gap skills first.
+
+Profile:
+${profileJson}
+
+Skill requirements:
+${requirementsJson}
+
+Current skill assessment:
+${assessmentJson}
+
+Respond with this exact JSON shape and no markdown fences:
+{
+  "roadmap": {
+    "id": "non-empty-id",
+    "dreamJobId": "${dreamJobId}",
+    "generatedAt": "<ISO-8601 timestamp>",
+    "phases": [
+      {
+        "id": "phase-1",
+        "label": "Foundations",
+        "weekStart": 1,
+        "weekEnd": 2,
+        "focusSkills": ["skill-id"],
+        "topics": ["topic"],
+        "resources": [ { "title": "Resource", "provider": "Provider", "topic": "topic" } ],
+        "projectIds": ["project-id"]
+      }
+    ]
+  }
+}
+
+Rules:
+- phases: 3 to 6 inclusive, ordered chronologically.
+- Each phase: weekStart and weekEnd are positive integers with weekStart ≤ weekEnd.
+- Each phase: 1 to 3 projectIds inclusive.
+- topics: at most 8 entries per phase.
+- focusSkills must be a subset of the requirement skillIds above.
+- resources: { title, provider, topic } only — do NOT include any URL field.
+- The dreamJobId field must echo "${dreamJobId}" exactly.`;
+}
+
+function buildProjectsPrompt({ careerId, focusSkills, count, excludeIds }) {
+  const focusJson = JSON.stringify(focusSkills || [], null, 2);
+  const excludeJson = JSON.stringify(excludeIds || [], null, 2);
+
+  return `Generate ${count} buildable portfolio projects for a "${careerId}" student.
+
+Focus skills:
+${focusJson}
+
+Exclude these project ids:
+${excludeJson}
+
+Respond with this exact JSON shape and no markdown fences:
+{
+  "projects": [
+    {
+      "id": "unique-project-id",
+      "careerIds": ["${careerId}"],
+      "skills": ["skill-id"],
+      "difficulty": "easy",
+      "title": "Project title",
+      "summary": "1–3 sentence summary.",
+      "deliverables": ["deliverable"],
+      "estHours": 20,
+      "aiGenerated": true
+    }
+  ]
+}
+
+Rules:
+- Provide between 1 and 5 projects (cap at 5 even if count is higher).
+- difficulty: one of "easy", "medium", "hard".
+- deliverables: 1 to 10 entries inclusive.
+- estHours: integer in [1, 200].
+- aiGenerated must be true on every entry.
+- Project ids must not appear in the exclude list and must be unique within the response.`;
+}
+
+// ─── Backend error mapper (Req 15.5) ────────────────────────────────────────
+// Returns { ok: false, message } with message length in [1, 500].
+
+function mapToBackendError(err) {
+  let raw;
+  if (err == null) {
+    raw = 'Unknown backend error';
+  } else if (typeof err === 'string') {
+    raw = err;
+  } else if (err instanceof Error && typeof err.message === 'string') {
+    raw = err.message;
+  } else if (typeof err === 'object' && typeof err.message === 'string') {
+    raw = err.message;
+  } else {
+    try {
+      raw = JSON.stringify(err);
+    } catch (_serializeErr) {
+      raw = String(err);
+    }
+  }
+
+  let message = String(raw).trim();
+  if (message.length === 0) message = 'Unknown backend error';
+  if (message.length > 500) message = message.slice(0, 500);
+  return { ok: false, message };
+}
+
+// ─── SkillBridge routes ─────────────────────────────────────────────────────
+
+// Task 18 — POST /api/skillbridge/requirements
+// Flow: request validator → 400; Bedrock call → 502 via mapToBackendError;
+// JSON parse + response validator → 500 'AI returned non-JSON'; success → 200
+// `{ ok: true, careerId, requirements }`. Per Reqs 2.2, 2.6, 15.1, 15.5–15.7.
+app.post('/api/skillbridge/requirements', async (req, res) => {
+  if (!validateRequirementsRequest(req.body)) {
+    return res.status(400).json({ ok: false, message: 'Invalid request body' });
+  }
+
+  if (!hasBedrockConfig()) {
+    return res.status(501).json({
+      ok: false,
+      message:
+        'SkillBridge backend not configured. Ensure AWS_BEDROCK_MODEL_ID and AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY are set on the server for SigV4.',
+    });
+  }
+
+  const { careerId } = req.body;
+
+  let responseText;
+  try {
+    responseText = await invokeBedrockConverse({
+      messages: [
+        {
+          role: 'user',
+          content: [{ text: buildRequirementsPrompt(careerId) }],
+        },
+      ],
+      systemPrompt: SKILLBRIDGE_REQUIREMENTS_SYSTEM_PROMPT,
+      maxTokens: 1500,
+      temperature: 0.4,
+      topP: 0.9,
+    });
+  } catch (err) {
+    console.error('SkillBridge requirements Bedrock call failed:', err);
+    return res.status(502).json(mapToBackendError(err));
+  }
+
+  let parsed;
+  try {
+    parsed = parseJsonFromResponse(responseText);
+  } catch (err) {
+    console.error('SkillBridge requirements JSON parse failed:', err);
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  const candidate = { ok: true, requirements: parsed && parsed.requirements };
+  if (!validateRequirementsResponse(candidate)) {
+    console.error('SkillBridge requirements payload failed shape validation');
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  return res.status(200).json({ ok: true, careerId, requirements: candidate.requirements });
+});
+
+// Task 19 — POST /api/skillbridge/seed-assessment
+// Flow: request validator → 400; Bedrock call → 502 via mapToBackendError;
+// JSON parse + post-validate → 500 'AI returned non-JSON'; success → 200
+// `{ ok: true, levels }`. Per Reqs 15.2, 15.5–15.7.
+//
+// Coercion: every level is coerced to an integer in [0, 100] before the
+// strict validator runs — non-numeric / NaN / missing → 50, finite numbers
+// → Math.round then clamp.
+app.post('/api/skillbridge/seed-assessment', async (req, res) => {
+  if (!validateSeedAssessmentRequest(req.body)) {
+    return res.status(400).json({ ok: false, message: 'Invalid request body' });
+  }
+
+  if (!hasBedrockConfig()) {
+    return res.status(501).json({
+      ok: false,
+      message:
+        'SkillBridge backend not configured. Ensure AWS_BEDROCK_MODEL_ID and AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY are set on the server for SigV4.',
+    });
+  }
+
+  const { resumeText, profile, requirements } = req.body;
+
+  let responseText;
+  try {
+    responseText = await invokeBedrockConverse({
+      messages: [
+        {
+          role: 'user',
+          content: [{ text: buildSeedAssessmentPrompt({ resumeText, profile, requirements }) }],
+        },
+      ],
+      systemPrompt: SKILLBRIDGE_SEED_ASSESSMENT_SYSTEM_PROMPT,
+      maxTokens: 1200,
+      temperature: 0.3,
+      topP: 0.9,
+    });
+  } catch (err) {
+    console.error('SkillBridge seed-assessment Bedrock call failed:', err);
+    return res.status(502).json(mapToBackendError(err));
+  }
+
+  let parsed;
+  try {
+    parsed = parseJsonFromResponse(responseText);
+  } catch (err) {
+    console.error('SkillBridge seed-assessment JSON parse failed:', err);
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  // Coerce/clamp every level to an integer in [0, 100] before validating.
+  // Per task notes: missing / non-numeric / NaN → 50; finite numbers →
+  // Math.round then clamp into the [0, 100] range.
+  const rawLevels = parsed && parsed.levels;
+  const coercedLevels = {};
+  if (isPlainObject(rawLevels)) {
+    for (const [skillId, value] of Object.entries(rawLevels)) {
+      let level;
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        level = Math.round(value);
+      } else {
+        level = 50;
+      }
+      if (level < 0) level = 0;
+      if (level > 100) level = 100;
+      coercedLevels[skillId] = level;
+    }
+  }
+
+  const candidate = { ok: true, levels: coercedLevels };
+  if (!validateSeedAssessmentResponse(candidate)) {
+    console.error('SkillBridge seed-assessment payload failed shape validation');
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  return res.status(200).json({ ok: true, levels: coercedLevels });
+});
+
+// Task 20 — POST /api/skillbridge/roadmap
+// Flow: request validator → 400; Bedrock call → 502 via mapToBackendError;
+// JSON parse + response validator → 500 'AI returned non-JSON'; success → 200
+// `{ ok: true, roadmap }`. Per Reqs 8.2–8.5, 15.3, 15.5–15.7.
+//
+// Response shape is enforced by validateRoadmapResponse (3–6 phases, 1–3
+// projectIds per phase, weekStart/weekEnd are positive integers with
+// weekStart ≤ weekEnd). The dreamJobId echo from Req 8.2 is checked
+// separately against the request body.
+app.post('/api/skillbridge/roadmap', async (req, res) => {
+  if (!validateRoadmapRequest(req.body)) {
+    return res.status(400).json({ ok: false, message: 'Invalid request body' });
+  }
+
+  if (!hasBedrockConfig()) {
+    return res.status(501).json({
+      ok: false,
+      message:
+        'SkillBridge backend not configured. Ensure AWS_BEDROCK_MODEL_ID and AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY are set on the server for SigV4.',
+    });
+  }
+
+  const { dreamJobId, requirements, assessment, profile } = req.body;
+
+  let responseText;
+  try {
+    responseText = await invokeBedrockConverse({
+      messages: [
+        {
+          role: 'user',
+          content: [{ text: buildRoadmapPrompt({ dreamJobId, requirements, assessment, profile }) }],
+        },
+      ],
+      systemPrompt: SKILLBRIDGE_ROADMAP_SYSTEM_PROMPT,
+      maxTokens: 3000,
+      temperature: 0.5,
+      topP: 0.9,
+    });
+  } catch (err) {
+    console.error('SkillBridge roadmap Bedrock call failed:', err);
+    return res.status(502).json(mapToBackendError(err));
+  }
+
+  let parsed;
+  try {
+    parsed = parseJsonFromResponse(responseText);
+  } catch (err) {
+    console.error('SkillBridge roadmap JSON parse failed:', err);
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  const candidate = { ok: true, roadmap: parsed && parsed.roadmap };
+  if (!validateRoadmapResponse(candidate)) {
+    console.error('SkillBridge roadmap payload failed shape validation');
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  // Req 8.2: dreamJobId on the returned roadmap must echo the requested value.
+  if (candidate.roadmap.dreamJobId !== dreamJobId) {
+    console.error('SkillBridge roadmap dreamJobId echo mismatch');
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  return res.status(200).json({ ok: true, roadmap: candidate.roadmap });
+});
+
+// Task 21 — POST /api/skillbridge/projects
+// Flow: request validator → 400; Bedrock call → 502 via mapToBackendError;
+// JSON parse + response validator → 500 'AI returned non-JSON'; success → 200
+// `{ ok: true, projects }`. Per Reqs 10.4, 15.4, 15.5–15.7.
+//
+// Response shape is enforced by validateProjectsResponse: projects.length ∈
+// [1, 5], every entry conforms to the catalog shape and has aiGenerated:
+// true.
+app.post('/api/skillbridge/projects', async (req, res) => {
+  if (!validateProjectsRequest(req.body)) {
+    return res.status(400).json({ ok: false, message: 'Invalid request body' });
+  }
+
+  if (!hasBedrockConfig()) {
+    return res.status(501).json({
+      ok: false,
+      message:
+        'SkillBridge backend not configured. Ensure AWS_BEDROCK_MODEL_ID and AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY are set on the server for SigV4.',
+    });
+  }
+
+  const { careerId, focusSkills, count, excludeIds } = req.body;
+
+  let responseText;
+  try {
+    responseText = await invokeBedrockConverse({
+      messages: [
+        {
+          role: 'user',
+          content: [{ text: buildProjectsPrompt({ careerId, focusSkills, count, excludeIds }) }],
+        },
+      ],
+      systemPrompt: SKILLBRIDGE_PROJECTS_SYSTEM_PROMPT,
+      maxTokens: 2500,
+      temperature: 0.6,
+      topP: 0.9,
+    });
+  } catch (err) {
+    console.error('SkillBridge projects Bedrock call failed:', err);
+    return res.status(502).json(mapToBackendError(err));
+  }
+
+  let parsed;
+  try {
+    parsed = parseJsonFromResponse(responseText);
+  } catch (err) {
+    console.error('SkillBridge projects JSON parse failed:', err);
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  const candidate = { ok: true, projects: parsed && parsed.projects };
+  if (!validateProjectsResponse(candidate)) {
+    console.error('SkillBridge projects payload failed shape validation');
+    return res.status(500).json({ ok: false, message: 'AI returned non-JSON' });
+  }
+
+  return res.status(200).json({ ok: true, projects: candidate.projects });
+});
+
 app.use((_req, res) => {
   res.status(404).json({ ok: false, message: 'Not found' });
 });
 
-app.listen(port, () => {
-  console.log(`Pathfindr backend listening on http://localhost:${port}`);
-});
+// Only start the HTTP server when run directly (e.g. `node index.js`). When
+// this module is `require()`d (e.g. from skillbridge.test.js to access the
+// SkillBridge helpers), we skip listen so tests don't spin up a real server.
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Pathfindr backend listening on http://localhost:${port}`);
+  });
+}
+
+// Expose pure SkillBridge helpers for unit / property testing. The express
+// `app` is also exported so HTTP-level contract tests can drive the routes
+// via `app.listen(0)` + global `fetch`. The `__setTestBedrockInvoker` /
+// `__resetTestBedrockInvoker` pair lets tests replace the SigV4 + network
+// call inside `invokeBedrockConverse` with an arbitrary stub — production
+// behavior is unchanged because the override defaults to `null`.
+module.exports = {
+  app,
+  validateRequirementsRequest,
+  validateSeedAssessmentRequest,
+  validateRoadmapRequest,
+  validateProjectsRequest,
+  validateRequirementsResponse,
+  validateRoadmapResponse,
+  validateProjectsResponse,
+  validateSeedAssessmentResponse,
+  buildRequirementsPrompt,
+  buildSeedAssessmentPrompt,
+  buildRoadmapPrompt,
+  buildProjectsPrompt,
+  mapToBackendError,
+  __setTestBedrockInvoker(fn) {
+    _testBedrockInvoker = typeof fn === 'function' ? fn : null;
+  },
+  __resetTestBedrockInvoker() {
+    _testBedrockInvoker = null;
+  },
+};

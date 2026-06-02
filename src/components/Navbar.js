@@ -83,6 +83,13 @@ function Navbar() {
                 Dashboard
               </Link>
               <Link
+                to="/skillbridge"
+                className={`nav-link ${isActive('/skillbridge') ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                SkillBridge
+              </Link>
+              <Link
                 to="/market-intelligence"
                 className={`nav-link mi-link ${isActive('/market-intelligence') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}

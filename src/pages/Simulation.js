@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
+import { useSkillBridge } from '../context/SkillBridgeContext';
 import { generateScenario } from '../services/aiService';
 import careers from '../data/careers';
 import { getIconComponent } from '../utils/iconMap';
@@ -10,6 +11,7 @@ function Simulation() {
   const { careerId, scenarioId } = useParams();
   const navigate = useNavigate();
   const { user, addXP, earnBadge, completeScenario, addDecision } = useUser();
+  const { applyInferredGain } = useSkillBridge();
 
   const [scenarioData, setScenarioData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -85,6 +87,17 @@ function Simulation() {
     }
 
     completeScenario(scenarioId);
+
+    // Apply inferred skill gains derived from the chosen option's traits.
+    // Dedup is handled inside applyInferredGain (Req 5.7), so calling it
+    // on every completion is safe. Fire-and-forget — UI flow shouldn't
+    // block on persistence.
+    applyInferredGain(
+      selectedOption.traits,
+      selectedOption.rewardXp ?? selectedOption.xp,
+      scenarioId,
+      selectedOption.id,
+    );
 
     // Check for badges
     const elapsed = (Date.now() - startTime) / 1000;

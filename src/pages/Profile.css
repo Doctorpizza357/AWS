@@ -227,3 +227,98 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Portfolio section (Req 12.1, 12.2, 12.4) */
+.portfolio-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.portfolio-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.portfolio-item {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.portfolio-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.portfolio-item-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.portfolio-difficulty {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary-light);
+}
+
+.portfolio-difficulty.difficulty-easy {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+}
+
+.portfolio-difficulty.difficulty-medium {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.portfolio-difficulty.difficulty-hard {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.portfolio-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.portfolio-skills {
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+.portfolio-url {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.portfolio-url a {
+  color: var(--primary-light);
+  text-decoration: underline;
+}
+
+.portfolio-notes {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
