@@ -70,6 +70,19 @@
 .mi-metrics > div { text-align: center; min-width: 60px; }
 .mi-metrics span { display: block; font-size: 1.2rem; font-weight: 700; color: var(--primary-light); }
 .mi-metrics small { font-size: 0.7rem; color: var(--text-muted); }
+.mi-improvement-chart { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.mi-improvement-row { display: flex; flex-direction: column; gap: 6px; }
+.mi-improvement-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 0.88rem; color: var(--text-primary); }
+.mi-improvement-row-head small { color: var(--text-muted); font-size: 0.74rem; }
+.mi-improvement-track { position: relative; height: 12px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); }
+.mi-improvement-track.speech { box-shadow: inset 0 0 0 1px rgba(34,211,238,0.05); }
+.mi-improvement-track.body { box-shadow: inset 0 0 0 1px rgba(16,185,129,0.05); }
+.mi-improvement-track.ai { box-shadow: inset 0 0 0 1px rgba(99,102,241,0.05); }
+.mi-improvement-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgba(34,211,238,0.95), rgba(99,102,241,0.95)); box-shadow: 0 0 16px rgba(34,211,238,0.16); }
+.mi-improvement-track.body .mi-improvement-fill { background: linear-gradient(90deg, rgba(16,185,129,0.95), rgba(34,211,238,0.9)); }
+.mi-improvement-track.ai .mi-improvement-fill { background: linear-gradient(90deg, rgba(99,102,241,0.95), rgba(168,85,247,0.92)); }
+.mi-improvement-target { position: absolute; top: -4px; width: 2px; height: 20px; border-radius: 999px; background: rgba(255,255,255,0.95); box-shadow: 0 0 10px rgba(255,255,255,0.22); transform: translateX(-1px); }
+.mi-improvement-callout { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.18); color: var(--text-secondary); font-size: 0.84rem; line-height: 1.45; }
 .mi-body-fb { color: var(--text-secondary); font-size: 0.8rem; margin: 3px 0; }
 .mi-loading { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 14px; }
 .mi-analysis-loading { position: absolute; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(2, 6, 23, 0.62); backdrop-filter: blur(6px); border-radius: 16px; }

@@ -11,6 +11,7 @@ import { getIconComponent } from '../utils/iconMap';
 
 const safeNum = (v) => Number.isFinite(v) ? v : '-';
 const safePct = (v) => Number.isFinite(v) ? `${v}%` : '-';
+const clampScore = (v) => Number.isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : null;
 
 const POSE_CONNECTIONS = [
   ['left_eye', 'right_eye'],
@@ -879,6 +880,14 @@ export default function MockInterview() {
   const fmt = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   const currentPrompt = phase === 'followup' && activeFollowUp ? activeFollowUp : questions[qIdx]?.question;
   const currentPromptLabel = phase === 'followup' ? 'Adaptive follow-up' : `Q${qIdx+1}/${questions.length}`;
+  const improvementChartData = [
+    { key: 'speech', label: 'Speech confidence', value: clampScore(speechStats?.confidence), target: 80, tone: 'speech' },
+    { key: 'body', label: 'Body language', value: clampScore(bodyResults?.overall), target: 80, tone: 'body' },
+    { key: 'answer', label: 'AI answer quality', value: clampScore(analysis?.overallScore), target: 85, tone: 'ai' },
+  ];
+  const strongestOpportunity = improvementChartData
+    .filter((item) => Number.isFinite(item.value))
+    .sort((a, b) => a.value - b.value)[0];
 
   const handleReadAloud = async () => {
     if (isSpeaking()) {
@@ -1157,6 +1166,37 @@ export default function MockInterview() {
             </div>
 
             <div className="mi-dashboard-side">
+              <div className="mi-section">
+                <h3>{(() => { const Icon = getIconComponent('career-data'); return <><Icon size={16} style={{marginRight:8}}/> Improvement Chart</>; })()}</h3>
+                <p className="mi-body-fb">Track the next session around the weakest area so progress is obvious at a glance.</p>
+                {improvementChartData.some((item) => Number.isFinite(item.value)) ? (
+                  <div className="mi-improvement-chart" role="img" aria-label="Improvement chart for speech, body language, and answer quality">
+                    {improvementChartData.map((item) => {
+                      const width = Number.isFinite(item.value) ? item.value : 0;
+                      return (
+                        <div className="mi-improvement-row" key={item.key}>
+                          <div className="mi-improvement-row-head">
+                            <span>{item.label}</span>
+                            <small>{Number.isFinite(item.value) ? `${item.value}%` : '—'}</small>
+                          </div>
+                          <div className={`mi-improvement-track ${item.tone}`}>
+                            <div className="mi-improvement-fill" style={{ width: `${width}%` }} />
+                            <div className="mi-improvement-target" style={{ left: `${item.target}%` }} title={`Target ${item.target}%`} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mi-body-fb">Your chart will populate after the first analyzed response.</p>
+                )}
+                {strongestOpportunity && Number.isFinite(strongestOpportunity.value) && (
+                  <div className="mi-improvement-callout">
+                    <strong>Focus next:</strong> {strongestOpportunity.label.toLowerCase()} is currently the lowest at {strongestOpportunity.value}%.
+                  </div>
+                )}
+              </div>
+
               {speechStats && (
                 <div className="mi-section">
                   <h3>{(() => { const Icon = getIconComponent('mic'); return <><Icon size={16} style={{marginRight:8}}/> Speech</>; })()}</h3>
