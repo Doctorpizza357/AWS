@@ -42,15 +42,6 @@ function MarketIntelligence() {
     .filter(Boolean)
     .map(ts => new Date(ts))
     .sort((a, b) => b - a)[0] || null;
-
-  const getStatusIndicator = () => {
-    if (isLoading) return { text: 'Fetching live data...', color: 'var(--accent)' };
-    const hasErrors = Object.values(loadingStates).some(s => s === 'error');
-    if (hasErrors) return { text: 'Partial data available', color: 'var(--danger)' };
-    return { text: 'Status: Operational', color: '#00ffc8' };
-  };
-
-  const status = getStatusIndicator();
   const tabConfig = [
     { id: 'overview', label: 'Overview', icon: 'market-overview' },
     { id: 'heatmap', label: 'Market Pulse', icon: 'market-heatmap' },
@@ -67,10 +58,7 @@ function MarketIntelligence() {
             Market <span className="mi-title-accent">Intelligence</span>
           </h1>
           <p className="mi-subtitle">Live Career Signal Dashboard</p>
-          <div className="mi-status">
-            <span className="mi-status-dot" style={{ backgroundColor: status.color }} />
-            <span className="mi-status-text">{status.text}</span>
-          </div>
+          {/* status indicator removed */}
         </div>
 
         <div className="mi-header-right">
