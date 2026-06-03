@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import { getIconComponent } from '../utils/iconMap';
@@ -29,10 +29,37 @@ function Leaderboard() {
   const [leaders, setLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const TrophyIcon = getIconComponent('badge-level-10');
   const LevelIcon = getIconComponent('stat-level');
   const BadgeIcon = getIconComponent('stat-badges');
+
+  const handleUserClick = async (entry) => {
+    setProfileLoading(true);
+    setSelectedUser({ ...entry, profile: null });
+    try {
+      const userDoc = await getDoc(doc(db, 'users', entry.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setSelectedUser({
+          ...entry,
+          profile: data.profile || {},
+          progress: data.progress || {},
+          recommendedCareers: data.recommendedCareers || [],
+          activeCareerGoal: data.activeCareerGoal || null,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch user profile:', err);
+    }
+    setProfileLoading(false);
+  };
+
+  const closeProfile = () => {
+    setSelectedUser(null);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -147,6 +174,9 @@ function Leaderboard() {
                   key={entry.uid}
                   className={`leaderboard-row ${isCurrentUser ? 'leaderboard-row--you' : ''} ${medalClass ? `leaderboard-row--${medalClass}` : ''}`}
                   role="row"
+                  onClick={() => handleUserClick(entry)}
+                  style={{ cursor: 'pointer' }}
+                  title={`View ${entry.displayName}'s profile`}
                 >
                   <span className="lb-col lb-col--rank" role="cell">
                     <span className={`rank-badge ${medalClass}`}>{rank}</span>
@@ -178,6 +208,94 @@ function Leaderboard() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {selectedUser && (
+          <div className="lb-profile-overlay" onClick={closeProfile}>
+            <div className="lb-profile-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="lb-profile-close" onClick={closeProfile} aria-label="Close profile">×</button>
+              <div className="lb-profile-header">
+                {selectedUser.photoURL ? (
+                  <img src={selectedUser.photoURL} alt="" className="lb-profile-avatar" />
+                ) : (
+                  <span className="lb-profile-avatar lb-profile-avatar--placeholder">
+                    {selectedUser.displayName.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <div className="lb-profile-info">
+                  <h2>{selectedUser.displayName}</h2>
+                  <span className="lb-profile-level">Level {selectedUser.level} Explorer</span>
+                  {selectedUser.activeCareerGoal && (
+                    <span className="lb-profile-goal">Goal: {selectedUser.activeCareerGoal.title}</span>
+                  )}
+                </div>
+              </div>
+
+              {profileLoading ? (
+                <div className="lb-profile-loading">Loading profile...</div>
+              ) : selectedUser.profile ? (
+                <div className="lb-profile-body">
+                  <div className="lb-profile-stats">
+                    <div className="lb-profile-stat">
+                      <span className="lb-profile-stat-val">{selectedUser.totalXP.toLocaleString()}</span>
+                      <span className="lb-profile-stat-lbl">Total XP</span>
+                    </div>
+                    <div className="lb-profile-stat">
+                      <span className="lb-profile-stat-val">{selectedUser.level}</span>
+                      <span className="lb-profile-stat-lbl">Level</span>
+                    </div>
+                    <div className="lb-profile-stat">
+                      <span className="lb-profile-stat-val">{selectedUser.badges}</span>
+                      <span className="lb-profile-stat-lbl">Badges</span>
+                    </div>
+                    <div className="lb-profile-stat">
+                      <span className="lb-profile-stat-val">{selectedUser.scenarios}</span>
+                      <span className="lb-profile-stat-lbl">Scenarios</span>
+                    </div>
+                  </div>
+
+                  {selectedUser.profile.interests?.length > 0 && (
+                    <div className="lb-profile-section">
+                      <h3>Interests</h3>
+                      <div className="lb-profile-tags">
+                        {selectedUser.profile.interests.map((t) => (
+                          <span key={t} className="lb-profile-tag">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedUser.profile.skills?.length > 0 && (
+                    <div className="lb-profile-section">
+                      <h3>Skills</h3>
+                      <div className="lb-profile-tags">
+                        {selectedUser.profile.skills.map((t) => (
+                          <span key={t} className="lb-profile-tag lb-profile-tag--skill">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedUser.progress?.badges?.length > 0 && (
+                    <div className="lb-profile-section">
+                      <h3>Badges Earned</h3>
+                      <div className="lb-profile-badges">
+                        {selectedUser.progress.badges.map((b) => {
+                          const BIcon = getIconComponent(b.icon);
+                          return (
+                            <div key={b.id} className="lb-profile-badge">
+                              <BIcon size={18} aria-hidden="true" />
+                              <span>{b.name}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
           </div>
         )}
       </div>
