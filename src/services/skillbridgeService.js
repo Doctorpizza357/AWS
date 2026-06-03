@@ -80,14 +80,28 @@ function focusOverlapCount(project, focusSet) {
   // Treat skills and focusSkills as sets so duplicates do not inflate the
   // overlap count (matches the "project.skills ∩ focusSkills" set semantics
   // documented in design.md).
+  // Normalize both sides: lowercase and replace spaces/underscores with
+  // hyphens so "Problem Solving" matches "problem-solving" from AI output.
   const seen = new Set();
   let count = 0;
   for (const skill of project.skills) {
-    if (seen.has(skill)) continue;
-    seen.add(skill);
-    if (focusSet.has(skill)) count += 1;
+    const normalized = normalizeSkillKey(skill);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    if (focusSet.has(normalized) || focusSet.has(skill)) count += 1;
   }
   return count;
+}
+
+/**
+ * Normalize a skill string for matching: lowercase, replace spaces and
+ * underscores with hyphens, trim whitespace.
+ * "Problem Solving" → "problem-solving"
+ * "problem-solving" → "problem-solving"
+ */
+function normalizeSkillKey(str) {
+  if (typeof str !== 'string') return '';
+  return str.trim().toLowerCase().replace(/[\s_]+/g, '-');
 }
 
 /**
@@ -1311,20 +1325,36 @@ export function assembleRoadmap(roadmap, curatedCatalog, aiCatalog) {
       isPlainObject(phase) && Array.isArray(phase.focusSkills)
         ? phase.focusSkills
         : [];
-    const focusSet = new Set(focusSkills);
+    // Normalize focusSkills for matching against catalog project skills
+    const focusSet = new Set(focusSkills.map(s => normalizeSkillKey(s)));
+
+    console.log(`[assembleRoadmap] Phase ${phaseIdx}: focusSkills raw=`, focusSkills, 'normalized focusSet=', [...focusSet]);
 
     let projectIds = takeOverlapping(curated, focusSkills, focusSet, 3);
+    console.log(`[assembleRoadmap] Phase ${phaseIdx}: after curated overlap pass, projectIds=`, projectIds);
     if (projectIds.length === 0) {
       projectIds = takeOverlapping(ai, focusSkills, focusSet, 3);
+      console.log(`[assembleRoadmap] Phase ${phaseIdx}: after AI overlap pass, projectIds=`, projectIds);
     }
     if (projectIds.length === 0) {
       const fallback = pickByCareer(curated);
+      console.log(`[assembleRoadmap] Phase ${phaseIdx}: pickByCareer curated=`, fallback);
       if (fallback != null) {
         projectIds = [fallback];
       } else {
         const fallbackAi = pickByCareer(ai);
+        console.log(`[assembleRoadmap] Phase ${phaseIdx}: pickByCareer AI=`, fallbackAi);
         if (fallbackAi != null) projectIds = [fallbackAi];
       }
+    }
+
+    // If still no projects found from catalogs, use the AI's own projectIds
+    // from the original phase as a last resort. The AI generates meaningful
+    // project IDs that represent the work even if they're not in our catalog.
+    if (projectIds.length === 0 && isPlainObject(phase) && Array.isArray(phase.projectIds) && phase.projectIds.length > 0) {
+      console.log(`[assembleRoadmap] Phase ${phaseIdx}: using AI-suggested projectIds as fallback:`, phase.projectIds);
+      projectIds = phase.projectIds.filter(id => typeof id === 'string' && id.length > 0).slice(0, 3);
+      for (const id of projectIds) usedIds.add(id);
     }
 
     if (projectIds.length === 0) {

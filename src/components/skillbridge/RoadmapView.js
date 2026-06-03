@@ -119,6 +119,7 @@ function RoadmapView() {
     roadmapCompletionPct,
     dreamJobId,
     generateRoadmap,
+    roadmapLoading,
   } = useSkillBridge();
 
   const handleGenerate = () => {
@@ -136,6 +137,21 @@ function RoadmapView() {
       generateRoadmap({ force: true });
     }
   };
+
+  // Loading state
+  if (roadmapLoading) {
+    return (
+      <section className="roadmap-view roadmap-view--loading" aria-label="Roadmap" aria-busy="true">
+        <div className="roadmap-view__loading-body">
+          <div className="roadmap-view__spinner" />
+          <h3 className="roadmap-view__loading-title">Generating your roadmap...</h3>
+          <p className="roadmap-view__loading-message">
+            The AI is building a personalized learning plan. This usually takes 5–10 seconds.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   // Empty state: no roadmap yet. Render the documented CTA + a single
   // "Generate roadmap" button.
@@ -187,12 +203,6 @@ function RoadmapView() {
         </div>
 
         <dl className="roadmap-view__meta">
-          <div className="roadmap-view__meta-item">
-            <dt className="roadmap-view__meta-label">Source</dt>
-            <dd className="roadmap-view__meta-value">
-              {sourceLabel(roadmapSource)}
-            </dd>
-          </div>
           <div className="roadmap-view__meta-item">
             <dt className="roadmap-view__meta-label">Completion</dt>
             <dd className="roadmap-view__meta-value">{completionPct}%</dd>

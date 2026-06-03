@@ -163,3 +163,46 @@
 .roadmap-view__empty-body .roadmap-view__generate-button {
   align-self: flex-start;
 }
+
+/* ─── Loading State ──────────────────────────────────────────────────────── */
+.roadmap-view--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.roadmap-view__loading-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.roadmap-view__spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--border, rgba(255,255,255,0.15));
+  border-top-color: var(--primary-light, #818cf8);
+  animation: roadmap-spin 0.9s linear infinite;
+}
+
+@keyframes roadmap-spin {
+  to { transform: rotate(360deg); }
+}
+
+.roadmap-view__loading-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.roadmap-view__loading-message {
+  font-size: 0.85rem;
+  color: var(--text-muted, #888);
+  margin: 0;
+  max-width: 320px;
+}

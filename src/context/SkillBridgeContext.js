@@ -129,6 +129,7 @@ const INITIAL_STATE = Object.freeze({
   // UI / async (banners + toasts only — AbortControllers live in a ref)
   banners: [],
   toasts: [],
+  roadmapLoading: false,
 
   // Cross-action dedup (Req 5.7, Property 19): keyed by `scenarioId` → `optionId`
   appliedScenarioGains: {},
@@ -984,14 +985,18 @@ export function SkillBridgeProvider({ children }) {
       !force
     ) {
       // Cache hit — no AI call, no Firestore write (Req 8.7, Property 35).
+      console.log('[SkillBridge:generateRoadmap] CACHE HIT — skipping AI call. hash:', profileHash);
       setState((prev) => {
         if (prev.roadmapSource === 'cache') return prev;
         return { ...prev, roadmapSource: 'cache' };
       });
       return;
     }
+    console.log('[SkillBridge:generateRoadmap] Cache miss or force=true. profileHash:', profileHash, 'cachedHash:', cachedRoadmap?.hash, 'force:', force);
 
     // ── Step 3: AI fetch ───────────────────────────────────────────────────
+    setState((prev) => ({ ...prev, roadmapLoading: true }));
+
     const previous = inFlightRef.current.roadmap;
     if (previous && typeof previous.abort === 'function') {
       try { previous.abort(); } catch (_) { /* best-effort */ }
@@ -1030,15 +1035,23 @@ export function SkillBridgeProvider({ children }) {
     let assembled = null;
     if (!aiFailed && aiRoadmap) {
       try {
+        console.log('[SkillBridge:generateRoadmap] AI roadmap received:', JSON.stringify(aiRoadmap, null, 2));
+        console.log('[SkillBridge:generateRoadmap] projectsCatalog count:', projectsCatalog?.length);
         const candidate = assembleRoadmap(aiRoadmap, projectsCatalog, []);
+        console.log('[SkillBridge:generateRoadmap] assembleRoadmap succeeded:', JSON.stringify(candidate.phases?.map(p => ({ projectIds: p.projectIds, focusSkills: p.focusSkills })), null, 2));
         if (validateProjectsUnique(candidate)) {
           assembled = candidate;
+          console.log('[SkillBridge:generateRoadmap] validateProjectsUnique PASSED');
         } else {
           aiFailed = true;
+          console.warn('[SkillBridge:generateRoadmap] validateProjectsUnique FAILED — falling back');
         }
       } catch (_err) {
         aiFailed = true;
+        console.error('[SkillBridge:generateRoadmap] assembleRoadmap threw:', _err.message);
       }
+    } else {
+      console.warn('[SkillBridge:generateRoadmap] AI fetch failed or returned null. aiFailed:', aiFailed, 'aiRoadmap:', aiRoadmap);
     }
 
     // ── Step 3a: success path ──────────────────────────────────────────────
@@ -1048,6 +1061,7 @@ export function SkillBridgeProvider({ children }) {
         ...prev,
         currentRoadmap: finalRoadmap,
         roadmapSource: 'ai',
+        roadmapLoading: false,
       }));
 
       // Award the "Roadmap Started" badge (Req 20.1). `earnBadge` is
@@ -1089,6 +1103,7 @@ export function SkillBridgeProvider({ children }) {
       setState((prev) => ({
         ...prev,
         roadmapSource: 'cache',
+        roadmapLoading: false,
         banners: appendBannerOnce(prev.banners, {
           id: 'using-cached-roadmap',
           kind: 'warning',
@@ -1107,6 +1122,7 @@ export function SkillBridgeProvider({ children }) {
       // banner instead of leaving the user without any roadmap at all.
       setState((prev) => ({
         ...prev,
+        roadmapLoading: false,
         banners: appendBannerOnce(prev.banners, {
           id: 'roadmap-engine-unreachable',
           kind: 'error',
@@ -1121,6 +1137,7 @@ export function SkillBridgeProvider({ children }) {
       ...prev,
       currentRoadmap: finalFallback,
       roadmapSource: 'fallback-curated',
+      roadmapLoading: false,
       banners: appendBannerOnce(prev.banners, {
         id: 'roadmap-engine-unreachable',
         kind: 'error',
@@ -1941,6 +1958,7 @@ export function SkillBridgeProvider({ children }) {
       expandedPhaseIds: state.expandedPhaseIds,
       banners: state.banners,
       toasts: state.toasts,
+      roadmapLoading: state.roadmapLoading,
       appliedScenarioGains: state.appliedScenarioGains,
       // AbortControllers map (live ref, intentionally not reactive)
       inFlight: inFlightRef.current,
