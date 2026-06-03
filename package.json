@@ -28,6 +28,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:frontend": "jest --config jest.frontend.config.js",
     "eject": "react-scripts eject",
     "server": "npm --prefix server start"
   },
@@ -44,6 +45,12 @@
     ]
   },
   "devDependencies": {
-    "fast-check": "^3.23.2"
+    "@babel/preset-env": "^7.29.5",
+    "@babel/preset-react": "^7.28.5",
+    "babel-jest": "27.5.1",
+    "fast-check": "^3.23.2",
+    "identity-obj-proxy": "3.0.0",
+    "jest": "27.5.1",
+    "jest-environment-jsdom": "27.5.1"
   }
 }

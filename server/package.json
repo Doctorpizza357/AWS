@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "test": "node --test \"skillbridge.test.js\" \"skillbridge.routes.test.js\""
+    "test": "node --test \"../tests/server/skillbridge.test.js\" \"../tests/server/skillbridge.routes.test.js\""
   },
   "dependencies": {
     "aws4": "^1.13.0",

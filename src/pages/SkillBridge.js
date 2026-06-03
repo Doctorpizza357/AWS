@@ -3,32 +3,25 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../context/UserContext';
 import { useSkillBridge } from '../context/SkillBridgeContext';
-import DreamJobPicker from '../components/skillbridge/DreamJobPicker';
-import AssessmentSliders from '../components/skillbridge/AssessmentSliders';
-import GapRadarChart from '../components/skillbridge/GapRadarChart';
-import GapBarList from '../components/skillbridge/GapBarList';
-import GapClosedCelebration from '../components/skillbridge/GapClosedCelebration';
-import RoadmapView from '../components/skillbridge/RoadmapView';
+import SkillBridgeWizard from '../components/skillbridge/SkillBridgeWizard';
 import OfflineBanner from '../components/skillbridge/OfflineBanner';
 import './SkillBridge.css';
 
 /**
  * SkillBridge page (`/skillbridge`)
  *
- * Composes the SkillBridge subsystem into a single route:
+ * Composes the SkillBridge subsystem into a single route. The page owns the
+ * access gating, hydration handling, header, and banner stack; the step
+ * presentation is delegated to `<SkillBridgeWizard />`:
  *
- *   1. `<OfflineBanner />` — banner stack at the top of the page (Req 21.4 /
- *      Req 19.4).
- *   2. `<DreamJobPicker />` — always visible. When no dream job is selected,
- *      this is the only call to action (Req 1.1).
- *   3. `<AssessmentPanel>` — assessment sliders, visible only when a dream
- *      job is selected (Req 4.1).
- *   4. `<GapPanel>` — radar + horizontal bars + gap-closed celebration,
- *      visible when there is at least one Skill_Requirement (Req 7).
- *   5. `<RoadmapView />` — visible once both a dream job and an assessment
- *      exist (Req 8 / Req 9).
+ *   1. `<OfflineBanner />` — banner stack at the top of the page, kept above
+ *      the wizard so banner messages persist across Steps (Req 1.7).
+ *   2. `<SkillBridgeWizard />` — the step-based wizard that replaces the
+ *      former four stacked sections (DreamJob / Assessment / Gap / Roadmap),
+ *      showing exactly one Step at a time with Back/Next navigation and a
+ *      progress indicator (Req 1.1).
  *
- * Auth + onboarding gating (Req 14.3, 14.4):
+ * Auth + onboarding gating (Req 5.1, 5.2 / 14.3, 14.4):
  *   - Unauthenticated → `<Navigate to="/login" replace />`.
  *   - Authenticated AND not onboarded → `<Navigate to="/onboarding" replace />`.
  *
@@ -40,7 +33,7 @@ import './SkillBridge.css';
  * hook would throw. We rely on the `beforeunload` guard alone here; an
  * in-app blocker can be revisited when the router migrates.
  *
- * Validates: Requirements 14.3, 14.4, 14.5, 14.6, 4.6
+ * Validates: Requirements 1.1, 1.7, 5.1, 5.2, 6.1, 7.1, 7.2, 7.4
  */
 
 function SkillBridgePage() {
@@ -67,11 +60,7 @@ function SkillBridgePage() {
     return <Navigate to="/onboarding" replace state={{ from: location }} />;
   }
 
-  const {
-    dreamJobId,
-    requirements,
-    skillAssessment,
-  } = sb;
+  const { dreamJobId } = sb;
 
   // Auto-select the user's active career goal as the dream job.
   // If the persisted SkillBridge dream job differs from the dashboard's
@@ -87,24 +76,6 @@ function SkillBridgePage() {
     }
   }, [sb.isHydrating, dreamJobId, activeCareerGoalId, sb.selectDreamJob]);
 
-  const hasRequirements =
-    Array.isArray(requirements) && requirements.length > 0;
-  const showAssessment = typeof dreamJobId === 'string' && dreamJobId.length > 0;
-  const showRoadmap = showAssessment && skillAssessment !== null
-    && skillAssessment !== undefined;
-
-  // Empty-state CTA target for `<GapBarList>` — focuses the assessment
-  // panel when the user clicks "Start assessment" from the empty list
-  // state (Req 7.4). When no dream job exists yet, scroll to the picker
-  // instead so the user can pick one first.
-  const handleStartAssessment = () => {
-    const targetId = showAssessment ? 'skillbridge-assessment' : 'skillbridge-dreamjob';
-    const node = document.getElementById(targetId);
-    if (node && typeof node.scrollIntoView === 'function') {
-      node.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   return (
     <div className="skillbridge-page">
       <div className="skillbridge-page__container">
@@ -118,51 +89,7 @@ function SkillBridgePage() {
 
         <OfflineBanner />
 
-        <section
-          id="skillbridge-dreamjob"
-          className="skillbridge-page__section skillbridge-page__section--dreamjob"
-          aria-label="Dream job"
-        >
-          <DreamJobPicker />
-        </section>
-
-        {showAssessment ? (
-          <section
-            id="skillbridge-assessment"
-            className="skillbridge-page__section skillbridge-page__section--assessment"
-            aria-label="Skill assessment"
-          >
-            <AssessmentSliders />
-          </section>
-        ) : null}
-
-        {hasRequirements ? (
-          <section
-            id="skillbridge-gap"
-            className="skillbridge-page__section skillbridge-page__section--gap"
-            aria-label="Skill gap"
-          >
-            <div className="skillbridge-page__gap-grid">
-              <div className="skillbridge-page__gap-radar">
-                <GapRadarChart />
-              </div>
-              <div className="skillbridge-page__gap-bars">
-                <GapBarList onStartAssessment={handleStartAssessment} />
-              </div>
-            </div>
-            <GapClosedCelebration />
-          </section>
-        ) : null}
-
-        {showRoadmap ? (
-          <section
-            id="skillbridge-roadmap"
-            className="skillbridge-page__section skillbridge-page__section--roadmap"
-            aria-label="Roadmap"
-          >
-            <RoadmapView />
-          </section>
-        ) : null}
+        <SkillBridgeWizard />
       </div>
     </div>
   );

@@ -1,0 +1,89 @@
+/* SkillBridgeWizard layout
+ *
+ * Presentational shell for the step-based SkillBridge flow. Stacks the
+ * progress indicator, the single active Step body, and the Back/Next
+ * control row vertically. The active Step body hosts whichever
+ * Step_Component is current; the gap grid inside the `Gap` Step reuses the
+ * existing `.skillbridge-page__gap-grid` rules from `SkillBridge.css`.
+ */
+
+.skillbridge-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Active Step body — card-like surface matching the single-page section
+ * styling so the visual hierarchy is preserved across the redesign.
+ */
+.skillbridge-wizard__step {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* Navigation row — "Back" on the left, "Next" on the right. The spacer
+ * keeps "Next" right-aligned when "Back" is hidden on the first Step.
+ */
+.skillbridge-wizard__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.skillbridge-wizard__nav-spacer {
+  display: inline-block;
+}
+
+.skillbridge-wizard__nav-button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease, opacity 0.15s ease;
+}
+
+/* "Back" — secondary / muted treatment. */
+.skillbridge-wizard__nav-button--back {
+  background: var(--bg-card, rgba(255, 255, 255, 0.04));
+  color: var(--text-primary, #e6e9f2);
+}
+
+.skillbridge-wizard__nav-button--back:hover,
+.skillbridge-wizard__nav-button--back:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  outline: none;
+}
+
+/* "Next" — primary / accent treatment. */
+.skillbridge-wizard__nav-button--next {
+  background: var(--gradient-1, linear-gradient(90deg, #6c8cff, #b06cff));
+  color: #fff;
+  border-color: transparent;
+}
+
+.skillbridge-wizard__nav-button--next:hover,
+.skillbridge-wizard__nav-button--next:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(108, 140, 255, 0.35);
+  outline: none;
+}
+
+/* Disabled "Next" — prerequisites unmet (Req 4.5). Browser already blocks
+ * activation via the `disabled` attribute; this just communicates it
+ * visually. The same `disabled` attribute is what a `<fieldset disabled>`
+ * read-only-preview boundary leverages to disable the control (Req 5.3).
+ */
+.skillbridge-wizard__nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

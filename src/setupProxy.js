@@ -54,4 +54,13 @@ module.exports = function (app) {
       pathRewrite: { '^/api/tts': '/api/tts' },
     })
   );
+
+  app.use(
+    '/api/skillbridge',
+    createProxyMiddleware({
+      target: 'http://localhost:5000',
+      changeOrigin: true,
+      pathRewrite: { '^/api/skillbridge': '/api/skillbridge' },
+    })
+  );
 };

@@ -6,3 +6,4 @@ server/.env
 .server.env
 .DS_Store
 .kiro
+tests/
