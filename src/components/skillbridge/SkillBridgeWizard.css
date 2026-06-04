@@ -87,3 +87,46 @@
   transform: none;
   box-shadow: none;
 }
+
+/* Roadmap Step edit controls (Group A — skip-to-roadmap flow)
+ *
+ * "Edit dream job" / "Edit assessment" controls rendered in the Roadmap
+ * Step header. Both are native `<button>`s so a `<fieldset disabled>`
+ * read-only-preview boundary disables them transitively (Req 2.7). These
+ * rules are purely additive — no existing rule above is altered.
+ */
+.skillbridge-wizard__roadmap-edit-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.skillbridge-wizard__edit-button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--bg-card, rgba(255, 255, 255, 0.04));
+  color: var(--text-primary, #e6e9f2);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease, opacity 0.15s ease;
+}
+
+.skillbridge-wizard__edit-button:hover,
+.skillbridge-wizard__edit-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  outline: none;
+}
+
+/* Disabled treatment — leveraged by the `<fieldset disabled>` read-only
+ * preview boundary (Req 2.7). */
+.skillbridge-wizard__edit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

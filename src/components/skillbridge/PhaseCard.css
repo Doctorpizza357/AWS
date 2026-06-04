@@ -94,6 +94,54 @@
   gap: 8px;
 }
 
+/* Collapsible section toggle — mirrors the phase header toggle pattern
+   (cursor, :focus-visible ring, chevron indicator). */
+.phase-card__section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.phase-card__section-toggle:hover {
+  background: var(--bg-hover, rgba(99, 102, 241, 0.06));
+}
+
+.phase-card__section-toggle:focus-visible {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: -2px;
+}
+
+/* Chevron glyph rendered via CSS so the toggle's text label stays exactly
+   `${heading} (${count})`. Collapsed shows ▸; open shows ▾ (mirrors the
+   phase header indicator). */
+.phase-card__section-chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.phase-card__section-chevron::before {
+  content: '\25B8';
+}
+
+.phase-card__section-chevron--open::before {
+  content: '\25BE';
+}
+
 .phase-card__section-heading {
   margin: 0;
   font-size: 0.8rem;
@@ -101,6 +149,16 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-secondary);
+}
+
+.phase-card__section-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.phase-card__section-panel[hidden] {
+  display: none;
 }
 
 .phase-card__none {
@@ -178,4 +236,34 @@
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.phase-card__unmark-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background: transparent;
+  color: var(--accent, #6366f1);
+  border: 1px solid var(--accent, #6366f1);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.phase-card__unmark-button:hover:not(:disabled) {
+  background: var(--accent, #6366f1);
+  color: #fff;
+}
+
+.phase-card__unmark-button:focus-visible {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
+}
+
+.phase-card__unmark-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

@@ -14,10 +14,11 @@ import { db } from '../services/firebase';
 import careersData from '../data/careers';
 import projectsCatalog from '../data/projects';
 import skillTraitMap from '../data/skillTraitMap';
+import skillResources from '../data/skillResources';
 import {
   clampLevel,
   computeSkillGapList,
-  roadmapCompletionPct as computeRoadmapCompletionPct,
+  projectWeightedCompletionPct,
   allGapsClosed as computeAllGapsClosed,
   isFirestoreReachable as reachabilityReducer,
   readLocalStorageQueue,
@@ -38,9 +39,11 @@ import {
   computeProfileHash,
   buildFallbackRoadmap,
   assembleRoadmap,
+  backfillRoadmapTopicsResources,
   validateProjectsUnique,
   isPhaseCompletable,
   markPhaseComplete as pureMarkPhaseComplete,
+  unmarkPhaseComplete as pureUnmarkPhaseComplete,
   markProjectComplete as pureMarkProjectComplete,
   unmarkProjectComplete as pureUnmarkProjectComplete,
   applyTraitGains,
@@ -1232,6 +1235,73 @@ export function SkillBridgeProvider({ children }) {
     }
   }, [recordWriteOutcome]);
   /**
+   * Unmark a previously-completed phase, clearing its `completedAt` so the
+   * phase is no longer a milestone (Group B; Reqs 4.1, 4.4, 4.5, 4.7, 4.8).
+   *
+   * Mirrors `markPhaseComplete` exactly, with two deliberate differences:
+   *   - There is NO `isPhaseCompletable` gate. Unmark is allowed whenever the
+   *     phase is complete, regardless of project-completion state (Req 4 /
+   *     design Group B).
+   *   - The pure helper clears `completedAt` instead of setting it.
+   *
+   * Behavior:
+   *   1. Guard: `phaseId` must be a non-empty string; `currentRoadmap` a plain
+   *      object with an array `phases`; a phase with that id must exist. Any
+   *      failure → no-op: no state change, no Firestore write, no localStorage
+   *      write (Req 4.6).
+   *   2. `newRoadmap = pureUnmarkPhaseComplete(currentRoadmap, phaseId)`.
+   *   3. Optimistically commit `{ currentRoadmap: newRoadmap }`, leaving
+   *      Portfolio, XP, and badges untouched (Req 4.7).
+   *   4. No uid → in-memory only, no Firestore write (Req 4.8). Return.
+   *   5. uid present → `persistWithRetry(() => persistRoadmap(uid, newRoadmap))`
+   *      + `recordWriteOutcome(true)`. On rejection: mirror to the localStorage
+   *      retry queue, `recordWriteOutcome(false)`, surface the existing
+   *      `save-roadmap-failed` retry banner, and DO NOT revert the in-memory
+   *      change (Req 4.4, 4.5).
+   *
+   * Validates: Requirements 4.1, 4.4, 4.5, 4.7, 4.8
+   *
+   * @param {string} phaseId
+   * @returns {Promise<void>}
+   */
+  const unmarkPhaseComplete = useCallback(async (phaseId) => {
+    if (typeof phaseId !== 'string' || phaseId.length === 0) return;
+    const snapshot = stateRef.current;
+    const roadmap = snapshot.currentRoadmap;
+    if (!isPlainObject(roadmap) || !Array.isArray(roadmap.phases)) return;
+
+    const phase = roadmap.phases.find(
+      (p) => isPlainObject(p) && p.id === phaseId,
+    );
+    if (!phase) return;
+
+    const newRoadmap = pureUnmarkPhaseComplete(roadmap, phaseId);
+
+    setState((prev) => ({
+      ...prev,
+      currentRoadmap: newRoadmap,
+    }));
+
+    const currentUid = uidRef.current;
+    if (!currentUid) return;
+
+    try {
+      await persistWithRetry(() => persistRoadmap(currentUid, newRoadmap));
+      recordWriteOutcome(true);
+    } catch (_err) {
+      writeLocalStorageQueue(currentUid, { currentRoadmap: newRoadmap });
+      recordWriteOutcome(false);
+      setState((prev) => ({
+        ...prev,
+        banners: appendBannerOnce(prev.banners, {
+          id: 'save-roadmap-failed',
+          kind: 'warning',
+          message: "Couldn't save your roadmap — will retry",
+        }),
+      }));
+    }
+  }, [recordWriteOutcome]);
+  /**
    * Mark a Project complete with optional URL/notes evidence.
    *
    * Pre-checks (each surfaces an inline-error banner and returns without
@@ -1704,7 +1774,14 @@ export function SkillBridgeProvider({ children }) {
           ? sb.skillAssessment
           : null;
         hydrationPatch = {
-          currentRoadmap: isPlainObject(sb.currentRoadmap) ? sb.currentRoadmap : null,
+          // Group C (Req 8.8): a persisted/cache roadmap whose phases carry
+          // empty `topics`/`resources` arrays is repaired via
+          // `backfillRoadmapTopicsResources` before it is committed to state
+          // and rendered, so the load/cache path matches the AI and
+          // curated/fallback build paths. `null` stays `null`.
+          currentRoadmap: isPlainObject(sb.currentRoadmap)
+            ? backfillRoadmapTopicsResources(sb.currentRoadmap, skillResources)
+            : null,
           archivedRoadmaps: Array.isArray(sb.archivedRoadmaps)
             ? sb.archivedRoadmaps
             : [],
@@ -1896,9 +1973,16 @@ export function SkillBridgeProvider({ children }) {
     [state.requirements, state.skillAssessment],
   );
 
+  // Group D (skillbridge-roadmap-improvements): completion is now
+  // project-weighted (by each Assigned_Project's `estHours`) rather than
+  // phase-count based. The exposed field keeps its name and `[0,100]` integer
+  // contract so both display surfaces (RoadmapView header, DashboardSummaryCard)
+  // read the same single value. `state.portfolio` is a dependency so the
+  // percentage recomputes within 1s whenever the portfolio or roadmap changes
+  // (Req 9.7, 12.4, 12.7).
   const roadmapCompletionPct = useMemo(
-    () => computeRoadmapCompletionPct(state.currentRoadmap),
-    [state.currentRoadmap],
+    () => projectWeightedCompletionPct(state.currentRoadmap, state.portfolio, projectsCatalog),
+    [state.currentRoadmap, state.portfolio],
   );
 
   const allGapsClosed = useMemo(
@@ -1978,6 +2062,7 @@ export function SkillBridgeProvider({ children }) {
       generateRoadmap,
       togglePhaseExpansion,
       markPhaseComplete,
+      unmarkPhaseComplete,
       markProjectComplete,
       unmarkProjectComplete,
       applyInferredGain,
@@ -2005,6 +2090,7 @@ export function SkillBridgeProvider({ children }) {
       generateRoadmap,
       togglePhaseExpansion,
       markPhaseComplete,
+      unmarkPhaseComplete,
       markProjectComplete,
       unmarkProjectComplete,
       applyInferredGain,

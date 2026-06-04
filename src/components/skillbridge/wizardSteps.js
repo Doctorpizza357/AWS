@@ -180,3 +180,34 @@ export function advanceIndex(fromIndex, state) {
 export function retreatIndex(fromIndex) {
   return Math.max(0, clampStepIndex(fromIndex) - 1);
 }
+
+/**
+ * Derive the Wizard's INITIAL Active_Step_Index from the durable gate state
+ * at mount (Group A — skip-to-roadmap flow for returning users).
+ *
+ * Returns the `Roadmap` Step index (`STEPS.length - 1`, i.e. `3`) for a
+ * Returning_User_State, and the `DreamJob` Step index (`0`) for a
+ * First_Time_User_State (the negation of Returning_User_State):
+ *
+ *   deriveInitialStepIndex(s) === stepReachable(STEPS.length - 1, s)
+ *     ? STEPS.length - 1
+ *     : 0
+ *
+ * Returning_User_State is exactly `stepReachable(STEPS.length - 1, state)` —
+ * `dreamJobId` is a non-empty string AND `skillAssessment` is neither null
+ * nor undefined (Req 1.1, 1.2, 1.3). Because it reuses `stepReachable`, the
+ * returning-user predicate cannot drift from `Roadmap` reachability. In
+ * particular, a Confirmed_Assessment with an absent/empty `dreamJobId` is a
+ * First_Time_User_State, so the result is `0` (Req 1.6).
+ *
+ * This helper performs NO `isHydrating` check — hydration gating is the
+ * wizard's responsibility. It is pure over `(dreamJobId, skillAssessment)`:
+ * no React, no I/O, no clock, no randomness.
+ *
+ * @param {{ dreamJobId?: unknown, skillAssessment?: unknown }} state
+ * @returns {number} the `Roadmap` index (`STEPS.length - 1`) for a
+ *   Returning_User_State, else the `DreamJob` index (`0`)
+ */
+export function deriveInitialStepIndex(state) {
+  return stepReachable(LAST_INDEX, state) ? LAST_INDEX : 0;
+}

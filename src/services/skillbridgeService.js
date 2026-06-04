@@ -7,6 +7,7 @@
 
 import { arrayUnion, doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import skillResources, { DEFAULT_TOPICS, DEFAULT_RESOURCES } from '../data/skillResources';
 
 /**
  * Coerces an arbitrary input to an integer in the inclusive range [0, 100].
@@ -821,6 +822,95 @@ export function roadmapCompletionPct(roadmap) {
 }
 
 /**
+ * Computes the integer Project_Weighted_Completion percentage for a roadmap
+ * (skillbridge-roadmap-improvements Group D — Reqs 9.1–9.6, 9.8, 11.3, 11.4).
+ *
+ * Completion is weighted by each Assigned_Project's effort (`estHours`) rather
+ * than by the count of completed phases:
+ *
+ *   - DISTINCT Assigned_Project ids are gathered across every phase's
+ *     `projectIds`; each distinct id is counted at most once (Req 9.6).
+ *   - Each distinct id's Project_Weight is the catalog entry's `estHours`,
+ *     resolved by `id === projectId`, ONLY when that `estHours` is an integer
+ *     in `[1, 200]`; any unresolvable id, or one whose matched entry has a
+ *     non-integer / out-of-range `estHours`, contributes weight `0` and is thus
+ *     excluded from both sums (Req 9.2, 9.8).
+ *   - `totalWeight` is the sum of weights over all distinct assigned ids;
+ *     `completedWeight` is the sum of weights over the distinct assigned ids
+ *     that are Completed_Projects — a distinct id is completed iff some
+ *     Portfolio entry's `projectId` equals it (Req 9.4).
+ *   - The result is `Math.floor(0.5 + 100 * completedWeight / totalWeight)`
+ *     (exact halves round up), clamped to the inclusive range `[0, 100]`. When
+ *     `totalWeight === 0` the function returns `0` without dividing by zero
+ *     (Req 9.1, 9.3, 9.5).
+ *
+ * The computation reads ONLY `roadmap.phases[*].projectIds`, the portfolio, and
+ * the catalog `estHours` — it NEVER inspects `phase.completedAt` or the count of
+ * completed phases, so the result is invariant under mark/unmark (Req 11.3,
+ * 11.4). The function is pure (no clock, no I/O, no randomness).
+ *
+ * Malformed inputs degrade gracefully: a non-object roadmap or a non-array
+ * `phases` yields `totalWeight === 0` → returns `0`; a non-array portfolio or
+ * catalog is treated as empty.
+ *
+ * @param {{phases?: Array<{projectIds?: string[]}>}|null|undefined} roadmap
+ * @param {Array<{projectId?: string}>|null|undefined} portfolio
+ * @param {Array<{id?: string, estHours?: number}>|null|undefined} catalog
+ * @returns {number} integer in [0, 100]
+ */
+export function projectWeightedCompletionPct(roadmap, portfolio, catalog) {
+  // Gather DISTINCT Assigned_Project ids across all phases (Req 9.6).
+  const distinctIds = new Set();
+  if (isPlainObject(roadmap) && Array.isArray(roadmap.phases)) {
+    for (const phase of roadmap.phases) {
+      if (!isPlainObject(phase) || !Array.isArray(phase.projectIds)) continue;
+      for (const id of phase.projectIds) {
+        if (typeof id === 'string' && id.length > 0) distinctIds.add(id);
+      }
+    }
+  }
+
+  // Resolve weights from the catalog: estHours only when an integer in [1,200],
+  // else weight 0 (Req 9.2, 9.8). Build an id → estHours map for O(1) lookup.
+  const weightById = new Map();
+  if (Array.isArray(catalog)) {
+    for (const entry of catalog) {
+      if (!isPlainObject(entry) || typeof entry.id !== 'string') continue;
+      // First matching catalog entry wins; later duplicates are ignored.
+      if (weightById.has(entry.id)) continue;
+      weightById.set(entry.id, entry.estHours);
+    }
+  }
+
+  // Set of completed projectIds from the Portfolio (Req 9.4).
+  const completedSet = new Set();
+  if (Array.isArray(portfolio)) {
+    for (const entry of portfolio) {
+      if (isPlainObject(entry) && typeof entry.projectId === 'string') {
+        completedSet.add(entry.projectId);
+      }
+    }
+  }
+
+  let totalWeight = 0;
+  let completedWeight = 0;
+  for (const id of distinctIds) {
+    const estHours = weightById.has(id) ? weightById.get(id) : undefined;
+    const weight = isIntegerInRange(estHours, 1, 200) ? estHours : 0;
+    if (weight === 0) continue; // excluded from both sums (Req 9.8)
+    totalWeight += weight;
+    if (completedSet.has(id)) completedWeight += weight;
+  }
+
+  if (totalWeight === 0) return 0; // no division by zero (Req 9.5)
+
+  let pct = Math.floor(0.5 + (100 * completedWeight) / totalWeight); // halves up
+  if (pct < 0) pct = 0;
+  if (pct > 100) pct = 100;
+  return pct;
+}
+
+/**
  * Predicate matching the design.md Property 27 definition (Reqs 9.6, 9.7, 9.9):
  *
  *   isPhaseCompletable(p, P) ===
@@ -892,6 +982,238 @@ export function markPhaseComplete(roadmap, phaseId, isoTimestamp) {
   });
 
   if (!matched) return roadmap;
+  return { ...roadmap, phases: newPhases };
+}
+
+/**
+ * Returns a new roadmap with `completedAt` cleared on the phase whose `id`
+ * matches `phaseId`, so that phase's `completedAt` is no longer a non-empty
+ * string (the key is removed entirely). Mirrors `markPhaseComplete`'s
+ * reference-preserving immutable phase map: only the matched phase is replaced
+ * with a shallow copy, every other phase is returned by reference (Req 4.3),
+ * and a fresh `{ ...roadmap, phases }` is allocated only when a phase matched.
+ *
+ * Unlike `markPhaseComplete`, this helper is a GUARDED NO-OP rather than
+ * throwing: when `phaseId` is not a non-empty string, matches no phase, or
+ * `roadmap`/`roadmap.phases` is malformed (not a plain object / not an array),
+ * the roadmap argument is returned UNCHANGED with no phase mutated (Req 4.6).
+ *
+ * @param {{phases: Array<{id: string}>}} roadmap
+ * @param {string} phaseId id of the phase to unmark
+ * @returns {object} new Roadmap when a phase matched, else the input unchanged
+ */
+export function unmarkPhaseComplete(roadmap, phaseId) {
+  if (!isPlainObject(roadmap)) return roadmap;
+  if (!Array.isArray(roadmap.phases)) return roadmap;
+  if (typeof phaseId !== 'string' || phaseId.length === 0) return roadmap;
+
+  let matched = false;
+  const newPhases = roadmap.phases.map((phase) => {
+    if (isPlainObject(phase) && phase.id === phaseId) {
+      matched = true;
+      // Remove the key so `phase.completedAt` is no longer a non-empty string.
+      const { completedAt, ...rest } = phase;
+      return rest;
+    }
+    return phase;
+  });
+
+  if (!matched) return roadmap;
+  return { ...roadmap, phases: newPhases };
+}
+
+// ─── populatePhaseTopicsResources / backfillRoadmapTopicsResources (Task 9) ──
+//
+// Pure topic/resource population for a roadmap phase (Group C, Reqs 6.6, 6.7,
+// 7.1–7.5, 8.8). Both helpers are pure: no clock, no I/O, no randomness. They
+// read the curated Skill_Resource_Dataset (`skillResources`) by default but
+// accept an injected `dataset` for testing. The deterministic defaults are
+// ALWAYS the imported `DEFAULT_TOPICS` / `DEFAULT_RESOURCES`, regardless of the
+// injected dataset, so an unmatched focus skill always resolves to the same
+// fallback content.
+
+/**
+ * Returns the trimmed dedup key for a topic string. Non-strings are returned
+ * verbatim so they cannot collide with a real (string) topic.
+ */
+function topicDedupKey(topic) {
+  return typeof topic === 'string' ? topic.trim() : topic;
+}
+
+/**
+ * `true` iff `topic` is a string with at least one non-whitespace character.
+ */
+function isValidTopic(topic) {
+  return typeof topic === 'string' && topic.trim().length >= 1;
+}
+
+/**
+ * `true` iff `resource` is a Resource whose `title` and `provider` are each
+ * strings with at least one non-whitespace character after trimming. The
+ * `topic` field is part of the documented shape but the validity gate (per
+ * Req 7.4 / 8) is keyed on `title` + `provider`.
+ */
+function isValidResource(resource) {
+  return (
+    isPlainObject(resource) &&
+    typeof resource.title === 'string' &&
+    resource.title.trim().length >= 1 &&
+    typeof resource.provider === 'string' &&
+    resource.provider.trim().length >= 1
+  );
+}
+
+/**
+ * Returns the trimmed, case-sensitive `(title, provider)` dedup key for a
+ * resource. A NUL separator guarantees no two distinct `(title, provider)`
+ * pairs ever map to the same key. Non-object resources fall back to a stable
+ * stringification so they cannot silently collapse together.
+ */
+function resourceDedupKey(resource) {
+  if (!isPlainObject(resource)) return `\u0000raw:${String(resource)}`;
+  const title = typeof resource.title === 'string' ? resource.title.trim() : String(resource.title);
+  const provider =
+    typeof resource.provider === 'string' ? resource.provider.trim() : String(resource.provider);
+  return `${title}\u0000${provider}`;
+}
+
+/**
+ * Populates a phase's `topics` and `resources` from its `focusSkills`.
+ *
+ * Behavior (Reqs 6.6, 6.7, 7.1, 7.2, 7.3, 7.4, 7.5):
+ *   1. CONCATENATE in encounter order — first by `focusSkills` array order,
+ *      then by item order within each matched dataset entry. For each focus
+ *      skill that is a string with an exact-match own key in `dataset`, append
+ *      that entry's `topics` (resp. `resources`); for any focus skill with NO
+ *      exact-match key, substitute the deterministic `DEFAULT_TOPICS` (resp.
+ *      `DEFAULT_RESOURCES`). When `focusSkills` is empty (or not an array), the
+ *      result is seeded solely from the defaults; when every focus skill is
+ *      unmatched, the concatenation is the defaults repeated per skill (which
+ *      collapses to the defaults after dedup).
+ *   2. DEDUP keeping the first occurrence: topics by exact, case-sensitive
+ *      match after trimming; resources by `(title, provider)` exact,
+ *      case-sensitive match after trimming.
+ *   3. GUARANTEE ≥ 1 topic and ≥ 1 resource — if a result is somehow empty it
+ *      is seeded from the deduped defaults.
+ *
+ * Pure: no clock, no I/O, no randomness.
+ *
+ * @param {Array<string>} focusSkills the phase focus skills (encounter order)
+ * @param {{[skill: string]: {topics: string[], resources: object[]}}} [dataset]
+ *   the Skill_Resource_Dataset; defaults to the curated `skillResources`. The
+ *   fallback content is ALWAYS `DEFAULT_TOPICS`/`DEFAULT_RESOURCES` regardless.
+ * @returns {{topics: string[], resources: object[]}}
+ */
+export function populatePhaseTopicsResources(focusSkills, dataset = skillResources) {
+  const ds = isPlainObject(dataset) ? dataset : {};
+  const skills = Array.isArray(focusSkills) ? focusSkills : [];
+
+  const rawTopics = [];
+  const rawResources = [];
+
+  if (skills.length === 0) {
+    rawTopics.push(...DEFAULT_TOPICS);
+    rawResources.push(...DEFAULT_RESOURCES);
+  } else {
+    for (const skill of skills) {
+      const hasKey =
+        typeof skill === 'string' && Object.prototype.hasOwnProperty.call(ds, skill);
+      const entry = hasKey ? ds[skill] : null;
+
+      const entryTopics = entry && Array.isArray(entry.topics) ? entry.topics : null;
+      const entryResources = entry && Array.isArray(entry.resources) ? entry.resources : null;
+
+      rawTopics.push(...(entryTopics || DEFAULT_TOPICS));
+      rawResources.push(...(entryResources || DEFAULT_RESOURCES));
+    }
+  }
+
+  // Dedup keeping the first occurrence in encounter order.
+  const topics = [];
+  const seenTopicKeys = new Set();
+  for (const topic of rawTopics) {
+    const key = topicDedupKey(topic);
+    if (seenTopicKeys.has(key)) continue;
+    seenTopicKeys.add(key);
+    topics.push(topic);
+  }
+
+  const resources = [];
+  const seenResourceKeys = new Set();
+  for (const resource of rawResources) {
+    const key = resourceDedupKey(resource);
+    if (seenResourceKeys.has(key)) continue;
+    seenResourceKeys.add(key);
+    resources.push(resource);
+  }
+
+  // Guarantee ≥ 1 topic and ≥ 1 resource (Req 7.4). Only ever reachable if an
+  // injected dataset supplied empty arrays for every matched skill.
+  if (topics.length === 0) {
+    for (const topic of DEFAULT_TOPICS) {
+      const key = topicDedupKey(topic);
+      if (seenTopicKeys.has(key)) continue;
+      seenTopicKeys.add(key);
+      topics.push(topic);
+    }
+  }
+  if (resources.length === 0) {
+    for (const resource of DEFAULT_RESOURCES) {
+      const key = resourceDedupKey(resource);
+      if (seenResourceKeys.has(key)) continue;
+      seenResourceKeys.add(key);
+      resources.push(resource);
+    }
+  }
+
+  return { topics, resources };
+}
+
+/**
+ * Repairs a roadmap so every phase has ≥ 1 valid topic and ≥ 1 valid resource.
+ *
+ * A phase is repaired when its `topics` array has zero strings that are
+ * non-empty after trimming, OR its `resources` array has zero valid Resources
+ * (a `{title, provider, topic}` whose `title` and `provider` are non-empty
+ * after trimming). A repaired phase has BOTH its `topics` and `resources`
+ * replaced by `populatePhaseTopicsResources(phase.focusSkills, dataset)`
+ * (Req 8.8).
+ *
+ * Reference-preserving: phases that already have ≥ 1 valid topic AND ≥ 1 valid
+ * resource are returned by reference unchanged; only repaired phases allocate a
+ * fresh object; and the same `roadmap` reference is returned when nothing
+ * changed. Malformed input is handled gracefully — when `roadmap` is not a
+ * plain object or `roadmap.phases` is not an array, the input is returned
+ * unchanged; a phase that is not a plain object is left untouched by reference.
+ *
+ * Pure: no clock, no I/O, no randomness.
+ *
+ * @param {{phases: Array}} roadmap
+ * @param {{[skill: string]: {topics: string[], resources: object[]}}} [dataset]
+ *   the Skill_Resource_Dataset; defaults to the curated `skillResources`.
+ * @returns {object} the repaired roadmap, or the input unchanged when nothing
+ *   needed repair or the input was malformed.
+ */
+export function backfillRoadmapTopicsResources(roadmap, dataset = skillResources) {
+  if (!isPlainObject(roadmap)) return roadmap;
+  if (!Array.isArray(roadmap.phases)) return roadmap;
+
+  let changed = false;
+  const newPhases = roadmap.phases.map((phase) => {
+    if (!isPlainObject(phase)) return phase;
+
+    const hasValidTopic = Array.isArray(phase.topics) && phase.topics.some(isValidTopic);
+    const hasValidResource =
+      Array.isArray(phase.resources) && phase.resources.some(isValidResource);
+
+    if (hasValidTopic && hasValidResource) return phase;
+
+    changed = true;
+    const { topics, resources } = populatePhaseTopicsResources(phase.focusSkills, dataset);
+    return { ...phase, topics, resources };
+  });
+
+  if (!changed) return roadmap;
   return { ...roadmap, phases: newPhases };
 }
 
@@ -1091,10 +1413,11 @@ export function mergeSeed(requirements, partialSeed) {
 //     every phase always has at least one project.
 //   - `focusSkills` for each phase is the deduplicated union of every
 //     contained project's `skills` array, in first-seen order.
-//   - `topics` and `resources` are intentionally empty — the fallback path
-//     never includes resources or AI-generated topic copy (Req 9.5
-//     "no URL field rendered" + the broader contract that the curated
-//     fallback is purely a project list).
+//   - `topics` and `resources` are populated from each phase's `focusSkills`
+//     via `populatePhaseTopicsResources(focusSkills, skillResources)`, drawing
+//     from the curated Skill_Resource_Dataset and substituting deterministic
+//     defaults for any unmatched/empty focus skills, so every phase carries at
+//     least one topic and one resource (Req 8.1, Req 7.1–7.5).
 //   - `generatedAt` is the deterministic epoch placeholder
 //     `'1970-01-01T00:00:00.000Z'` so this function stays pure (no
 //     `new Date()` / `Date.now()`). The caller may override `generatedAt`
@@ -1123,7 +1446,8 @@ function compareById(a, b) {
  * @returns {{id: string, dreamJobId: string, generatedAt: string, phases: object[]}}
  *   a Roadmap that satisfies `validateRoadmapResponse({ ok: true, roadmap })`.
  * @throws {Error} `Insufficient catalog projects for ${dreamJobId}` when the
- *   filtered catalog has fewer than 3 entries.
+ *   filtered catalog (career-matching entries with integer `estHours` in
+ *   `[1,200]`) has fewer than 3 entries.
  */
 export function buildFallbackRoadmap(dreamJobId, catalog) {
   if (typeof dreamJobId !== 'string' || dreamJobId.length === 0) {
@@ -1135,9 +1459,11 @@ export function buildFallbackRoadmap(dreamJobId, catalog) {
     throw new Error('Invalid fallback roadmap input: catalog must be an array');
   }
 
-  // Filter to projects matching this career id, then pin a deterministic
-  // canonical ordering by `id` ascending so the rest of the algorithm is
-  // independent of the catalog's source-file ordering.
+  // Filter to projects matching this career id whose `estHours` resolves to an
+  // integer in [1, 200] (Req 10.2, 10.3) — an out-of-range/non-integer entry is
+  // never eligible for phase assignment because its Project_Weight would not
+  // resolve. Then pin a deterministic canonical ordering by `id` ascending so
+  // the rest of the algorithm is independent of the catalog's source ordering.
   const matched = catalog
     .filter(
       (p) =>
@@ -1145,7 +1471,8 @@ export function buildFallbackRoadmap(dreamJobId, catalog) {
         Array.isArray(p.careerIds) &&
         p.careerIds.includes(dreamJobId) &&
         typeof p.id === 'string' &&
-        p.id.length > 0
+        p.id.length > 0 &&
+        isIntegerInRange(p.estHours, 1, 200)
     )
     .slice()
     .sort(compareById);
@@ -1201,14 +1528,22 @@ export function buildFallbackRoadmap(dreamJobId, catalog) {
         focusSkills.push(skill);
       }
     }
+    // Populate topics/resources from this phase's focusSkills via the curated
+    // Skill_Resource_Dataset, substituting deterministic defaults for any
+    // unmatched/empty focus skills so every phase carries ≥ 1 topic and ≥ 1
+    // resource (Req 8.1, Req 7.1–7.5).
+    const { topics, resources } = populatePhaseTopicsResources(
+      focusSkills,
+      skillResources
+    );
     return {
       id,
       label,
       weekStart,
       weekEnd,
       focusSkills,
-      topics: [],
-      resources: [],
+      topics,
+      resources,
       projectIds: projects.map((p) => p.id),
     };
   }
@@ -1232,7 +1567,15 @@ export function buildFallbackRoadmap(dreamJobId, catalog) {
 // Pure helpers that turn a Bedrock-returned Roadmap into a finalized Roadmap
 // with concrete `projectIds` per phase, drawn from the curated catalog first,
 // the AI catalog second, and a `careerIds`-based fallback last
-// (Reqs 10.2, 10.3, 10.5, 10.6, 10.7, 10.9).
+// (Reqs 10.1–10.8).
+//
+// Every assigned `projectId` resolves to a catalog entry whose `estHours` is an
+// integer in `[1,200]` (Req 10.1, 10.2, 10.3) — enforced by the shared
+// `isUsableProjectForAssembly` gate, which every selection pass routes through.
+// Because the assembler re-derives `projectIds` from the catalogs (it never
+// carries an incoming AI `phase.projectIds` value forward), any AI-provided
+// `projectId` that does not so resolve is removed before finalization
+// (Req 10.4).
 //
 // Per-phase fill rules:
 //   1. Run `sortProjectsForPhase(curatedCatalog, focusSkills)` and take up to
@@ -1240,25 +1583,35 @@ export function buildFallbackRoadmap(dreamJobId, catalog) {
 //      not already used by an earlier phase.
 //   2. If pass 1 produced zero ids, repeat against `aiCatalog` with the same
 //      overlap requirement.
-//   3. If pass 2 still produced zero ids, pick the first unused project (by
-//      `sortProjectsForPhase(catalog, [])` ordering — difficulty asc, then id
-//      asc) whose `careerIds` includes `roadmap.dreamJobId`. Curated is tried
-//      before AI. This guarantees ≥ 1 project per phase whenever any catalog
-//      entry matches the dream job.
-//   4. If even the careerIds fallback yields nothing, throw
-//      `Error('Cannot assemble roadmap: ...')`.
+//   3. If pass 2 still produced zero ids, pick the first unused eligible
+//      project (by `sortProjectsForPhase(catalog, [])` ordering — difficulty
+//      asc, then id asc) whose `careerIds` includes `roadmap.dreamJobId`.
+//      Curated is tried before AI (Req 10.5).
+//   4. If the careerIds pass yields nothing, widen to the first unused
+//      eligible project regardless of its `careerIds`, under the same
+//      ordering, curated before AI (Req 10.6).
+//   5. If even the widened pass yields nothing, leave the phase's `projectIds`
+//      empty rather than assign a duplicate or out-of-range entry (Req 10.7).
 //
 // Global invariant: ids are tracked in a single `usedIds` Set across phases,
 // so the union of all phase `projectIds` is duplicate-free
-// (Property 34 / Req 10.9).
+// (Property 34 / Req 10.8).
 
 function isUsableProjectForAssembly(p) {
-  return isPlainObject(p) && typeof p.id === 'string' && p.id.length > 0;
+  return (
+    isPlainObject(p) &&
+    typeof p.id === 'string' &&
+    p.id.length > 0 &&
+    // Project_Weight must resolve: estHours an integer in [1,200] (Req 10.2,
+    // 10.3). An out-of-range/non-integer entry is never assignable, so the
+    // finalized roadmap's weighted-completion math is always defined.
+    isIntegerInRange(p.estHours, 1, 200)
+  );
 }
 
 /**
  * Returns a new Roadmap with each phase's `projectIds` re-derived from the
- * supplied catalogs (Reqs 10.2, 10.3, 10.5, 10.6, 10.7, 10.9).
+ * supplied catalogs (Reqs 10.1–10.8).
  *
  * The returned roadmap preserves every non-`projectIds` field on each phase
  * and every non-`phases` field on the roadmap (top-level shape unchanged).
@@ -1266,9 +1619,12 @@ function isUsableProjectForAssembly(p) {
  * @param {{dreamJobId?: string, phases: Array<{focusSkills?: string[]}>}} roadmap
  * @param {Array} curatedCatalog list of curated Project entries.
  * @param {Array} aiCatalog list of AI-generated Project entries.
- * @returns {object} a new Roadmap with finalized `projectIds` per phase.
+ * @returns {object} a new Roadmap with finalized `projectIds` per phase. A
+ *   phase whose catalogs are exhausted of eligible unused entries is left with
+ *   an empty `projectIds` array rather than a duplicate/out-of-range id
+ *   (Req 10.7).
  * @throws {Error} `Cannot assemble roadmap: ...` when the roadmap shape is
- *   wrong or a phase has no candidate projects.
+ *   wrong (not an object, or `phases` not an array).
  */
 export function assembleRoadmap(roadmap, curatedCatalog, aiCatalog) {
   if (!isPlainObject(roadmap)) {
@@ -1303,9 +1659,9 @@ export function assembleRoadmap(roadmap, curatedCatalog, aiCatalog) {
     return out;
   }
 
-  // Pass 3: pick the first unused project (deterministic difficulty-asc /
-  // id-asc ordering via `sortProjectsForPhase(catalog, [])`) whose
-  // `careerIds` includes `dreamJobId`. Returns one id or null.
+  // Pass 3: pick the first unused eligible project (deterministic
+  // difficulty-asc / id-asc ordering via `sortProjectsForPhase(catalog, [])`)
+  // whose `careerIds` includes `dreamJobId` (Req 10.5). Returns one id or null.
   function pickByCareer(catalog) {
     if (dreamJobId == null) return null;
     const sorted = sortProjectsForPhase(catalog, []);
@@ -1320,7 +1676,21 @@ export function assembleRoadmap(roadmap, curatedCatalog, aiCatalog) {
     return null;
   }
 
-  const newPhases = roadmap.phases.map((phase, phaseIdx) => {
+  // Pass 4: widen the selection to the first unused eligible project regardless
+  // of its `careerIds`, under the same deterministic ordering (Req 10.6).
+  // Returns one id or null.
+  function pickWidened(catalog) {
+    const sorted = sortProjectsForPhase(catalog, []);
+    for (const p of sorted) {
+      if (!isUsableProjectForAssembly(p)) continue;
+      if (usedIds.has(p.id)) continue;
+      usedIds.add(p.id);
+      return p.id;
+    }
+    return null;
+  }
+
+  const newPhases = roadmap.phases.map((phase) => {
     const focusSkills =
       isPlainObject(phase) && Array.isArray(phase.focusSkills)
         ? phase.focusSkills
@@ -1328,40 +1698,32 @@ export function assembleRoadmap(roadmap, curatedCatalog, aiCatalog) {
     // Normalize focusSkills for matching against catalog project skills
     const focusSet = new Set(focusSkills.map(s => normalizeSkillKey(s)));
 
-    console.log(`[assembleRoadmap] Phase ${phaseIdx}: focusSkills raw=`, focusSkills, 'normalized focusSet=', [...focusSet]);
-
     let projectIds = takeOverlapping(curated, focusSkills, focusSet, 3);
-    console.log(`[assembleRoadmap] Phase ${phaseIdx}: after curated overlap pass, projectIds=`, projectIds);
     if (projectIds.length === 0) {
       projectIds = takeOverlapping(ai, focusSkills, focusSet, 3);
-      console.log(`[assembleRoadmap] Phase ${phaseIdx}: after AI overlap pass, projectIds=`, projectIds);
     }
     if (projectIds.length === 0) {
+      // Pass 3 (Req 10.5): career-matching unused eligible entry, curated then AI.
       const fallback = pickByCareer(curated);
-      console.log(`[assembleRoadmap] Phase ${phaseIdx}: pickByCareer curated=`, fallback);
       if (fallback != null) {
         projectIds = [fallback];
       } else {
         const fallbackAi = pickByCareer(ai);
-        console.log(`[assembleRoadmap] Phase ${phaseIdx}: pickByCareer AI=`, fallbackAi);
         if (fallbackAi != null) projectIds = [fallbackAi];
       }
     }
-
-    // If still no projects found from catalogs, use the AI's own projectIds
-    // from the original phase as a last resort. The AI generates meaningful
-    // project IDs that represent the work even if they're not in our catalog.
-    if (projectIds.length === 0 && isPlainObject(phase) && Array.isArray(phase.projectIds) && phase.projectIds.length > 0) {
-      console.log(`[assembleRoadmap] Phase ${phaseIdx}: using AI-suggested projectIds as fallback:`, phase.projectIds);
-      projectIds = phase.projectIds.filter(id => typeof id === 'string' && id.length > 0).slice(0, 3);
-      for (const id of projectIds) usedIds.add(id);
-    }
-
     if (projectIds.length === 0) {
-      throw new Error(
-        `Cannot assemble roadmap: phase at index ${phaseIdx} has no candidate projects`
-      );
+      // Pass 4 (Req 10.6): widen to any unused eligible entry, curated then AI.
+      const widened = pickWidened(curated);
+      if (widened != null) {
+        projectIds = [widened];
+      } else {
+        const widenedAi = pickWidened(ai);
+        if (widenedAi != null) projectIds = [widenedAi];
+      }
     }
+    // If still empty, leave `projectIds` empty rather than assigning a
+    // duplicate or out-of-range entry (Req 10.7). No throw.
 
     if (!isPlainObject(phase)) {
       // Defensive: real Bedrock output is always plain-object phases. We
@@ -1369,7 +1731,26 @@ export function assembleRoadmap(roadmap, curatedCatalog, aiCatalog) {
       // entry through.
       return { projectIds };
     }
-    return { ...phase, projectIds };
+
+    // Topics/resources (Group C, Req 8.2–8.5): preserve AI-provided values
+    // when they already contain ≥ 1 valid item (a non-empty-after-trim topic
+    // string / a `{title, provider, topic}` Resource with non-empty-after-trim
+    // title & provider). Otherwise (absent, null, non-array, or empty of valid
+    // items) backfill from the curated Skill_Resource_Dataset keyed by this
+    // phase's focusSkills.
+    const hasValidTopic = Array.isArray(phase.topics) && phase.topics.some(isValidTopic);
+    const hasValidResource =
+      Array.isArray(phase.resources) && phase.resources.some(isValidResource);
+
+    let topics = phase.topics;
+    let resources = phase.resources;
+    if (!hasValidTopic || !hasValidResource) {
+      const populated = populatePhaseTopicsResources(focusSkills, skillResources);
+      if (!hasValidTopic) topics = populated.topics;
+      if (!hasValidResource) resources = populated.resources;
+    }
+
+    return { ...phase, projectIds, topics, resources };
   });
 
   return { ...roadmap, phases: newPhases };
@@ -1378,7 +1759,7 @@ export function assembleRoadmap(roadmap, curatedCatalog, aiCatalog) {
 /**
  * Predicate: returns `true` iff `roadmap` has an array `phases` and the union
  * of every phase's `projectIds` (each itself an array) contains no duplicate
- * project id (Req 10.9, Property 34). Returns `false` on any malformed input.
+ * project id (Req 10.8, Property 34). Returns `false` on any malformed input.
  *
  * @param {unknown} roadmap
  * @returns {boolean}

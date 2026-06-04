@@ -6,17 +6,7 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--bg-card);
-  /* Non-interactive: no hover/focus affordance, no pointer cursor. */
-  cursor: default;
   user-select: text;
-}
-
-.resource-card:focus,
-.resource-card:focus-visible {
-  /* Defensive: even if a browser somehow focuses it, suppress the ring
-     since this card is intentionally non-focusable (Req 9.4). */
-  outline: none;
-  box-shadow: none;
 }
 
 .resource-card-field {
@@ -41,4 +31,23 @@
 
 .resource-card-title {
   font-weight: 600;
+}
+
+/* Interactive title link affordance (Req 7.1, 7.3, 8.1). The anchor is the
+   only focusable element in the card. */
+.resource-card-title-link {
+  color: var(--accent, #2563eb);
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+.resource-card-title-link:hover {
+  text-decoration: underline;
+}
+
+.resource-card-title-link:focus-visible {
+  outline: 2px solid var(--accent, #2563eb);
+  outline-offset: 2px;
+  text-decoration: underline;
 }
