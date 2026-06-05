@@ -7,6 +7,7 @@ import './Landing.css';
 function Landing() {
   const navigate = useNavigate();
   const { user } = useUser();
+  const InfinityIcon = getIconComponent('infinity');
 
   const handleStart = () => {
     if (user.isOnboarded) {
@@ -68,15 +69,15 @@ function Landing() {
           </div>
           <div className="hero-stats">
             <div className="stat">
-              <span className="stat-number">5+</span>
+              <span className="stat-number">10+</span>
               <span className="stat-label">Career Paths</span>
             </div>
             <div className="stat">
-              <span className="stat-number">15+</span>
+              <span className="stat-number"><InfinityIcon size={24} aria-hidden="true" /></span>
               <span className="stat-label">Scenarios</span>
             </div>
             <div className="stat">
-              <span className="stat-number">50+</span>
+              <span className="stat-number"><InfinityIcon size={24} aria-hidden="true" /></span>
               <span className="stat-label">Decisions</span>
             </div>
           </div>
