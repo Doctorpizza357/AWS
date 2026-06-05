@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
+
 import { useSkillBridge } from '../context/SkillBridgeContext';
 import badges from '../data/badges';
 import './Profile.css';
@@ -12,7 +13,7 @@ import { getIconComponent } from '../utils/iconMap';
 function Profile() {
   const navigate = useNavigate();
   const { user, resetProgress, isHydrating } = useUser();
-  const { user: authUser } = useAuth();
+  const { user: authUser, logout } = useAuth();
   const { portfolio } = useSkillBridge();
 
   const sortedPortfolio = useMemo(() => {
@@ -104,6 +105,15 @@ function Profile() {
 
   const handleRetakeOnboarding = () => {
     navigate('/onboarding');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
   };
 
   return (
@@ -251,6 +261,9 @@ function Profile() {
             </button>
             <button className="reset-btn" onClick={handleReset}>
               Reset All Progress
+            </button>
+            <button className="nav-logout" onClick={handleLogout}>
+              Sign Out
             </button>
           </div>
         </section>

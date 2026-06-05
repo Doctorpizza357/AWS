@@ -8,7 +8,7 @@ import './Navbar.css';
 
 function Navbar() {
   const { user } = useUser();
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,16 +16,6 @@ function Navbar() {
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
   const isActive = (path) => location.pathname === path;
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/');
-      setMenuOpen(false);
-    } catch (err) {
-      console.error('Logout failed:', err);
-    }
-  };
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -134,13 +124,6 @@ function Navbar() {
                   <span className="xp-text">{user.progress.xp}/{user.progress.xpToNext} XP</span>
                 </div>
               )}
-              <button
-                className="nav-logout"
-                onClick={handleLogout}
-                title="Sign out"
-              >
-                Sign Out
-              </button>
               <Link
                 to="/profile"
                 className="nav-profile-avatar"
