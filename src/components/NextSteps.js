@@ -12,7 +12,7 @@ import './NextSteps.css';
  * to generate contextual action cards that guide the user through
  * the platform as a cohesive journey rather than separate features.
  */
-function NextSteps() {
+function NextSteps({ onChooseGoal }) {
   const navigate = useNavigate();
   const { user } = useUser();
   const skillBridge = useSkillBridge();
@@ -30,7 +30,7 @@ function NextSteps() {
       icon: 'zap',
       title: 'Set Your Career Goal',
       description: `You have ${recommendedCareers.length} recommended paths. Pick one as your active goal to unlock personalized guidance across all features.`,
-      action: () => navigate('/profile'),
+      action: onChooseGoal || (() => navigate('/profile')),
       actionLabel: 'Choose Goal',
       priority: 1,
       color: 'purple',

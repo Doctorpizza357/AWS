@@ -570,7 +570,7 @@ export default function MockInterview() {
         fallbackBodyRef.current.init(videoRef.current);
         clearPoseOverlay();
         clearTrackingLoadingState('Pose model is taking longer than expected. Using fallback tracking for now.');
-        fallbackBodyRef.current.start().catch(() => {});
+        Promise.resolve(fallbackBodyRef.current.start()).catch(() => {});
         return;
       }
 
@@ -580,7 +580,7 @@ export default function MockInterview() {
         fallbackBodyRef.current.init(videoRef.current);
         clearPoseOverlay();
         clearTrackingLoadingState('Pose fallback ready');
-        fallbackBodyRef.current.start().catch(() => {});
+        Promise.resolve(fallbackBodyRef.current.start()).catch(() => {});
       } else {
         usingFallbackRef.current = false;
         setTrackingMode('ml');
@@ -654,7 +654,7 @@ export default function MockInterview() {
     // Body language
       if (streamRef.current) {
         if (usingFallbackRef.current) {
-          fallbackBodyRef.current.start().catch(() => {});
+          Promise.resolve(fallbackBodyRef.current.start()).catch(() => {});
           clearPoseOverlay();
         } else {
           bodyRef.current.start().catch((err) => {
@@ -662,7 +662,7 @@ export default function MockInterview() {
             usingFallbackRef.current = true;
             setTrackingMode('fallback');
             fallbackBodyRef.current.init(videoRef.current);
-            fallbackBodyRef.current.start().catch(() => {});
+            Promise.resolve(fallbackBodyRef.current.start()).catch(() => {});
             clearPoseOverlay();
           });
         }

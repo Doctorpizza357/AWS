@@ -91,7 +91,7 @@ function Dashboard() {
           </div>
         )}
 
-        <NextSteps />
+        <NextSteps onChooseGoal={handleChangeGoal} />
 
         <section
           className="skillbridge-summary-section"
