@@ -1,22 +1,163 @@
-.interview-hub { padding: 100px 0 60px; min-height: 100vh; }
-.hub-header { text-align: left; margin-bottom: 16px; }
-.hub-header-actions { display:flex; justify-content:flex-start; margin: 12px 0 22px; }
-.hub-action-btn { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-primary); text-decoration:none; font-weight:600; box-shadow: 0 6px 16px rgba(8,9,10,0.04); transition: all 0.18s; }
-.hub-action-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(8,9,10,0.06); }
+.interview-hub {
+  padding: 60px 0;
+  min-height: 100vh;
+}
 
-.hub-badge { display: inline-block; background: rgba(99,102,241,0.15); color: var(--primary-light); padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; border: 1px solid rgba(99,102,241,0.3); }
-.hub-header h1 { font-size: 2.5rem; font-weight: 800; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; }
-.hub-header p { color: var(--text-secondary); font-size: 1.05rem; max-width: 620px; margin: 0; }
-.hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 24px; }
-.hub-card { position: relative; display: block; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s; }
-.hub-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-.hub-card-glow { position: absolute; top: 0; left: 0; right: 0; height: 4px; opacity: 0.8; }
-.hub-card:hover .hub-card-glow { height: 6px; opacity: 1; }
-.hub-card-content { padding: 28px; }
-.hub-card-icon { font-size: 2.5rem; display: block; margin-bottom: 14px; }
-.hub-card-content h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
-.hub-card-content p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 18px; }
-.hub-card-footer { display: flex; align-items: center; justify-content: space-between; }
-.hub-card-tag { font-size: 0.75rem; color: var(--text-muted); background: rgba(99,102,241,0.1); padding: 3px 10px; border-radius: 10px; }
-.hub-card-arrow { font-size: 1.2rem; color: var(--primary); transition: transform 0.2s; }
-.hub-card:hover .hub-card-arrow { transform: translateX(4px); }
+.hub-header {
+  margin-bottom: 12px;
+}
+
+.hub-header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.hub-header p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  max-width: 560px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.hub-header-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin: 14px 0 32px;
+}
+
+.hub-action-btn {
+  display: inline-block;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.18s;
+}
+
+.hub-action-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+/* ─── Card Grid ─────────────────────────────────────────────────────────── */
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Individual Card ────────────────────────────────────────────────────── */
+
+.hub-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.hub-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px);
+}
+
+/* Remove the old glow bar — hide it if it still exists in markup */
+.hub-card-glow {
+  display: none;
+}
+
+.hub-card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 28px;
+  gap: 0;
+}
+
+/* ─── Icon ───────────────────────────────────────────────────────────────── */
+
+.hub-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  transition: background 0.2s;
+}
+
+.hub-card:hover .hub-card-icon {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Text ───────────────────────────────────────────────────────────────── */
+
+.hub-card-content h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.2px;
+}
+
+.hub-card-content p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  flex: 1;
+  margin-bottom: 24px;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+
+.hub-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.hub-card-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.hub-card-arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: transform 0.2s, color 0.2s;
+}
+
+.hub-card:hover .hub-card-arrow {
+  transform: translateX(4px);
+  color: var(--text-primary);
+}

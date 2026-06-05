@@ -63,4 +63,13 @@ module.exports = function (app) {
       pathRewrite: { '^/api/skillbridge': '/api/skillbridge' },
     })
   );
+
+  app.use(
+    '/api/linkedin',
+    createProxyMiddleware({
+      target: 'http://localhost:5000',
+      changeOrigin: true,
+      pathRewrite: { '^/api/linkedin': '/api/linkedin' },
+    })
+  );
 };

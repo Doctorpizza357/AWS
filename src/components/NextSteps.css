@@ -29,34 +29,19 @@
   border: 1px solid var(--border);
   border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.22s ease;
   text-align: left;
   width: 100%;
   position: relative;
   overflow: hidden;
 }
 
-.next-step-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: 14px 14px 0 0;
-  opacity: 0.8;
-}
-
-.next-step-card--purple::before { background: linear-gradient(90deg, #6366f1, #a78bfa); }
-.next-step-card--cyan::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
-.next-step-card--green::before { background: linear-gradient(90deg, #10b981, #34d399); }
-.next-step-card--orange::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.next-step-card--blue::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+/* No more top bar — remove ::before entirely */
 
 .next-step-card:hover {
-  border-color: var(--primary);
+  border-color: rgba(255, 255, 255, 0.12);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 .next-step-icon-wrap {

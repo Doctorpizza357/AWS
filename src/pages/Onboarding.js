@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, Rocket, Upload, FileText, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Rocket, Upload, FileText, X, Linkedin, Link } from 'lucide-react';
 import { useUser } from '../context/UserContext';
-import { generateCareerRecommendations, analyzeResume, extractTextFromPDF } from '../services/aiService';
+import { generateCareerRecommendations, analyzeResume, extractTextFromPDF, analyzeLinkedIn } from '../services/aiService';
 import './Onboarding.css';
 
 const quizSteps = [
@@ -64,7 +64,7 @@ function Onboarding() {
   const fileInputRef = useRef(null);
   const highlightTimerRef = useRef(null);
 
-  // Mode: 'choose' | 'quiz' | 'resume-uploading' | 'resume-followup'
+  // Mode: 'choose' | 'quiz' | 'resume-uploading' | 'resume-followup' | 'linkedin' | 'linkedin-analyzing'
   const [mode, setMode] = useState('choose');
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({
@@ -85,6 +85,11 @@ function Onboarding() {
   const [followUpAnswers, setFollowUpAnswers] = useState({});
   const [followUpStep, setFollowUpStep] = useState(0);
   const [extractedData, setExtractedData] = useState(null);
+
+  // LinkedIn-specific state
+  const [linkedInUrl, setLinkedInUrl] = useState('');
+  const [linkedInText, setLinkedInText] = useState('');
+  const [linkedInUrlError, setLinkedInUrlError] = useState('');
 
   const extractResumeHighlights = (text) => {
     const source = String(text || '').toLowerCase();
@@ -273,12 +278,74 @@ function Onboarding() {
         setExtractedData(null);
         setResumeFile(null);
       }
+    } else if (mode === 'linkedin') {
+      setMode('choose');
+      setLinkedInUrl('');
+      setLinkedInText('');
+      setLinkedInUrlError('');
+      setError('');
     } else {
       if (step > 0) {
         setStep(step - 1);
       } else {
         setMode('choose');
       }
+    }
+  };
+
+  const validateLinkedInUrl = (url) => {
+    if (!url) return true; // URL is optional
+    try {
+      const parsed = new URL(url);
+      return parsed.hostname.includes('linkedin.com');
+    } catch {
+      return false;
+    }
+  };
+
+  const handleLinkedInSubmit = async () => {
+    if (!linkedInText.trim() || linkedInText.trim().length < 30) {
+      setError('Please paste at least a few sentences from your LinkedIn profile.');
+      return;
+    }
+
+    if (linkedInUrl && !validateLinkedInUrl(linkedInUrl)) {
+      setLinkedInUrlError('Please enter a valid LinkedIn URL (e.g. linkedin.com/in/yourname)');
+      return;
+    }
+
+    setLinkedInUrlError('');
+    setMode('linkedin-analyzing');
+    setLoading(true);
+    setError('');
+
+    try {
+      const highlights = extractResumeHighlights(linkedInText);
+      setResumeHighlights(highlights);
+      setRevealedHighlights([]);
+      clearHighlightAnimation();
+
+      await wait(Math.min(5000, 2000 + highlights.length * 420));
+
+      const analysis = await analyzeLinkedIn(linkedInText, linkedInUrl);
+
+      if (analysis.status === 'complete') {
+        await handleFinish(analysis.profile);
+      } else if (analysis.status === 'incomplete') {
+        setExtractedData(analysis.extractedData || {});
+        setFollowUpQuestions(analysis.followUpQuestions || []);
+        setFollowUpAnswers({});
+        setFollowUpStep(0);
+        setMode('resume-followup');
+      } else {
+        throw new Error('Unexpected analysis response');
+      }
+    } catch (err) {
+      console.error('LinkedIn analysis failed:', err);
+      setError(err.message || 'Failed to analyze LinkedIn profile. You can try again or take the quiz instead.');
+      setMode('linkedin');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -356,7 +423,7 @@ function Onboarding() {
   };
 
   useEffect(() => {
-    if (mode !== 'resume-uploading') {
+    if (mode !== 'resume-uploading' && mode !== 'linkedin-analyzing') {
       clearHighlightAnimation();
       return;
     }
@@ -398,7 +465,7 @@ function Onboarding() {
             We'll use your answers to recommend personalized STEM career paths.
           </p>
 
-          <div className="choose-options">
+          <div className="choose-options choose-options--three">
             <button
               className="choose-card"
               onClick={() => setMode('quiz')}
@@ -419,6 +486,17 @@ function Onboarding() {
               </div>
               <h3>Upload Your Resume</h3>
               <p>Upload a PDF resume and we'll analyze it with AI to build your profile instantly.</p>
+            </button>
+
+            <button
+              className="choose-card"
+              onClick={() => { setMode('linkedin'); setError(''); }}
+            >
+              <div className="choose-card-icon linkedin-icon">
+                <Linkedin size={28} aria-hidden="true" />
+              </div>
+              <h3>Use LinkedIn</h3>
+              <p>Paste your LinkedIn profile summary and experience to auto-build your profile.</p>
             </button>
           </div>
 
@@ -445,6 +523,107 @@ function Onboarding() {
             style={{ display: 'none' }}
             aria-label="Upload resume PDF"
           />
+        </div>
+      </div>
+    );
+  }
+
+  // ─── LinkedIn Form ─────────────────────────────────────────────────────────
+
+  if (mode === 'linkedin') {
+    const canSubmitLinkedIn = linkedInText.trim().length >= 30;
+    return (
+      <div className="onboarding">
+        <div className="onboarding-container fade-in">
+          <div className="linkedin-header">
+            <div className="choose-card-icon linkedin-icon linkedin-icon--sm">
+              <Linkedin size={22} aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="quiz-question" style={{ marginBottom: 4 }}>Import from LinkedIn</h2>
+              <p className="choose-subtitle" style={{ marginBottom: 0 }}>
+                Paste your profile info and we'll build your career profile automatically.
+              </p>
+            </div>
+          </div>
+
+          <div className="linkedin-form">
+            <div className="linkedin-field">
+              <label className="linkedin-label" htmlFor="linkedin-url">
+                <Link size={14} aria-hidden="true" /> Profile URL <span className="linkedin-optional">(optional)</span>
+              </label>
+              <input
+                id="linkedin-url"
+                type="url"
+                className={`quiz-input linkedin-url-input${linkedInUrlError ? ' linkedin-input--error' : ''}`}
+                placeholder="https://linkedin.com/in/yourname"
+                value={linkedInUrl}
+                onChange={(e) => { setLinkedInUrl(e.target.value); setLinkedInUrlError(''); }}
+              />
+              {linkedInUrlError && <p className="linkedin-field-error">{linkedInUrlError}</p>}
+            </div>
+
+            <div className="linkedin-field">
+              <label className="linkedin-label" htmlFor="linkedin-text">
+                <FileText size={14} aria-hidden="true" /> Profile Text <span className="linkedin-required">*</span>
+              </label>
+              <p className="linkedin-hint">
+                Go to your LinkedIn profile → copy your <strong>About</strong> section and <strong>Experience</strong> entries, then paste them here.
+              </p>
+              <textarea
+                id="linkedin-text"
+                className="linkedin-textarea"
+                placeholder="Paste your LinkedIn About section, experience, and skills here…"
+                value={linkedInText}
+                onChange={(e) => setLinkedInText(e.target.value)}
+                rows={9}
+                autoFocus
+              />
+              <p className="linkedin-char-count">
+                {linkedInText.length > 0 ? `${linkedInText.length} characters` : 'Minimum 30 characters required'}
+              </p>
+            </div>
+          </div>
+
+          {error && <p className="onboarding-error">{error}</p>}
+
+          <div className="quiz-actions">
+            <button className="btn-back" onClick={handleBack}>
+              <ArrowLeft size={16} aria-hidden="true" /> Back
+            </button>
+            <button
+              className="btn-next"
+              onClick={handleLinkedInSubmit}
+              disabled={!canSubmitLinkedIn || loading}
+            >
+              Analyze Profile <Rocket size={16} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── LinkedIn Analyzing (loading state) ───────────────────────────────────
+
+  if (mode === 'linkedin-analyzing') {
+    return (
+      <div className="onboarding">
+        <div className="onboarding-container fade-in">
+          <div className="resume-analyzing">
+            <div className="resume-analyzing-orbit" aria-hidden="true">
+              <div className="resume-analyzing-core">
+                <div className="resume-analyzing-spinner" />
+                <Linkedin size={18} aria-hidden="true" />
+              </div>
+              {revealHighlightsToBubbles(revealedHighlights)}
+            </div>
+            <div className="resume-highlight-caption">Reading your experience and skills from LinkedIn</div>
+            <h2 className="quiz-question">Analyzing your profile...</h2>
+            <p className="choose-subtitle">
+              Our AI is mapping your LinkedIn experience to STEM career paths.
+            </p>
+          </div>
         </div>
       </div>
     );

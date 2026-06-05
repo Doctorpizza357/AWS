@@ -1194,6 +1194,100 @@ app.post('/api/tts', async (req, res) => {
   }
 });
 
+// ─── LinkedIn Profile Analysis Endpoint ──────────────────────────────────────
+
+const LINKEDIN_ANALYSIS_SYSTEM_PROMPT = `You are a career profile extraction engine for a STEM career exploration platform aimed at students. Your job is to extract structured career profile information from LinkedIn profile text.
+
+Analyze the pasted LinkedIn profile text and determine if it contains ENOUGH information to build a complete career profile. A complete profile needs:
+1. The person's name
+2. At least 2 clear interests/fields of interest
+3. At least 2 identifiable skills
+4. Some indication of work style preference (office/lab/field/mixed)
+5. Some indication of career motivation
+
+If the profile IS COMPLETE (has enough info for all 5 areas), respond with:
+{
+  "status": "complete",
+  "profile": {
+    "name": "<extracted name>",
+    "interests": ["<interest1>", "<interest2>", ...],
+    "skills": ["<skill1>", "<skill2>", ...],
+    "preferences": {
+      "workstyle": "<one of: Office / Remote (Computer-based work), Laboratory (Research & experiments), Field Work (Outdoors & travel), Mixed (Variety of settings)>",
+      "motivation": "<one of: Making a positive impact on society, Solving complex technical challenges, Financial stability and growth, Innovation and creating new things>"
+    }
+  }
+}
+
+If the profile is INCOMPLETE (missing key areas), respond with:
+{
+  "status": "incomplete",
+  "extractedData": {
+    "name": "<name if found, or empty string>",
+    "interests": ["<any interests found>"],
+    "skills": ["<any skills found>"],
+    "workstyle": "<if determinable, or empty string>",
+    "motivation": "<if determinable, or empty string>"
+  },
+  "followUpQuestions": [
+    {
+      "id": "<unique_id>",
+      "question": "<question text>",
+      "type": "multi-select | single-select | text",
+      "options": ["<option1>", "<option2>", ...]
+    }
+  ]
+}
+
+Rules for follow-up questions:
+- Only ask about information that is MISSING or UNCLEAR from the profile
+- Use the same question style as an onboarding quiz (friendly, encouraging)
+- For interests/skills use "multi-select" with relevant options
+- For workstyle/motivation use "single-select" with the exact options listed above
+- For name use "text" type
+- Maximum 3 follow-up questions
+- Options for interests should come from: Coding & Programming, Mathematics, Biology & Life Sciences, Physics & Space, Chemistry, Environmental Science, Robotics & Hardware, Data & Analytics, Design & UX, Healthcare & Medicine, AI & Machine Learning, Sustainability
+- Options for skills should come from: Problem Solving, Creative Thinking, Teamwork, Writing & Communication, Math & Numbers, Research, Leadership, Attention to Detail, Critical Thinking, Hands-on Building, Public Speaking, Organization
+
+Always respond with valid JSON only. No markdown fences or extra text.`;
+
+app.post('/api/linkedin/analyze', async (req, res) => {
+  const { profileText, profileUrl } = req.body || {};
+
+  if (!profileText || typeof profileText !== 'string' || profileText.trim().length < 30) {
+    return res.status(400).json({ ok: false, message: 'Please paste more of your LinkedIn profile text (at least a few sentences).' });
+  }
+
+  if (!hasBedrockConfig()) {
+    return res.status(501).json({
+      ok: false,
+      message: 'LinkedIn analysis backend not configured. Ensure AWS Bedrock credentials are set.',
+    });
+  }
+
+  try {
+    const contextNote = profileUrl ? `LinkedIn Profile URL: ${profileUrl}\n\n` : '';
+    const responseText = await invokeBedrockConverse({
+      messages: [
+        {
+          role: 'user',
+          content: [{ text: `${contextNote}Analyze this LinkedIn profile and extract career profile information:\n\n${profileText.trim()}` }],
+        },
+      ],
+      systemPrompt: LINKEDIN_ANALYSIS_SYSTEM_PROMPT,
+      maxTokens: 1200,
+      temperature: 0.3,
+      topP: 0.9,
+    });
+
+    const analysis = parseJsonFromResponse(responseText);
+    return res.json({ ok: true, analysis });
+  } catch (err) {
+    console.error('LinkedIn analysis failed:', err);
+    return res.status(500).json({ ok: false, message: 'LinkedIn analysis failed', error: String(err) });
+  }
+});
+
 app.use((_req, res) => {
   res.status(404).json({ ok: false, message: 'Not found' });
 });

@@ -212,6 +212,10 @@
   margin-bottom: 24px;
 }
 
+.choose-options--three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
 .choose-card {
   padding: 28px 20px;
   background: var(--bg-dark);
@@ -259,6 +263,18 @@
 .resume-icon {
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
+}
+
+.linkedin-icon {
+  background: rgba(10, 102, 194, 0.12);
+  color: #0a66c2;
+}
+
+.linkedin-icon--sm {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
 /* ─── Resume File Preview ─────────────────────────────────────────────────── */
@@ -489,6 +505,108 @@
   color: var(--primary-light);
 }
 
+/* ─── LinkedIn Form ───────────────────────────────────────────────────────── */
+
+.linkedin-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.linkedin-header .quiz-question {
+  margin-bottom: 4px;
+}
+
+.linkedin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.linkedin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.linkedin-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.linkedin-optional {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.linkedin-required {
+  color: #ef4444;
+}
+
+.linkedin-url-input {
+  font-size: 0.95rem !important;
+}
+
+.linkedin-input--error {
+  border-color: #ef4444 !important;
+}
+
+.linkedin-field-error {
+  font-size: 0.82rem;
+  color: #ef4444;
+  margin: 0;
+}
+
+.linkedin-hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(10, 102, 194, 0.06);
+  border: 1px solid rgba(10, 102, 194, 0.15);
+  border-radius: 8px;
+}
+
+.linkedin-hint strong {
+  color: var(--text-secondary);
+}
+
+.linkedin-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  min-height: 180px;
+  box-sizing: border-box;
+}
+
+.linkedin-textarea:focus {
+  outline: none;
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+}
+
+.linkedin-char-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+  text-align: right;
+}
+
 /* ─── Error Message ───────────────────────────────────────────────────────── */
 
 .onboarding-error {
@@ -502,8 +620,15 @@
 
 /* ─── Responsive ──────────────────────────────────────────────────────────── */
 
+@media (max-width: 720px) {
+  .choose-options--three {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 560px) {
-  .choose-options {
+  .choose-options,
+  .choose-options--three {
     grid-template-columns: 1fr;
   }
 

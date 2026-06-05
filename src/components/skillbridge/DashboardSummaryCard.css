@@ -10,15 +10,7 @@
   overflow: hidden;
 }
 
-.skillbridge-summary-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-1, linear-gradient(90deg, #6366f1, #06b6d4));
-}
+/* No top bar */
 
 .skillbridge-summary-card__header {
   display: flex;

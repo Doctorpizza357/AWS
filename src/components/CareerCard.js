@@ -27,14 +27,16 @@ function CareerCard({ career, matchScore, locked }) {
       aria-label={`Explore ${career.title} career path`}
     >
       <div className="career-card-header">
-        <span className="career-icon"><CareerIcon size={32} aria-hidden="true" /></span>
-        {matchScore !== undefined && (
-          <span className="match-badge">
-            {Math.round(matchScore * 100)}% Match
-          </span>
-        )}
-        {isActiveGoal && <span className="goal-badge">Active Goal</span>}
-        {locked && <span className="lock-badge"><LockIcon size={18} aria-hidden="true" /></span>}
+        <span className="career-icon"><CareerIcon size={26} aria-hidden="true" /></span>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {matchScore !== undefined && (
+            <span className="match-badge">
+              {Math.round(matchScore * 100)}% match
+            </span>
+          )}
+          {isActiveGoal && <span className="goal-badge">Goal</span>}
+          {locked && <span className="lock-badge"><LockIcon size={18} aria-hidden="true" /></span>}
+        </div>
       </div>
 
       <h3 className="career-title">{career.title}</h3>
@@ -61,12 +63,12 @@ function CareerCard({ career, matchScore, locked }) {
       <div className="career-card-actions">
         {!locked && (
           <button className="explore-btn">
-            Explore This Path →
+            Explore →
           </button>
         )}
         {!locked && !isActiveGoal && (
           <button className="set-goal-btn" onClick={handleSetGoal} title="Set as your active career goal">
-            Set as Goal
+            Set Goal
           </button>
         )}
       </div>

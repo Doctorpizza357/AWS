@@ -5,9 +5,9 @@ import './InterviewHub.css';
 import { getIconComponent } from '../utils/iconMap';
 
 const features = [
-  { id: 'resume', title: 'Smart Resume Engine', desc: 'Start here — upload resume + job description. Powers tailored questions for everything else.', icon: 'book-open', path: '/interview/resume', gradient: 'linear-gradient(135deg,#06b6d4,#10b981)', tag: 'Start Here' },
-  { id: 'mock', title: 'AI Mock Interview', desc: 'Video-based practice with real-time speech & body language analysis. Questions tailored to your JD.', icon: 'bot', path: '/interview/mock', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', tag: 'Video + Audio' },
-  { id: 'technical', title: 'Technical Assessment', desc: 'Coding problems tailored to your target role with AI code review that analyzes your actual code.', icon: 'career-software', path: '/interview/technical', gradient: 'linear-gradient(135deg,#f59e0b,#ef4444)', tag: 'Code Review' },
+  { id: 'resume', title: 'Smart Resume Engine', desc: 'Start here — upload your resume and job description. Powers tailored questions across all other tools.', icon: 'book-open', path: '/interview/resume', tag: 'Start Here' },
+  { id: 'mock', title: 'AI Mock Interview', desc: 'Video-based practice with real-time speech and body language analysis. Questions tailored to your role.', icon: 'bot', path: '/interview/mock', tag: 'Video + Audio' },
+  { id: 'technical', title: 'Technical Assessment', desc: 'Coding problems matched to your target role, with AI code review that analyzes your actual solution.', icon: 'career-software', path: '/interview/technical', tag: 'Code Review' },
 ];
 
 export default function InterviewHub() {
@@ -25,10 +25,9 @@ export default function InterviewHub() {
           {features.map((f, i) => (
             <motion.div key={f.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <Link to={f.path} className="hub-card">
-                <div className="hub-card-glow" style={{ background: f.gradient }} />
                 <div className="hub-card-content">
                   <span className="hub-card-icon">
-                    {(() => { const Icon = getIconComponent(f.icon); return <Icon size={28} />; })()}
+                    {(() => { const Icon = getIconComponent(f.icon); return <Icon size={26} />; })()}
                   </span>
                   <h3>{f.title}</h3>
                   <p>{f.desc}</p>

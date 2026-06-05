@@ -1,3 +1,20 @@
+export async function analyzeLinkedIn(profileText, profileUrl) {
+  const response = await fetch('/api/linkedin/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ profileText, profileUrl: profileUrl || '' }),
+  });
+
+  const json = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message = (json && json.message) || `LinkedIn analysis returned ${response.status}`;
+    throw new Error(message);
+  }
+
+  return json.analysis;
+}
+
 export async function analyzeResume(file) {
   const formData = new FormData();
   formData.append('resume', file);
