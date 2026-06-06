@@ -15,6 +15,12 @@
   padding: 40px;
 }
 
+.onboarding-lang-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
 .quiz-progress {
   margin-bottom: 32px;
 }

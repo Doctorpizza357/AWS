@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, Sparkles, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { sendAssistantMessage } from '../services/aiService';
 import './AIAssistantPopup.css';
 
 function AIAssistantPopup() {
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -12,16 +14,60 @@ function AIAssistantPopup() {
     {
       id: 'welcome',
       role: 'assistant',
-      text: 'Hi, I am your assistant. Ask a question, share a goal, or choose one of the prompts below.',
+      text: '__welcome__', // placeholder — replaced dynamically below
     },
   ]);
+
+  // Keep the welcome message in sync with the current language
+  useEffect(() => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === 'welcome' ? { ...msg, text: t('assistant.welcome') } : msg
+      )
+    );
+  }, [i18n.language, t]);
 
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
   const responseTimerRef = useRef(null);
   const lastMessageRef = useRef(null);
   const justSentByUserRef = useRef(false);
+  const sendMessageRef = useRef(null);
   const closeTimerRef = useRef(null);
+
+  // Listen for avatar "continue conversation" events to auto-open and send context
+  useEffect(() => {
+    function handleAvatarContinue(e) {
+      const avatarMessage = e.detail?.message;
+      const avatarName = e.detail?.avatarName || 'Avatar';
+
+      setIsOpen(true);
+
+      if (avatarMessage) {
+        // Build a context-aware follow-up that includes what the avatar said
+        const contextMessage = `${avatarName} just told me: "${avatarMessage}" — Can you expand on that? Give me more detail and actionable next steps.`;
+
+        // Show the avatar's tip as a system message for context
+        setMessages((current) => [
+          ...current,
+          {
+            id: `avatar-context-${Date.now()}`,
+            role: 'assistant',
+            text: `💡 ${avatarName} said: "${avatarMessage}"`,
+          },
+        ]);
+
+        // Auto-send the follow-up after a brief delay so the panel is visible
+        setTimeout(() => {
+          sendMessageRef.current(contextMessage);
+        }, 300);
+      }
+    }
+    window.addEventListener('avatar:continue-conversation', handleAvatarContinue);
+    return () => {
+      window.removeEventListener('avatar:continue-conversation', handleAvatarContinue);
+    };
+  }, []);
 
   // Auto-scroll behavior:
   // - If the user is near the bottom (within 100px), scroll the newest message into view
@@ -126,6 +172,9 @@ function AIAssistantPopup() {
     }
   };
 
+  // Keep the ref in sync so the event listener can call sendMessage without stale closures
+  sendMessageRef.current = sendMessage;
+
   const handleSubmit = (event) => {
     event.preventDefault();
     sendMessage(inputValue);
@@ -159,11 +208,11 @@ function AIAssistantPopup() {
           <div className="ai-panel-header">
             <div className="ai-panel-title-wrap">
               <p className="ai-panel-eyebrow">
-                <Sparkles size={14} /> AI Assistant
+                <Sparkles size={14} /> {t('assistant.title')}
               </p>
-              <h2>Ask anything about the product</h2>
+              <h2>{t('assistant.askAnything')}</h2>
               <p className="ai-panel-subtitle">
-                Ask for help with careers, skills, and next steps.
+                {t('assistant.subtitle')}
               </p>
             </div>
             <button
@@ -214,16 +263,16 @@ function AIAssistantPopup() {
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
               onKeyDown={handleComposerKeyDown}
-              placeholder="Type a question, goal, or prompt..."
+              placeholder={t('assistant.placeholder')}
               rows={2}
             />
 
             <div className="ai-composer-footer">
               <p className="ai-composer-note">
-                  <ArrowUpRight size={14} /> Ready for message input.
+                  <ArrowUpRight size={14} /> {t('assistant.ready')}
               </p>
               <button type="submit" className="ai-send" disabled={!inputValue.trim() || isTyping}>
-                Send
+                {t('common.send')}
               </button>
             </div>
           </form>
@@ -240,8 +289,8 @@ function AIAssistantPopup() {
           {isOpen ? <X size={16} /> : <Sparkles size={16} />}
         </span>
         <span className="ai-launcher-text">
-          <strong>AI Assistant</strong>
-          <small>{isOpen ? 'Close' : 'Open chat'}</small>
+          <strong>{t('assistant.title')}</strong>
+          <small>{isOpen ? t('common.close') : t('common.send')}</small>
         </span>
       </button>
     </div>

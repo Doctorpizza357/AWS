@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ArrowRight, Check, Rocket, Upload, FileText, X, Linkedin, Link } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { generateCareerRecommendations, analyzeResume, extractTextFromPDF, analyzeLinkedIn } from '../services/aiService';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import './Onboarding.css';
 
 const quizSteps = [
@@ -61,6 +63,7 @@ const quizSteps = [
 function Onboarding() {
   const navigate = useNavigate();
   const { completeOnboarding, saveResume } = useUser();
+  const { t } = useTranslation();
   const fileInputRef = useRef(null);
   const highlightTimerRef = useRef(null);
 
@@ -460,9 +463,12 @@ function Onboarding() {
     return (
       <div className="onboarding">
         <div className="onboarding-container fade-in">
-          <h2 className="quiz-question">How would you like to get started?</h2>
+          <div className="onboarding-lang-row">
+            <LanguageSwitcher />
+          </div>
+          <h2 className="quiz-question">{t('onboarding.howToStart')}</h2>
           <p className="choose-subtitle">
-            We'll use your answers to recommend personalized STEM career paths.
+            {t('onboarding.howToStartDesc')}
           </p>
 
           <div className="choose-options choose-options--three">
@@ -473,8 +479,8 @@ function Onboarding() {
               <div className="choose-card-icon quiz-icon">
                 <Rocket size={28} aria-hidden="true" />
               </div>
-              <h3>Take the Quiz</h3>
-              <p>Answer 5 quick questions about your interests, skills, and preferences.</p>
+              <h3>{t('onboarding.takeQuiz')}</h3>
+              <p>{t('onboarding.quizDesc')}</p>
             </button>
 
             <button
@@ -484,8 +490,8 @@ function Onboarding() {
               <div className="choose-card-icon resume-icon">
                 <Upload size={28} aria-hidden="true" />
               </div>
-              <h3>Upload Your Resume</h3>
-              <p>Upload a PDF resume and we'll analyze it with AI to build your profile instantly.</p>
+              <h3>{t('onboarding.uploadResume')}</h3>
+              <p>{t('onboarding.resumeDesc')}</p>
             </button>
 
             <button
@@ -495,8 +501,8 @@ function Onboarding() {
               <div className="choose-card-icon linkedin-icon">
                 <Linkedin size={28} aria-hidden="true" />
               </div>
-              <h3>Use LinkedIn</h3>
-              <p>Paste your LinkedIn profile summary and experience to auto-build your profile.</p>
+              <h3>{t('onboarding.useLinkedIn')}</h3>
+              <p>{t('onboarding.linkedInDesc')}</p>
             </button>
           </div>
 
@@ -573,14 +579,14 @@ function Onboarding() {
               <textarea
                 id="linkedin-text"
                 className="linkedin-textarea"
-                placeholder="Paste your LinkedIn About section, experience, and skills here…"
+                placeholder={t('onboarding.linkedin.placeholder')}
                 value={linkedInText}
                 onChange={(e) => setLinkedInText(e.target.value)}
                 rows={9}
                 autoFocus
               />
               <p className="linkedin-char-count">
-                {linkedInText.length > 0 ? `${linkedInText.length} characters` : 'Minimum 30 characters required'}
+                {linkedInText.length > 0 ? t('onboarding.linkedin.charCount', { count: linkedInText.length }) : t('onboarding.linkedin.minChars')}
               </p>
             </div>
           </div>
@@ -589,14 +595,14 @@ function Onboarding() {
 
           <div className="quiz-actions">
             <button className="btn-back" onClick={handleBack}>
-              <ArrowLeft size={16} aria-hidden="true" /> Back
+              <ArrowLeft size={16} aria-hidden="true" /> {t('common.back')}
             </button>
             <button
               className="btn-next"
               onClick={handleLinkedInSubmit}
               disabled={!canSubmitLinkedIn || loading}
             >
-              Analyze Profile <Rocket size={16} aria-hidden="true" />
+              {t('onboarding.analyzeProfile')} <Rocket size={16} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -619,9 +625,9 @@ function Onboarding() {
               {revealHighlightsToBubbles(revealedHighlights)}
             </div>
             <div className="resume-highlight-caption">Reading your experience and skills from LinkedIn</div>
-            <h2 className="quiz-question">Analyzing your profile...</h2>
+            <h2 className="quiz-question">{t('onboarding.analyzingProfile')}</h2>
             <p className="choose-subtitle">
-              Our AI is mapping your LinkedIn experience to STEM career paths.
+              {t('onboarding.analyzingProfileDesc')}
             </p>
           </div>
         </div>
@@ -644,9 +650,9 @@ function Onboarding() {
               {revealHighlightsToBubbles(revealedHighlights)}
             </div>
             <div className="resume-highlight-caption">Scanning for skills and strengths from your resume</div>
-            <h2 className="quiz-question">Analyzing your resume...</h2>
+            <h2 className="quiz-question">{t('onboarding.analyzingResume')}</h2>
             <p className="choose-subtitle">
-              Our AI is reading through your experience to build your career profile.
+              {t('onboarding.analyzingResumeDesc')}
             </p>
           </div>
         </div>
@@ -729,20 +735,20 @@ function Onboarding() {
 
         <div className="quiz-actions">
           <button className="btn-back" onClick={handleBack}>
-            <ArrowLeft size={16} aria-hidden="true" /> Back
+            <ArrowLeft size={16} aria-hidden="true" /> {t('common.back')}
           </button>
           <button
             className="btn-next"
             onClick={handleNext}
             disabled={!canProceed() || loading}
           >
-            {loading ? 'Analyzing...' : currentStepIndex === totalSteps - 1 ? (
+            {loading ? t('onboarding.analyzing') : currentStepIndex === totalSteps - 1 ? (
               <>
-                Discover My Paths <Rocket size={16} aria-hidden="true" />
+                {t('onboarding.discoverPaths')} <Rocket size={16} aria-hidden="true" />
               </>
             ) : (
               <>
-                Next <ArrowRight size={16} aria-hidden="true" />
+                {t('common.next')} <ArrowRight size={16} aria-hidden="true" />
               </>
             )}
           </button>

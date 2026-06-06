@@ -1,0 +1,155 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "back": "Back",
+    "next": "Next",
+    "cancel": "Cancel",
+    "save": "Save",
+    "send": "Send",
+    "close": "Close",
+    "change": "Change",
+    "logIn": "Log In",
+    "logOut": "Log Out",
+    "profile": "Profile",
+    "home": "Home",
+    "learnMore": "Learn More ↓"
+  },
+  "brand": {
+    "name": "STEM PathfindR",
+    "tagline": "Personalized STEM career discovery, powered by AI."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "skillbridge": "SkillBridge",
+    "marketIntel": "Market Intel",
+    "interviewAI": "Interview AI",
+    "roleModels": "Role Models",
+    "leaderboard": "Leaderboard"
+  },
+  "landing": {
+    "badge": "Gamified Career Discovery",
+    "title": "Discover Your <1>STEM Career</1> Through Adventure",
+    "subtitle": "Don't just read about careers. Try them. Step into real day-to-day scenarios, make choices that shape your path, and see where your strengths and interests can take you.",
+    "startAdventure": "Start Your Adventure",
+    "continueJourney": "Continue Journey",
+    "beginExploration": "Begin Exploration →",
+    "careerPaths": "Career Paths",
+    "scenarios": "Scenarios",
+    "decisions": "Decisions",
+    "howItWorks": "How It Works",
+    "readyToFind": "Ready to Find Your Path?",
+    "joinThousands": "Join thousands of students discovering their STEM future.",
+    "features": {
+      "quiz": {
+        "title": "Take the Quiz",
+        "desc": "Tell us about your interests, skills, and what excites you about STEM."
+      },
+      "ai": {
+        "title": "AI Matches You",
+        "desc": "Our AI analyzes your profile and recommends personalized career paths."
+      },
+      "game": {
+        "title": "Live the Day",
+        "desc": "Experience realistic scenarios and make decisions that shape your journey."
+      },
+      "level": {
+        "title": "Level Up",
+        "desc": "Earn XP, unlock badges, and discover new career paths as you progress."
+      }
+    }
+  },
+  "dashboard": {
+    "welcomeBack": "Welcome back, {{name}}!",
+    "continueExploring": "Continue exploring your STEM career paths",
+    "currentLevel": "Current Level",
+    "scenariosDone": "Scenarios Done",
+    "badgesEarned": "Badges Earned",
+    "decisionsMade": "Decisions Made",
+    "activeGoal": "Active Goal: {{title}}",
+    "goalTailored": "All features are tailored to this career path",
+    "recommendedPaths": "Your Recommended Paths",
+    "recommendedDesc": "Based on your interests and skills, these careers are a great match for you.",
+    "exploreAll": "Explore All Career Paths",
+    "exploreAllDesc": "Browse every path available in the scenario builder, including the newest generated careers.",
+    "yourBadges": "Your Badges",
+    "recentDecisions": "Recent Decisions"
+  },
+  "onboarding": {
+    "howToStart": "How would you like to get started?",
+    "howToStartDesc": "We'll use your answers to recommend personalized STEM career paths.",
+    "takeQuiz": "Take the Quiz",
+    "quizDesc": "Answer 5 quick questions about your interests, skills, and preferences.",
+    "uploadResume": "Upload Your Resume",
+    "resumeDesc": "Upload a PDF resume and we'll analyze it with AI to build your profile instantly.",
+    "useLinkedIn": "Use LinkedIn",
+    "linkedInDesc": "Paste your LinkedIn profile summary and experience to auto-build your profile.",
+    "analyzingResume": "Analyzing your resume...",
+    "analyzingResumeDesc": "Our AI is reading through your experience to build your career profile.",
+    "analyzingProfile": "Analyzing your profile...",
+    "analyzingProfileDesc": "Our AI is mapping your LinkedIn experience to STEM career paths.",
+    "discoverPaths": "Discover My Paths",
+    "analyzing": "Analyzing...",
+    "analyzeResume": "Analyze Resume",
+    "analyzeProfile": "Analyze Profile",
+    "followUpBanner": "We found some info from your resume but need a few more details.",
+    "step": "Step {{current}} of {{total}}",
+    "followUpStep": "Follow-up Step {{current}} of {{total}}",
+    "questions": {
+      "name": "What's your name, future pathfinder?",
+      "interests": "What topics excite you the most?",
+      "skills": "Which skills do you feel strongest in?",
+      "workstyle": "What work environment appeals to you?",
+      "motivation": "What motivates you most in a career?"
+    },
+    "linkedin": {
+      "title": "Import from LinkedIn",
+      "subtitle": "Paste your profile info and we'll build your career profile automatically.",
+      "profileUrl": "Profile URL",
+      "optional": "(optional)",
+      "profileText": "Profile Text",
+      "required": "*",
+      "hint": "Go to your LinkedIn profile → copy your <1>About</1> section and <3>Experience</3> entries, then paste them here.",
+      "placeholder": "Paste your LinkedIn About section, experience, and skills here…",
+      "charCount": "{{count}} characters",
+      "minChars": "Minimum 30 characters required",
+      "invalidUrl": "Please enter a valid LinkedIn URL (e.g. linkedin.com/in/yourname)",
+      "insufficientText": "Please paste at least a few sentences from your LinkedIn profile."
+    },
+    "selectHint": "Select 2-4 options"
+  },
+  "skillbridge": {
+    "title": "SkillBridge",
+    "lead": "Compare your current skills against your dream job and follow a personalized weekly roadmap to close the gap."
+  },
+  "interview": {
+    "title": "Interview AI",
+    "mock": "Mock Interview",
+    "history": "History",
+    "resume": "Resume Tailor",
+    "technical": "Technical Assessment"
+  },
+  "footer": {
+    "copyright": "© 2026 STEM PathfindR",
+    "builtFor": "Built for students, educators, and career explorers."
+  },
+  "assistant": {
+    "title": "AI Assistant",
+    "subtitle": "Ask for help with careers, skills, and next steps.",
+    "askAnything": "Ask anything about the product",
+    "placeholder": "Type a question, goal, or prompt...",
+    "ready": "Ready for message input.",
+    "welcome": "Hi, I am your assistant. Ask a question, share a goal, or choose one of the prompts below.",
+    "unavailable": "Assistant is not available.",
+    "error": "Assistant error: Unable to reach backend. Try again later.",
+    "noResponse": "No response from assistant."
+  },
+  "avatar": {
+    "close": "Close AI assistant",
+    "tellMeMore": "Tell me more",
+    "thinking": "{{name}} is thinking..."
+  },
+  "language": {
+    "label": "Language",
+    "select": "Select language"
+  }
+}

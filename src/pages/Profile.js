@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,6 +8,7 @@ import { useSkillBridge } from '../context/SkillBridgeContext';
 import badges from '../data/badges';
 import './Profile.css';
 import DownloadProfileButton from '../components/DownloadProfileButton';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { fetchSalaryData, fetchViabilityData } from '../services/marketDataService';
 import { getIconComponent } from '../utils/iconMap';
 
@@ -15,6 +17,7 @@ function Profile() {
   const { user, resetProgress, isHydrating } = useUser();
   const { user: authUser, logout } = useAuth();
   const { portfolio } = useSkillBridge();
+  const { t } = useTranslation();
 
   const sortedPortfolio = useMemo(() => {
     const list = Array.isArray(portfolio) ? portfolio : [];
@@ -256,6 +259,10 @@ function Profile() {
         <section className="profile-section danger-zone">
           <h2>Settings</h2>
           <div className="settings-actions">
+            <div className="settings-row">
+              <span className="settings-label">{t('language.label')}</span>
+              <LanguageSwitcher />
+            </div>
             <button className="secondary-btn" onClick={handleRetakeOnboarding}>
               Retake Onboarding Quiz
             </button>

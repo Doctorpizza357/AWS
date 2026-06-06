@@ -1,0 +1,155 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "back": "返回",
+    "next": "下一步",
+    "cancel": "取消",
+    "save": "保存",
+    "send": "发送",
+    "close": "关闭",
+    "change": "更改",
+    "logIn": "登录",
+    "logOut": "退出",
+    "profile": "个人资料",
+    "home": "首页",
+    "learnMore": "了解更多 ↓"
+  },
+  "brand": {
+    "name": "STEM PathfindR",
+    "tagline": "AI驱动的个性化STEM职业探索。"
+  },
+  "nav": {
+    "dashboard": "仪表板",
+    "skillbridge": "技能桥梁",
+    "marketIntel": "市场情报",
+    "interviewAI": "AI面试",
+    "roleModels": "榜样人物",
+    "leaderboard": "排行榜"
+  },
+  "landing": {
+    "badge": "游戏化职业探索",
+    "title": "通过冒险发现你的<1>STEM职业</1>",
+    "subtitle": "不要只是阅读职业介绍。亲身体验它们。走进真实的日常场景，做出塑造你道路的选择，看看你的优势和兴趣能带你走多远。",
+    "startAdventure": "开始你的冒险",
+    "continueJourney": "继续旅程",
+    "beginExploration": "开始探索 →",
+    "careerPaths": "职业道路",
+    "scenarios": "场景",
+    "decisions": "决策",
+    "howItWorks": "工作原理",
+    "readyToFind": "准备好找到你的方向了吗？",
+    "joinThousands": "加入数千名正在发现STEM未来的学生。",
+    "features": {
+      "quiz": {
+        "title": "参加测验",
+        "desc": "告诉我们你的兴趣、技能以及STEM中什么让你兴奋。"
+      },
+      "ai": {
+        "title": "AI为你匹配",
+        "desc": "我们的AI分析你的个人资料，推荐个性化的职业道路。"
+      },
+      "game": {
+        "title": "体验一天",
+        "desc": "体验逼真的场景，做出塑造你旅程的决定。"
+      },
+      "level": {
+        "title": "升级",
+        "desc": "获得经验值，解锁徽章，在进步中发现新的职业道路。"
+      }
+    }
+  },
+  "dashboard": {
+    "welcomeBack": "欢迎回来，{{name}}！",
+    "continueExploring": "继续探索你的STEM职业道路",
+    "currentLevel": "当前等级",
+    "scenariosDone": "已完成场景",
+    "badgesEarned": "已获徽章",
+    "decisionsMade": "已做决策",
+    "activeGoal": "当前目标：{{title}}",
+    "goalTailored": "所有功能均针对此职业定制",
+    "recommendedPaths": "推荐的职业道路",
+    "recommendedDesc": "根据你的兴趣和技能，这些职业非常适合你。",
+    "exploreAll": "探索所有职业道路",
+    "exploreAllDesc": "浏览所有可用的职业道路，包括最新生成的职业。",
+    "yourBadges": "你的徽章",
+    "recentDecisions": "最近的决策"
+  },
+  "onboarding": {
+    "howToStart": "你想如何开始？",
+    "howToStartDesc": "我们将使用你的答案来推荐个性化的STEM职业道路。",
+    "takeQuiz": "参加测验",
+    "quizDesc": "回答5个关于你的兴趣、技能和偏好的快速问题。",
+    "uploadResume": "上传简历",
+    "resumeDesc": "上传PDF简历，我们的AI将即时构建你的个人资料。",
+    "useLinkedIn": "使用LinkedIn",
+    "linkedInDesc": "粘贴你的LinkedIn个人资料摘要以自动构建你的资料。",
+    "analyzingResume": "正在分析你的简历...",
+    "analyzingResumeDesc": "我们的AI正在阅读你的经验以构建你的职业档案。",
+    "analyzingProfile": "正在分析你的资料...",
+    "analyzingProfileDesc": "我们的AI正在将你的LinkedIn经验映射到STEM职业。",
+    "discoverPaths": "发现我的职业",
+    "analyzing": "分析中...",
+    "analyzeResume": "分析简历",
+    "analyzeProfile": "分析资料",
+    "followUpBanner": "我们从你的简历中找到了一些信息，但需要更多细节。",
+    "step": "第 {{current}} 步，共 {{total}} 步",
+    "followUpStep": "跟进第 {{current}} 步，共 {{total}} 步",
+    "questions": {
+      "name": "你叫什么名字，未来的探索者？",
+      "interests": "哪些话题最让你兴奋？",
+      "skills": "你在哪些技能方面感觉最强？",
+      "workstyle": "什么样的工作环境吸引你？",
+      "motivation": "在职业中什么最能激励你？"
+    },
+    "linkedin": {
+      "title": "从LinkedIn导入",
+      "subtitle": "粘贴你的个人资料信息，我们将自动构建你的职业档案。",
+      "profileUrl": "个人资料URL",
+      "optional": "（可选）",
+      "profileText": "个人资料文本",
+      "required": "*",
+      "hint": "前往你的LinkedIn个人资料 → 复制你的<1>关于</1>部分和<3>经验</3>条目，然后粘贴到这里。",
+      "placeholder": "在这里粘贴你的LinkedIn关于部分、经验和技能…",
+      "charCount": "{{count}} 个字符",
+      "minChars": "最少需要30个字符",
+      "invalidUrl": "请输入有效的LinkedIn URL（例如 linkedin.com/in/yourname）",
+      "insufficientText": "请至少粘贴几句你的LinkedIn个人资料。"
+    },
+    "selectHint": "选择2-4个选项"
+  },
+  "skillbridge": {
+    "title": "技能桥梁",
+    "lead": "将你当前的技能与梦想工作进行比较，并遵循个性化的每周路线图来缩小差距。"
+  },
+  "interview": {
+    "title": "AI面试",
+    "mock": "模拟面试",
+    "history": "历史记录",
+    "resume": "简历优化",
+    "technical": "技术评估"
+  },
+  "footer": {
+    "copyright": "© 2026 STEM PathfindR",
+    "builtFor": "为学生、教育者和职业探索者打造。"
+  },
+  "assistant": {
+    "title": "AI助手",
+    "subtitle": "寻求职业、技能和下一步行动的帮助。",
+    "askAnything": "关于产品的任何问题都可以问",
+    "placeholder": "输入问题、目标或提示...",
+    "ready": "准备好接收消息。",
+    "welcome": "你好，我是你的助手。提出问题、分享目标或选择以下提示之一。",
+    "unavailable": "助手不可用。",
+    "error": "助手错误：无法连接后端。请稍后重试。",
+    "noResponse": "助手没有回复。"
+  },
+  "avatar": {
+    "close": "关闭AI助手",
+    "tellMeMore": "告诉我更多",
+    "thinking": "{{name}}正在思考..."
+  },
+  "language": {
+    "label": "语言",
+    "select": "选择语言"
+  }
+}

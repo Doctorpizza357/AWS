@@ -1,0 +1,119 @@
+/* ─── Language Switcher ─────────────────────────────────────────────────────── */
+
+.lang-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.lang-switcher-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary, #f8fafc);
+  background: var(--bg-card, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+.lang-switcher-btn:hover {
+  background: var(--bg-card-hover, #334155);
+  border-color: var(--primary, #6366f1);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.lang-switcher-btn:focus-visible {
+  outline: 2px solid var(--primary, #6366f1);
+  outline-offset: 2px;
+}
+
+.lang-switcher-flag {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.lang-switcher-code {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #94a3b8);
+}
+
+/* Dropdown */
+.lang-switcher-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1200;
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  min-width: 180px;
+  background: var(--bg-card, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  animation: langDropIn 0.15s ease-out;
+}
+
+@keyframes langDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.lang-switcher-dropdown li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lang-switcher-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: var(--text-primary, #f8fafc);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  text-align: left;
+}
+
+.lang-switcher-option:hover {
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.lang-switcher-option.active {
+  background: rgba(99, 102, 241, 0.18);
+  color: var(--primary-light, #a5b4fc);
+  font-weight: 600;
+}
+
+.lang-switcher-option:focus-visible {
+  outline: 2px solid var(--primary, #6366f1);
+  outline-offset: -2px;
+}
+
+.lang-option-flag {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.lang-option-label {
+  font-weight: 500;
+}

@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useUser } from '../context/UserContext';
+import { useAvatar } from '../context/AvatarContext';
+import { useInterview } from '../context/InterviewContext';
 import CareerCard from '../components/CareerCard';
 import DashboardSummaryCard from '../components/skillbridge/DashboardSummaryCard';
 import RoleModelPreview from '../components/RoleModelPreview';
@@ -12,12 +15,63 @@ import './Dashboard.css';
 function Dashboard() {
   const navigate = useNavigate();
   const { user, isHydrating } = useUser();
+  const { triggerCheckpoint } = useAvatar();
+  const { sessions } = useInterview();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!isHydrating && !user.isOnboarded) {
       navigate('/onboarding');
     }
   }, [isHydrating, user.isOnboarded, navigate]);
+
+  // ── Avatar: streak detection on Dashboard ──
+  useEffect(() => {
+    if (isHydrating || !user.isOnboarded) return;
+
+    // Check for consecutive-day streak via localStorage
+    const STREAK_KEY = 'avatar-streak-days';
+    const LAST_DAY_KEY = 'avatar-last-active-day';
+    const today = new Date().toDateString();
+    const lastDay = localStorage.getItem(LAST_DAY_KEY);
+
+    let streak = parseInt(localStorage.getItem(STREAK_KEY) || '0', 10);
+    if (lastDay === today) {
+      // Already counted today
+    } else {
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      if (lastDay === yesterday) {
+        streak += 1;
+      } else {
+        streak = 1; // reset
+      }
+      localStorage.setItem(STREAK_KEY, String(streak));
+      localStorage.setItem(LAST_DAY_KEY, today);
+    }
+
+    // Compute interview metrics
+    const interviewCount = Array.isArray(sessions) ? sessions.length : 0;
+    const avgInterviewScore = interviewCount > 0
+      ? Math.round(
+          sessions.reduce((sum, s) => {
+            const scores = (s.results || []).map((r) => r.score).filter(Number.isFinite);
+            return sum + (scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0);
+          }, 0) / interviewCount
+        )
+      : undefined;
+
+    if (streak >= 3) {
+      triggerCheckpoint('streak', {
+        eventId: `streak-${streak}`,
+        userName: user?.profile?.name || undefined,
+        xpLevel: user?.progress?.level,
+        currentXp: user?.progress?.xp,
+        interviewCount,
+        avgInterviewScore,
+        dreamJob: user?.activeCareerGoal?.title || undefined,
+      });
+    }
+  }, [isHydrating]); // eslint-disable-line
 
   if (isHydrating) {
     return null;
@@ -46,36 +100,36 @@ function Dashboard() {
       <div className="container">
         <header className="dashboard-header fade-in">
           <div className="welcome-section">
-            <h1>Welcome back, {profile.name}!</h1>
-            <p className="welcome-sub">Continue exploring your STEM career paths</p>
+            <h1>{t('dashboard.welcomeBack', { name: profile.name })}</h1>
+            <p className="welcome-sub">{t('dashboard.continueExploring')}</p>
           </div>
           <div className="stats-row">
             <div className="stat-card">
               <span className="stat-icon"><LevelIcon size={22} aria-hidden="true" /></span>
               <div>
                 <span className="stat-val">Level {progress.level}</span>
-                <span className="stat-lbl">Current Level</span>
+                <span className="stat-lbl">{t('dashboard.currentLevel')}</span>
               </div>
             </div>
             <div className="stat-card">
               <span className="stat-icon"><ScenarioIcon size={22} aria-hidden="true" /></span>
               <div>
                 <span className="stat-val">{progress.completedScenarios.length}</span>
-                <span className="stat-lbl">Scenarios Done</span>
+                <span className="stat-lbl">{t('dashboard.scenariosDone')}</span>
               </div>
             </div>
             <div className="stat-card">
               <span className="stat-icon"><BadgeCountIcon size={22} aria-hidden="true" /></span>
               <div>
                 <span className="stat-val">{progress.badges.length}</span>
-                <span className="stat-lbl">Badges Earned</span>
+                <span className="stat-lbl">{t('dashboard.badgesEarned')}</span>
               </div>
             </div>
             <div className="stat-card">
               <span className="stat-icon"><DecisionIcon size={22} aria-hidden="true" /></span>
               <div>
                 <span className="stat-val">{progress.decisions.length}</span>
-                <span className="stat-lbl">Decisions Made</span>
+                <span className="stat-lbl">{t('dashboard.decisionsMade')}</span>
               </div>
             </div>
           </div>
@@ -85,10 +139,10 @@ function Dashboard() {
           <div className="career-goal-banner">
             <span className="career-goal-banner-icon"><GoalIcon size={20} aria-hidden="true" /></span>
             <div className="career-goal-banner-text">
-              <strong>Active Goal: {user.activeCareerGoal.title}</strong>
-              <span>All features are tailored to this career path</span>
+              <strong>{t('dashboard.activeGoal', { title: user.activeCareerGoal.title })}</strong>
+              <span>{t('dashboard.goalTailored')}</span>
             </div>
-              <button className="career-goal-banner-change" onClick={handleChangeGoal}>Change</button>
+              <button className="career-goal-banner-change" onClick={handleChangeGoal}>{t('common.change')}</button>
           </div>
         )}
 
@@ -110,8 +164,8 @@ function Dashboard() {
         <RoleModelPreview />
 
         <section className="careers-section" id="recommended-paths">
-          <h2 className="section-heading">Your Recommended Paths</h2>
-          <p className="section-desc">Based on your interests and skills, these careers are a great match for you.</p>
+          <h2 className="section-heading">{t('dashboard.recommendedPaths')}</h2>
+          <p className="section-desc">{t('dashboard.recommendedDesc')}</p>
           <div className="careers-grid">
             {recommendedCareers.map((career, index) => (
               <CareerCard
@@ -124,8 +178,8 @@ function Dashboard() {
         </section>
 
         <section className="careers-section all-careers-section">
-          <h2 className="section-heading">Explore All Career Paths</h2>
-          <p className="section-desc">Browse every path available in the scenario builder, including the newest generated careers.</p>
+          <h2 className="section-heading">{t('dashboard.exploreAll')}</h2>
+          <p className="section-desc">{t('dashboard.exploreAllDesc')}</p>
           <div className="careers-grid">
             {careers.map((career) => (
               <CareerCard
@@ -139,7 +193,7 @@ function Dashboard() {
 
         {progress.badges.length > 0 && (
           <section className="badges-section">
-            <h2 className="section-heading">Your Badges</h2>
+            <h2 className="section-heading">{t('dashboard.yourBadges')}</h2>
             <div className="badges-grid">
               {progress.badges.map(badge => {
                 const BadgeIcon = getIconComponent(badge.icon);
@@ -156,7 +210,7 @@ function Dashboard() {
 
         {progress.decisions.length > 0 && (
           <section className="history-section">
-            <h2 className="section-heading">Recent Decisions</h2>
+            <h2 className="section-heading">{t('dashboard.recentDecisions')}</h2>
             <div className="decisions-list">
               {progress.decisions.slice(-5).reverse().map((decision, i) => (
                 <div key={i} className="decision-item slide-in" style={{ animationDelay: `${i * 0.1}s` }}>

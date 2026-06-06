@@ -1,0 +1,155 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "back": "Voltar",
+    "next": "Próximo",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "send": "Enviar",
+    "close": "Fechar",
+    "change": "Alterar",
+    "logIn": "Entrar",
+    "logOut": "Sair",
+    "profile": "Perfil",
+    "home": "Início",
+    "learnMore": "Saiba Mais ↓"
+  },
+  "brand": {
+    "name": "STEM PathfindR",
+    "tagline": "Descoberta personalizada de carreiras STEM, impulsionada por IA."
+  },
+  "nav": {
+    "dashboard": "Painel",
+    "skillbridge": "SkillBridge",
+    "marketIntel": "Mercado",
+    "interviewAI": "Entrevista IA",
+    "roleModels": "Modelos",
+    "leaderboard": "Ranking"
+  },
+  "landing": {
+    "badge": "Descoberta Gamificada de Carreiras",
+    "title": "Descubra Sua <1>Carreira STEM</1> Através da Aventura",
+    "subtitle": "Não apenas leia sobre carreiras. Experimente-as. Entre em cenários reais do dia a dia, tome decisões que moldam seu caminho e veja até onde suas forças podem levá-lo.",
+    "startAdventure": "Comece Sua Aventura",
+    "continueJourney": "Continuar Jornada",
+    "beginExploration": "Começar Exploração →",
+    "careerPaths": "Carreiras",
+    "scenarios": "Cenários",
+    "decisions": "Decisões",
+    "howItWorks": "Como Funciona",
+    "readyToFind": "Pronto para Encontrar Seu Caminho?",
+    "joinThousands": "Junte-se a milhares de estudantes descobrindo seu futuro STEM.",
+    "features": {
+      "quiz": {
+        "title": "Faça o Quiz",
+        "desc": "Conte-nos sobre seus interesses, habilidades e o que te empolga em STEM."
+      },
+      "ai": {
+        "title": "A IA Te Conecta",
+        "desc": "Nossa IA analisa seu perfil e recomenda carreiras personalizadas."
+      },
+      "game": {
+        "title": "Viva o Dia",
+        "desc": "Experimente cenários realistas e tome decisões que moldam sua jornada."
+      },
+      "level": {
+        "title": "Suba de Nível",
+        "desc": "Ganhe XP, desbloqueie insígnias e descubra novas carreiras conforme avança."
+      }
+    }
+  },
+  "dashboard": {
+    "welcomeBack": "Bem-vindo de volta, {{name}}!",
+    "continueExploring": "Continue explorando suas carreiras STEM",
+    "currentLevel": "Nível Atual",
+    "scenariosDone": "Cenários Concluídos",
+    "badgesEarned": "Insígnias Conquistadas",
+    "decisionsMade": "Decisões Tomadas",
+    "activeGoal": "Meta Ativa: {{title}}",
+    "goalTailored": "Todas as funcionalidades são adaptadas para esta carreira",
+    "recommendedPaths": "Suas Carreiras Recomendadas",
+    "recommendedDesc": "Com base em seus interesses e habilidades, estas carreiras combinam com você.",
+    "exploreAll": "Explorar Todas as Carreiras",
+    "exploreAllDesc": "Navegue por todas as carreiras disponíveis, incluindo as mais recentes.",
+    "yourBadges": "Suas Insígnias",
+    "recentDecisions": "Decisões Recentes"
+  },
+  "onboarding": {
+    "howToStart": "Como você gostaria de começar?",
+    "howToStartDesc": "Usaremos suas respostas para recomendar carreiras STEM personalizadas.",
+    "takeQuiz": "Fazer o Quiz",
+    "quizDesc": "Responda 5 perguntas rápidas sobre seus interesses, habilidades e preferências.",
+    "uploadResume": "Enviar Seu Currículo",
+    "resumeDesc": "Envie um currículo em PDF e nossa IA construirá seu perfil instantaneamente.",
+    "useLinkedIn": "Usar LinkedIn",
+    "linkedInDesc": "Cole seu resumo do LinkedIn para construir seu perfil automaticamente.",
+    "analyzingResume": "Analisando seu currículo...",
+    "analyzingResumeDesc": "Nossa IA está lendo sua experiência para construir seu perfil profissional.",
+    "analyzingProfile": "Analisando seu perfil...",
+    "analyzingProfileDesc": "Nossa IA está mapeando sua experiência do LinkedIn para carreiras STEM.",
+    "discoverPaths": "Descobrir Minhas Carreiras",
+    "analyzing": "Analisando...",
+    "analyzeResume": "Analisar Currículo",
+    "analyzeProfile": "Analisar Perfil",
+    "followUpBanner": "Encontramos informações no seu currículo mas precisamos de mais detalhes.",
+    "step": "Passo {{current}} de {{total}}",
+    "followUpStep": "Acompanhamento Passo {{current}} de {{total}}",
+    "questions": {
+      "name": "Qual é o seu nome, futuro explorador?",
+      "interests": "Quais temas mais te empolgam?",
+      "skills": "Em quais habilidades você se sente mais forte?",
+      "workstyle": "Qual ambiente de trabalho te atrai?",
+      "motivation": "O que mais te motiva em uma carreira?"
+    },
+    "linkedin": {
+      "title": "Importar do LinkedIn",
+      "subtitle": "Cole suas informações de perfil e construiremos seu perfil automaticamente.",
+      "profileUrl": "URL do Perfil",
+      "optional": "(opcional)",
+      "profileText": "Texto do Perfil",
+      "required": "*",
+      "hint": "Vá ao seu perfil do LinkedIn → copie sua seção <1>Sobre</1> e suas entradas de <3>Experiência</3>, então cole aqui.",
+      "placeholder": "Cole sua seção Sobre, experiência e habilidades do LinkedIn aqui…",
+      "charCount": "{{count}} caracteres",
+      "minChars": "Mínimo de 30 caracteres necessários",
+      "invalidUrl": "Digite uma URL válida do LinkedIn (ex. linkedin.com/in/seunome)",
+      "insufficientText": "Por favor cole pelo menos algumas frases do seu perfil do LinkedIn."
+    },
+    "selectHint": "Selecione 2 a 4 opções"
+  },
+  "skillbridge": {
+    "title": "SkillBridge",
+    "lead": "Compare suas habilidades atuais com seu emprego dos sonhos e siga um plano semanal personalizado."
+  },
+  "interview": {
+    "title": "Entrevista IA",
+    "mock": "Entrevista Simulada",
+    "history": "Histórico",
+    "resume": "Otimizar Currículo",
+    "technical": "Avaliação Técnica"
+  },
+  "footer": {
+    "copyright": "© 2026 STEM PathfindR",
+    "builtFor": "Feito para estudantes, educadores e exploradores de carreiras."
+  },
+  "assistant": {
+    "title": "Assistente IA",
+    "subtitle": "Peça ajuda com carreiras, habilidades e próximos passos.",
+    "askAnything": "Pergunte qualquer coisa sobre o produto",
+    "placeholder": "Digite uma pergunta, meta ou consulta...",
+    "ready": "Pronto para receber mensagens.",
+    "welcome": "Olá, sou seu assistente. Faça uma pergunta, compartilhe uma meta ou escolha um dos prompts.",
+    "unavailable": "O assistente não está disponível.",
+    "error": "Erro do assistente: Não foi possível conectar ao backend. Tente novamente mais tarde.",
+    "noResponse": "Sem resposta do assistente."
+  },
+  "avatar": {
+    "close": "Fechar assistente IA",
+    "tellMeMore": "Me conte mais",
+    "thinking": "{{name}} está pensando..."
+  },
+  "language": {
+    "label": "Idioma",
+    "select": "Selecionar idioma"
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 import { Trophy } from 'lucide-react';
@@ -9,6 +10,7 @@ import './Navbar.css';
 function Navbar() {
   const { user } = useUser();
   const { user: authUser } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -74,41 +76,41 @@ function Navbar() {
                 className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                Dashboard
+                {t('nav.dashboard')}
               </Link>
               <Link
                 to="/skillbridge"
                 className={`nav-link ${isActive('/skillbridge') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                SkillBridge
+                {t('nav.skillbridge')}
               </Link>
               <Link
                 to="/market-intelligence"
                 className={`nav-link mi-link ${isActive('/market-intelligence') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                Market Intel
+                {t('nav.marketIntel')}
               </Link>
               <Link
                 to="/interview"
                 className={`nav-link ${location.pathname.startsWith('/interview') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                Interview AI
+                {t('nav.interviewAI')}
               </Link>
               <Link
                 to="/role-models"
                 className={`nav-link ${isActive('/role-models') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                Role Models
+                {t('nav.roleModels')}
               </Link>
               <Link
                 to="/leaderboard"
                 className={`nav-link lb-link ${isActive('/leaderboard') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
-                title="Leaderboard"
+                title={t('nav.leaderboard')}
               >
                 <Trophy size={18} aria-hidden="true" />
               </Link>
@@ -135,7 +137,7 @@ function Navbar() {
                 to="/profile"
                 className="nav-profile-avatar"
                 onClick={() => setMenuOpen(false)}
-                title="Profile"
+                title={t('common.profile')}
               >
                 {authUser.photoURL ? (
                   <img src={authUser.photoURL} alt="Profile" className="nav-avatar-img" />
@@ -151,9 +153,9 @@ function Navbar() {
             <button
               className="nav-login"
               onClick={handleLoginClick}
-              title="Sign in or create account"
+              title={t('common.logIn')}
             >
-              Log In
+              {t('common.logIn')}
             </button>
           )}
         </div>

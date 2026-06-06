@@ -1,5 +1,7 @@
-import React, { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
+import React, { lazy, Suspense, useCallback, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import './i18n';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -13,11 +15,13 @@ import InterviewHistory from './pages/InterviewHistory';
 import Leaderboard from './pages/Leaderboard';
 import RoleModels from './pages/RoleModels';
 import AIAssistantPopup from './components/AIAssistantPopup';
+import AvatarCard from './components/AvatarCard';
 import ProtectedRoute from './components/ProtectedRoute';
 import { UserProvider } from './context/UserContext';
 import { MarketIntelligenceProvider } from './context/MarketIntelligenceContext';
 import { InterviewProvider } from './context/InterviewContext';
 import { SkillBridgeProvider } from './context/SkillBridgeContext';
+import { AvatarProvider, useAvatar } from './context/AvatarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 
@@ -55,10 +59,57 @@ const MockInterview = lazyWithRetry(() => import('./pages/MockInterview'), 'mock
 const ResumeTailor = lazyWithRetry(() => import('./pages/ResumeTailor'), 'resume-tailor');
 const TechnicalAssessment = lazyWithRetry(() => import('./pages/TechnicalAssessment'), 'technical-assessment');
 
+// Connected AvatarCard that reads from AvatarContext and passes props.
+// Also feeds real user metrics for context-aware AI tips and handles navigation.
+function ConnectedAvatarCard() {
+  const { state, dismiss } = useAvatar();
+  const navigate = useNavigate();
+
+  const handleContinue = useCallback(() => {
+    // Record positive mood signal — user is engaged
+    import('./services/moodService').then(({ recordSignal }) => {
+      recordSignal('tell_me_more');
+    });
+
+    const event = new CustomEvent('avatar:continue-conversation', {
+      detail: {
+        message: state.currentMessage,
+        checkpointId: state.checkpointId,
+        avatarName: state.currentAvatar?.displayName,
+      },
+    });
+    window.dispatchEvent(event);
+    dismiss();
+  }, [state.currentMessage, state.checkpointId, state.currentAvatar, dismiss]);
+
+  const handleActionClick = useCallback((path) => {
+    // Record positive mood signal — user followed actionable advice
+    import('./services/moodService').then(({ recordSignal }) => {
+      recordSignal('tell_me_more');
+    });
+    dismiss();
+    navigate(path);
+  }, [dismiss, navigate]);
+
+  return (
+    <AvatarCard
+      avatar={state.currentAvatar}
+      message={state.currentMessage}
+      actionLink={state.actionLink}
+      isLoading={state.isLoading}
+      onDismiss={dismiss}
+      onContinue={handleContinue}
+      onActionClick={handleActionClick}
+      isVisible={state.isVisible}
+    />
+  );
+}
+
 // Inner component that uses useAuth (must be inside AuthProvider)
 function AppContent() {
   const { user } = useAuth();
   const location = useLocation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -71,6 +122,7 @@ function AppContent() {
     <UserProvider>
       <InterviewProvider>
         <SkillBridgeProvider>
+          <AvatarProvider>
           <div className="app">
             {showNavbar && <Navbar />}
             <main className="main-content">
@@ -103,28 +155,30 @@ function AppContent() {
             <footer className="site-footer">
               <div className="site-footer__inner">
                 <div className="site-footer__brand">
-                  <span className="site-footer__name">STEM PathfindR</span>
+                  <span className="site-footer__name">{t('brand.name')}</span>
                   <p className="site-footer__text">
-                    Personalized STEM career discovery, powered by AI.
+                    {t('brand.tagline')}
                   </p>
                 </div>
 
                 <div className="site-footer__links" aria-label="Footer links">
-                  <Link to="/" className="site-footer__link">Home</Link>
-                  <Link to="/dashboard" className="site-footer__link">Dashboard</Link>
-                  <Link to="/market-intelligence" className="site-footer__link">Market Intel</Link>
-                  <Link to="/interview" className="site-footer__link">Interview AI</Link>
-                  <Link to="/profile" className="site-footer__link">Profile</Link>
+                  <Link to="/" className="site-footer__link">{t('common.home')}</Link>
+                  <Link to="/dashboard" className="site-footer__link">{t('nav.dashboard')}</Link>
+                  <Link to="/market-intelligence" className="site-footer__link">{t('nav.marketIntel')}</Link>
+                  <Link to="/interview" className="site-footer__link">{t('nav.interviewAI')}</Link>
+                  <Link to="/profile" className="site-footer__link">{t('common.profile')}</Link>
                 </div>
 
                 <div className="site-footer__meta">
-                  <span>© 2026 STEM PathfindR</span>
-                  <span>Built for students, educators, and career explorers.</span>
+                  <span>{t('footer.copyright')}</span>
+                  <span>{t('footer.builtFor')}</span>
                 </div>
               </div>
             </footer>
             <AIAssistantPopup />
+            <ConnectedAvatarCard />
           </div>
+          </AvatarProvider>
         </SkillBridgeProvider>
       </InterviewProvider>
     </UserProvider>

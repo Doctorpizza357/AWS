@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInterview } from '../context/InterviewContext';
 import { useUser } from '../context/UserContext';
+import { useAvatar } from '../context/AvatarContext';
 import { generateInterviewQuestions, analyzeInterviewResponse } from '../services/interviewService';
 import { speakText, stopSpeaking, isSpeaking } from '../services/ttsService';
 import { MLBodyAnalyzer } from '../services/poseAnalyzer';
@@ -103,8 +104,30 @@ class BodyAnalyzer {
 
 export default function MockInterview() {
   const navigate = useNavigate();
-  const { jobDescription, addSession } = useInterview();
+  const { jobDescription, addSession, sessions } = useInterview();
   const { user } = useUser();
+  const { triggerCheckpoint } = useAvatar();
+
+  // Compute interview metrics for the AI prompt
+  const interviewCount = Array.isArray(sessions) ? sessions.length : 0;
+  const avgInterviewScore = interviewCount > 0
+    ? Math.round(
+        sessions.reduce((sum, s) => {
+          const scores = (s.results || []).map((r) => r.score).filter(Number.isFinite);
+          return sum + (scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0);
+        }, 0) / interviewCount
+      )
+    : undefined;
+
+  // Trigger avatar checkpoint on mount with real metrics
+  useEffect(() => {
+    triggerCheckpoint('mock-interview', {
+      userName: user?.profile?.name || user?.name || undefined,
+      interviewCount,
+      avgInterviewScore,
+      xpLevel: user?.progress?.level,
+    });
+  }, []); // eslint-disable-line
   const [phase, setPhase] = useState('setup');
   const [selectedType, setSelectedType] = useState('technical');
   const [questions, setQuestions] = useState([]);
@@ -863,6 +886,30 @@ export default function MockInterview() {
         pushSpeechLog('error', 'addSession failed', { message: e?.message });
       }
       setPhase('done');
+
+      // ── Event-based avatar trigger: interview complete ──
+      const completedScores = results
+        .map((r) => r.score || r.confidence)
+        .filter(Number.isFinite);
+      const avgScore = completedScores.length > 0
+        ? Math.round(completedScores.reduce((a, b) => a + b, 0) / completedScores.length)
+        : undefined;
+
+      // Record mood signal based on performance
+      import('../services/moodService').then(({ recordSignal }) => {
+        if (avgScore !== undefined) {
+          if (avgScore >= 90) recordSignal('interview_great');
+          else if (avgScore >= 70) recordSignal('interview_pass');
+          else if (avgScore < 40) recordSignal('interview_fail');
+        }
+      });
+
+      triggerCheckpoint('interview-complete', {
+        eventId: `interview-${Date.now()}`,
+        userName: user?.profile?.name || user?.name || undefined,
+        avgInterviewScore: avgScore,
+        interviewCount: interviewCount + 1,
+      });
     }
   };
 
