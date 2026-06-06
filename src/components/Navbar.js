@@ -98,6 +98,13 @@ function Navbar() {
                 Interview AI
               </Link>
               <Link
+                to="/role-models"
+                className={`nav-link ${isActive('/role-models') ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Role Models
+              </Link>
+              <Link
                 to="/leaderboard"
                 className={`nav-link lb-link ${isActive('/leaderboard') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}

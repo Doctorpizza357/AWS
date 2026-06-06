@@ -72,4 +72,13 @@ module.exports = function (app) {
       pathRewrite: { '^/api/linkedin': '/api/linkedin' },
     })
   );
+
+  app.use(
+    '/api/role-models',
+    createProxyMiddleware({
+      target: 'http://localhost:5000',
+      changeOrigin: true,
+      pathRewrite: { '^/api/role-models': '/api/role-models' },
+    })
+  );
 };

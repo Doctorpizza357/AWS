@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import CareerCard from '../components/CareerCard';
 import DashboardSummaryCard from '../components/skillbridge/DashboardSummaryCard';
+import RoleModelPreview from '../components/RoleModelPreview';
 import NextSteps from '../components/NextSteps';
 import careers from '../data/careers';
 import { getIconComponent } from '../utils/iconMap';
@@ -105,6 +106,8 @@ function Dashboard() {
           </h2>
           <DashboardSummaryCard />
         </section>
+
+        <RoleModelPreview />
 
         <section className="careers-section" id="recommended-paths">
           <h2 className="section-heading">Your Recommended Paths</h2>

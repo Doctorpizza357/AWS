@@ -1288,6 +1288,208 @@ app.post('/api/linkedin/analyze', async (req, res) => {
   }
 });
 
+// ─── Role Model Matching Endpoint ────────────────────────────────────────────
+
+// Map career titles to Wikidata occupation entity IDs
+const CAREER_TO_WIKIDATA_OCCUPATIONS = {
+  'software engineer': ['Q82594'],        // computer scientist
+  'data scientist': ['Q82594', 'Q170790'], // computer scientist, statistician
+  'biomedical engineer': ['Q2919046'],    // biomedical engineer
+  'aerospace engineer': ['Q15895020'],    // aerospace engineer
+  'environmental scientist': ['Q16742096', 'Q520549'], // environmental scientist, ecologist
+  'cybersecurity analyst': ['Q82594'],    // computer scientist
+  'cloud architect': ['Q82594'],          // computer scientist
+  'robotics engineer': ['Q15895020', 'Q81096'], // aerospace engineer, engineer
+  'renewable energy engineer': ['Q81096', 'Q16742096'], // engineer, environmental scientist
+};
+
+// Fallback occupation IDs for general STEM
+const FALLBACK_OCCUPATIONS = ['Q82594', 'Q81096', 'Q170790']; // computer scientist, engineer, statistician
+
+async function queryWikidataForPeople(occupationIds, limit = 15) {
+  const occupationValues = occupationIds.map(id => `wd:${id}`).join(' ');
+
+  const sparql = `
+SELECT DISTINCT ?person ?personLabel ?personDescription ?occupationLabel ?employerLabel ?article WHERE {
+  ?person wdt:P31 wd:Q5 .
+  ?person wdt:P106 ?occupation .
+  VALUES ?occupation { ${occupationValues} }
+  ?person wdt:P21 ?gender .
+  OPTIONAL { ?person wdt:P108 ?employer . }
+  ?article schema:about ?person .
+  ?article schema:isPartOf <https://en.wikipedia.org/> .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+LIMIT ${limit}
+  `.trim();
+
+  const url = 'https://query.wikidata.org/sparql';
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/sparql-results+json',
+      'User-Agent': 'STEMPathfindR/1.0 (educational project)',
+    },
+    body: `query=${encodeURIComponent(sparql)}`,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Wikidata SPARQL query failed (${response.status}): ${text.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  const results = data.results?.bindings || [];
+
+  // Deduplicate by person URI and build structured list
+  const seen = new Set();
+  const people = [];
+  for (const row of results) {
+    const uri = row.person?.value || '';
+    if (seen.has(uri)) continue;
+    seen.add(uri);
+
+    const name = row.personLabel?.value || '';
+    // Skip items that look like QIDs (unresolved labels)
+    if (!name || /^Q\d+$/.test(name)) continue;
+
+    const wikiUrl = row.article?.value || '';
+
+    people.push({
+      name,
+      description: row.personDescription?.value || '',
+      occupation: row.occupationLabel?.value || '',
+      organization: row.employerLabel?.value || '',
+      wikiUrl,
+    });
+  }
+
+  return people;
+}
+
+const ROLE_MODEL_MATCH_SYSTEM_PROMPT = `You are a role model matching assistant. You will be given a list of REAL people from Wikidata and a student's profile. Your job is to pick the 3 best matches and write personalized content for each.
+
+You MUST only use people from the provided list. Do NOT add anyone else. Do NOT change their names.
+
+Always respond with valid JSON only. No markdown fences or extra text.`;
+
+app.post('/api/role-models/match', async (req, res) => {
+  const { profile, activeCareerGoal, recommendedCareers } = req.body || {};
+
+  if (!profile || typeof profile !== 'object') {
+    return res.status(400).json({ ok: false, message: 'Missing profile in request body' });
+  }
+
+  if (!hasBedrockConfig()) {
+    return res.status(501).json({
+      ok: false,
+      message: 'Role model matching backend not configured. Ensure AWS Bedrock credentials are set.',
+    });
+  }
+
+  try {
+    // Determine which occupations to query from Wikidata
+    const careerTitle = activeCareerGoal?.title
+      || (recommendedCareers && recommendedCareers.length > 0 ? recommendedCareers[0].title : '');
+    const careerKey = careerTitle.toLowerCase();
+    const occupationIds = CAREER_TO_WIKIDATA_OCCUPATIONS[careerKey] || FALLBACK_OCCUPATIONS;
+
+    // Step 1: Get verified real people from Wikidata
+    let wikidataPeople = [];
+    try {
+      wikidataPeople = await queryWikidataForPeople(occupationIds, 15);
+    } catch (wikiErr) {
+      console.error('Wikidata query failed, falling back:', wikiErr);
+      // If Wikidata is down, try fallback occupations
+      try {
+        wikidataPeople = await queryWikidataForPeople(FALLBACK_OCCUPATIONS, 15);
+      } catch (fallbackErr) {
+        console.error('Wikidata fallback also failed:', fallbackErr);
+      }
+    }
+
+    if (wikidataPeople.length === 0) {
+      return res.status(502).json({ ok: false, message: 'Could not fetch role model data. Please try again later.' });
+    }
+
+    // Step 2: Use Bedrock to pick the 3 best matches and write personalized content
+    const interests = Array.isArray(profile.interests) ? profile.interests.join(', ') : 'Not specified';
+    const skills = Array.isArray(profile.skills) ? profile.skills.join(', ') : 'Not specified';
+    const motivation = profile.preferences?.motivation || 'Not specified';
+
+    const peopleList = wikidataPeople.map((p, i) =>
+      `${i + 1}. ${p.name} — ${p.description || 'No description'}${p.organization ? ` (${p.organization})` : ''}`
+    ).join('\n');
+
+    const prompt = `Here are REAL verified people from Wikidata who work in ${careerTitle || 'STEM'}:
+
+${peopleList}
+
+Student profile:
+- Career goal: ${careerTitle || 'General STEM'}
+- Interests: ${interests}
+- Skills: ${skills}
+- Motivation: ${motivation}
+
+Pick the 3 people from the list above who would be the BEST role models for this student. Then for each, write:
+- A 2-3 sentence bio about their career journey
+- Why they're a great match for this student (1-2 sentences)
+- 3 key achievements
+
+Return JSON:
+{
+  "roleModels": [
+    {
+      "id": "kebab-case-id",
+      "name": "EXACT name from the list above — do not modify",
+      "title": "Their job title or role",
+      "organization": "Where they work/worked",
+      "field": "${careerTitle || 'STEM'}",
+      "bio": "2-3 sentence bio",
+      "matchReason": "Why they match this student",
+      "achievements": ["achievement 1", "achievement 2", "achievement 3"]
+    }
+  ]
+}
+
+RULES:
+- You MUST use the EXACT names from the list. Do not rename anyone or add people not on the list.
+- Pick people who are diverse (different backgrounds, perspectives).
+- The matchReason should reference the student's specific interests/skills/motivation.`;
+
+    const responseText = await invokeBedrockConverse({
+      messages: [{ role: 'user', content: [{ text: prompt }] }],
+      systemPrompt: ROLE_MODEL_MATCH_SYSTEM_PROMPT,
+      maxTokens: 2000,
+      temperature: 0.3,
+      topP: 0.9,
+    });
+
+    const parsed = parseJsonFromResponse(responseText);
+    const roleModels = Array.isArray(parsed.roleModels) ? parsed.roleModels : [];
+
+    // Enrich with verified Wikipedia URLs from Wikidata results
+    const wikiUrlMap = {};
+    for (const p of wikidataPeople) {
+      wikiUrlMap[p.name.toLowerCase()] = p.wikiUrl;
+    }
+
+    const enriched = roleModels.map(model => {
+      const wikiUrl = wikiUrlMap[model.name.toLowerCase()] || '';
+      return {
+        ...model,
+        sourceUrl: wikiUrl || `https://www.google.com/search?q=${encodeURIComponent(model.name + ' ' + (model.field || 'STEM'))}`,
+      };
+    });
+
+    return res.json({ ok: true, roleModels: enriched });
+  } catch (err) {
+    console.error('Role model matching failed:', err);
+    return res.status(500).json({ ok: false, message: 'Role model matching failed', error: String(err) });
+  }
+});
+
 app.use((_req, res) => {
   res.status(404).json({ ok: false, message: 'Not found' });
 });

@@ -11,6 +11,7 @@ import Profile from './pages/Profile';
 import SkillBridge from './pages/SkillBridge';
 import InterviewHistory from './pages/InterviewHistory';
 import Leaderboard from './pages/Leaderboard';
+import RoleModels from './pages/RoleModels';
 import AIAssistantPopup from './components/AIAssistantPopup';
 import ProtectedRoute from './components/ProtectedRoute';
 import { UserProvider } from './context/UserContext';
@@ -94,6 +95,7 @@ function AppContent() {
                   <Route path="/interview/resume" element={<ResumeTailor />} />
                   <Route path="/interview/technical" element={<TechnicalAssessment />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />
+                  <Route path="/role-models" element={<RoleModels />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </Suspense>

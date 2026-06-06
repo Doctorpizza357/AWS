@@ -188,6 +188,23 @@ function getFallbackScenario(career, scenario) {
   return fallbacks[scenario.id] || genericFallback;
 }
 
+export async function fetchRoleModelMatches({ profile, activeCareerGoal, recommendedCareers }) {
+  const response = await fetch('/api/role-models/match', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ profile, activeCareerGoal, recommendedCareers }),
+  });
+
+  const json = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message = (json && json.message) || `Role model matching returned ${response.status}`;
+    throw new Error(message);
+  }
+
+  return json.roleModels || [];
+}
+
 export async function sendAssistantMessage(message) {
   if (!message || typeof message !== 'string') {
     throw new Error('Empty message');
