@@ -57,5 +57,8 @@
     "identity-obj-proxy": "3.0.0",
     "jest": "27.5.1",
     "jest-environment-jsdom": "27.5.1"
+  },
+  "overrides": {
+    "typescript": "^5.0.0"
   }
 }

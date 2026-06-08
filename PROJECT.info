@@ -1,0 +1,55 @@
+================================================================================
+                         STEM PathfindR — Project Info
+                           AWS Hackathon 2026
+================================================================================
+
+LIVE APPLICATION
+────────────────
+https://stem-pathfindr.vercel.app/
+
+GITHUB REPOSITORIES
+───────────────────
+https://github.com/Doctorpizza357/AWS
+
+Branches:
+  • main              — Primary source code
+  • deploy/vercel-render — Syncs main code with extra configuration files
+                               for Render (backend) and Vercel (frontend) deployment
+
+================================================================================
+
+HOW IT WORKS
+────────────
+
+STEM PathfindR is an AI-powered gamified STEM career discovery platform that
+helps high school and college students find their ideal STEM career through
+interactive simulations, real-time labor market data, and a full interview
+preparation suite.
+
+The platform flow:
+
+  1. ONBOARD    — Students take a 5-step quiz or upload their resume for AI
+                  profile extraction via AWS Bedrock (Claude 3.5 Sonnet).
+
+  2. DISCOVER   — The AI matches students with personalized career
+                  recommendations from 9 fully-developed STEM career paths.
+
+  3. SIMULATE   — Students enter immersive AI-generated day-in-the-life
+                  scenarios, make branching decisions, and earn XP + badges.
+
+  4. ANALYZE    — A live Market Intelligence dashboard powered by Bureau of
+                  Labor Statistics (BLS) API v2 shows real salary projections,
+                  geographic demand heatmaps, and career viability scores.
+
+  5. PREPARE    — The Interview Intelligence Suite provides:
+                    • Smart Resume Engine — PDF upload → ATS scoring → keyword
+                      gap analysis → AI-optimized resume generation
+                    • AI Mock Interview — Video + Web Speech API transcription +
+                      real-time body language analysis (TensorFlow.js MoveNet)
+                    • Technical Assessment — Coding problems with in-browser
+                      execution (JS + Python via Pyodide WASM) + AI code review
+
+  6. PROGRESS   — Students level up, collect achievement badges, and refine
+                  their career direction over time.
+
+================================================================================
