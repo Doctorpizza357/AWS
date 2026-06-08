@@ -648,3 +648,26 @@ a {
 [data-theme="light"] .mi-speech-log-row {
   border-bottom-color: #f1f5f9;
 }
+
+/* ─── Avatar Card buttons in light mode ───────────────────────────────────── */
+[data-theme="light"] .avatar-card-action {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.08);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+[data-theme="light"] .avatar-card-action:hover {
+  background: rgba(217, 119, 6, 0.15);
+  border-color: rgba(217, 119, 6, 0.5);
+}
+
+[data-theme="light"] .avatar-card-continue {
+  color: #4f46e5;
+  background: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.25);
+}
+
+[data-theme="light"] .avatar-card-continue:hover {
+  background: rgba(79, 70, 229, 0.15);
+  border-color: rgba(79, 70, 229, 0.4);
+}

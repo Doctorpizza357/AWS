@@ -226,24 +226,53 @@ export function AvatarProvider({ children }) {
 
   /**
    * Parse action links from AI response.
-   * Format: "Some message [Click here](/skillbridge)"
-   * Returns { text, link } or null
+   * Supported formats:
+   *   - "[Click here](/skillbridge)"         — standard markdown
+   *   - "[/skillbridge]"                     — bare path in brackets
+   *   - "🚀[/skillbridge]"                   — emoji before bracket path
+   *   - "text → /skillbridge"               — arrow format
+   * Returns { text, path } or null
    */
   function parseActionLink(message) {
     if (!message) return null;
-    const match = message.match(/\[([^\]]+)\]\(([^)]+)\)/);
-    if (match) {
-      return { text: match[1], path: match[2] };
+    // Standard markdown link format: [text](path)
+    const mdMatch = message.match(/\[([^\]]+)\]\(([^)]+)\)/);
+    if (mdMatch) {
+      return { text: mdMatch[1].trim(), path: mdMatch[2].trim() };
+    }
+    // Bare path in brackets: [/skillbridge] or emoji[/skillbridge]
+    const barePathMatch = message.match(/\[(\/[a-z][a-z0-9/\-]*)\]/i);
+    if (barePathMatch) {
+      const path = barePathMatch[1].trim();
+      const label = path.split('/').filter(Boolean).pop().replace(/-/g, ' ');
+      return { text: label.charAt(0).toUpperCase() + label.slice(1) + ' →', path };
+    }
+    // Arrow format: "Practice interviews → /interview/mock"
+    const arrowMatch = message.match(/(.+?)\s*(?:→|->|=>)\s*(\/[a-z][a-z0-9/\-]*)/i);
+    if (arrowMatch) {
+      return { text: arrowMatch[1].trim(), path: arrowMatch[2].trim() };
+    }
+    // Bare path at end of message: "... Try it at /interview/mock"
+    const tryMatch = message.match(/(?:try|visit|go to|check out|head to|start)\s+(?:it\s+)?(?:at\s+)?(\/[a-z][a-z0-9/\-]*)/i);
+    if (tryMatch) {
+      const path = tryMatch[1].trim();
+      return { text: 'Go there →', path };
     }
     return null;
   }
 
   /**
-   * Strip the markdown link syntax from the display message
+   * Strip the link syntax from the display message
    */
   function stripLinkFromMessage(message) {
     if (!message) return message;
-    return message.replace(/\s*\[([^\]]+)\]\([^)]+\)/, '').trim();
+    // Remove markdown links [text](path)
+    let clean = message.replace(/\s*\[([^\]]+)\]\([^)]+\)/, '').trim();
+    // Remove bare path in brackets [/path] (possibly preceded by emoji)
+    clean = clean.replace(/\s*[^\s\w]*\[\/[a-z][a-z0-9/\-]*\]/i, '').trim();
+    // Remove arrow-style links
+    clean = clean.replace(/\s*(?:→|->|=>)\s*\/[a-z][a-z0-9/\-]*/i, '').trim();
+    return clean;
   }
 
   const triggerCheckpoint = useCallback((cpId, options = {}) => {
