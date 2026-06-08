@@ -1,0 +1,37 @@
+.theme-toggle-fab {
+  position: fixed;
+  bottom: 90px;
+  right: 28px;
+  z-index: 1150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.theme-toggle-fab:hover {
+  color: var(--accent);
+  transform: scale(1.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-fab:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+[data-theme="light"] .theme-toggle-fab {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .theme-toggle-fab:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}

@@ -20,6 +20,20 @@
   --gradient-3: linear-gradient(135deg, #10b981, #06b6d4);
 }
 
+/* Light mode overrides */
+[data-theme="light"] {
+  --bg-dark: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --primary-light: #818cf8;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -32,6 +46,7 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 button {
@@ -97,4 +112,539 @@ a {
 
 .slide-in {
   animation: slideIn 0.4s ease forwards;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LIGHT MODE — Component-level overrides for hardcoded dark backgrounds
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Market Intelligence Page ────────────────────────────────────────────── */
+[data-theme="light"] .market-intelligence {
+  background: #f1f5f9;
+}
+
+[data-theme="light"] .mi-title {
+  color: #0f172a;
+}
+
+[data-theme="light"] .mi-title-accent {
+  background: linear-gradient(135deg, #4f46e5, #0891b2);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+[data-theme="light"] .mi-subtitle,
+[data-theme="light"] .mi-status-text,
+[data-theme="light"] .mi-last-updated {
+  color: #64748b;
+}
+
+[data-theme="light"] .mi-selector {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme="light"] .mi-selector:hover,
+[data-theme="light"] .mi-selector:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 12px rgba(79, 70, 229, 0.1);
+}
+
+[data-theme="light"] .mi-panel-nav {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .mi-panel-tab {
+  color: #64748b;
+}
+
+[data-theme="light"] .mi-panel-tab:hover {
+  color: #475569;
+  background: #f8fafc;
+}
+
+[data-theme="light"] .mi-panel-tab.active {
+  background: #f1f5f9;
+  color: #4f46e5;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+}
+
+[data-theme="light"] .mi-panel {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .mi-panel:hover {
+  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .mi-panel-header h3 {
+  color: #0f172a;
+}
+
+[data-theme="light"] .mi-panel-badge {
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+}
+
+[data-theme="light"] .mi-skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+}
+
+/* ─── Market Components (Heatmap, Salary, Viability, Stream) ─────────────── */
+[data-theme="light"] .heatmap-tooltip,
+[data-theme="light"] .salary-tooltip,
+[data-theme="light"] .viability-tooltip {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .tooltip-header,
+[data-theme="light"] .salary-tooltip-header,
+[data-theme="light"] .viability-tooltip-header {
+  color: #0f172a;
+  border-bottom-color: #e2e8f0;
+}
+
+[data-theme="light"] .tooltip-row,
+[data-theme="light"] .salary-tooltip-row {
+  color: #64748b;
+}
+
+[data-theme="light"] .tooltip-value,
+[data-theme="light"] .salary-tooltip-value {
+  color: #0f172a;
+}
+
+[data-theme="light"] .tooltip-value.positive,
+[data-theme="light"] .viability-tooltip-score {
+  color: #059669;
+}
+
+[data-theme="light"] .heatmap-legend {
+  border-top-color: #e2e8f0;
+}
+
+[data-theme="light"] .legend-label,
+[data-theme="light"] .center-score-label {
+  color: #64748b;
+}
+
+[data-theme="light"] .center-score-value {
+  color: #059669;
+}
+
+[data-theme="light"] .heatmap-detail {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .heatmap-detail h4 {
+  color: #4f46e5;
+}
+
+[data-theme="light"] .detail-value {
+  color: #0f172a;
+}
+
+[data-theme="light"] .detail-value.positive {
+  color: #059669;
+}
+
+[data-theme="light"] .detail-label {
+  color: #64748b;
+}
+
+/* Salary Arc */
+[data-theme="light"] .percentile-selector {
+  background: #f1f5f9;
+}
+
+[data-theme="light"] .percentile-btn {
+  color: #64748b;
+}
+
+[data-theme="light"] .percentile-btn.active {
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .legend-item {
+  color: #64748b;
+}
+
+[data-theme="light"] .salary-insights {
+  border-top-color: #e2e8f0;
+}
+
+[data-theme="light"] .insight-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .insight-value {
+  color: #0f172a;
+}
+
+[data-theme="light"] .insight-value.accent {
+  color: #059669;
+}
+
+[data-theme="light"] .insight-label {
+  color: #64748b;
+}
+
+[data-theme="light"] .salary-empty,
+[data-theme="light"] .viability-empty,
+[data-theme="light"] .stream-empty {
+  color: #94a3b8;
+}
+
+/* Viability Radar */
+[data-theme="light"] .viability-dimensions {
+  border-top-color: #e2e8f0;
+}
+
+[data-theme="light"] .dimension-name {
+  color: #0f172a;
+}
+
+[data-theme="light"] .dimension-bar {
+  background: #e2e8f0;
+}
+
+[data-theme="light"] .dimension-score {
+  color: #64748b;
+}
+
+/* Stream Matrix */
+[data-theme="light"] .stream-filter-btn {
+  background: #f8fafc;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .stream-filter-btn:hover {
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .stream-filter-btn.active {
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+  border-color: rgba(79, 70, 229, 0.3);
+}
+
+[data-theme="light"] .stream-refresh-btn {
+  background: #ffffff;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .stream-refresh-btn:hover {
+  color: #4f46e5;
+  border-color: rgba(79, 70, 229, 0.3);
+}
+
+[data-theme="light"] .stream-item {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .stream-item:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+[data-theme="light"] .stream-job-title {
+  color: #0f172a;
+}
+
+[data-theme="light"] .stream-job-meta {
+  color: #64748b;
+}
+
+[data-theme="light"] .stream-company {
+  color: #475569;
+}
+
+[data-theme="light"] .stream-separator {
+  color: #cbd5e1;
+}
+
+[data-theme="light"] .stream-salary {
+  color: #059669;
+}
+
+[data-theme="light"] .stream-time {
+  color: #94a3b8;
+}
+
+[data-theme="light"] .stream-status {
+  border-top-color: #e2e8f0;
+}
+
+[data-theme="light"] .stream-status-text {
+  color: #64748b;
+}
+
+/* ─── AI Assistant Popup ──────────────────────────────────────────────────── */
+[data-theme="light"] .ai-panel {
+  background:
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.06), transparent 38%),
+    linear-gradient(180deg, #ffffff, #f8fafc);
+  color: #0f172a;
+  border-color: #e2e8f0;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .ai-panel h2 {
+  color: #0f172a;
+}
+
+[data-theme="light"] .ai-panel-subtitle {
+  color: #64748b;
+}
+
+[data-theme="light"] .ai-panel-eyebrow {
+  color: #4f46e5;
+}
+
+[data-theme="light"] .ai-close {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+[data-theme="light"] .ai-message-bubble {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .ai-message-bubble p {
+  color: #0f172a;
+}
+
+[data-theme="light"] .ai-message-row.user .ai-message-bubble {
+  background: linear-gradient(135deg, #4f46e5, #0891b2);
+}
+
+[data-theme="light"] .ai-message-role {
+  color: #64748b;
+}
+
+[data-theme="light"] .ai-input {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme="light"] .ai-input::placeholder {
+  color: #94a3b8;
+}
+
+[data-theme="light"] .ai-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+[data-theme="light"] .ai-composer-note {
+  color: #94a3b8;
+}
+
+[data-theme="light"] .ai-launcher {
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  color: #0f172a;
+  border-color: #e2e8f0;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .ai-launcher-text small {
+  color: #64748b;
+}
+
+[data-theme="light"] .ai-backdrop.visible {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Avatar Card ─────────────────────────────────────────────────────────── */
+[data-theme="light"] .avatar-card {
+  background:
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.06), transparent 40%),
+    linear-gradient(180deg, #ffffff, #f8fafc);
+  color: #0f172a;
+  border-color: #e2e8f0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .avatar-card-name {
+  color: #0f172a;
+}
+
+[data-theme="light"] .avatar-card-message {
+  color: #475569;
+}
+
+[data-theme="light"] .avatar-card-close {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+[data-theme="light"] .avatar-card-close:hover {
+  background: #e2e8f0;
+}
+
+[data-theme="light"] .avatar-card-footer {
+  border-top-color: #e2e8f0;
+}
+
+/* ─── Mock Interview ──────────────────────────────────────────────────────── */
+[data-theme="light"] .mi-loading-overlay {
+  background: radial-gradient(circle at center, rgba(248,250,252,0.75), rgba(241,245,249,0.92));
+}
+
+[data-theme="light"] .mi-loading-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+  box-shadow: 0 20px 45px rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .mi-analysis-loading {
+  background: rgba(248,250,252,0.62);
+}
+
+[data-theme="light"] .mi-analysis-loading-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .mi-analysis-loading-inline {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .mi-analysis-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .mi-replay-text {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .mi-improvement-track {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .mi-improvement-target {
+  background: #0f172a;
+}
+
+[data-theme="light"] .mi-metric-tile {
+  background: linear-gradient(180deg, rgba(79,70,229,0.04), rgba(255,255,255,1));
+}
+
+[data-theme="light"] .mi-skeleton-box {
+  background: linear-gradient(180deg, #f1f5f9, #e2e8f0);
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .mi-mic-meter-track {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .mi-settings-btn {
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .mi-settings-btn:hover {
+  background: #f8fafc;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+[data-theme="light"] .mi-overlay-toggle {
+  background: rgba(255,255,255,0.85);
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+/* ─── Technical Assessment ────────────────────────────────────────────────── */
+[data-theme="light"] .ta-editor {
+  background: #1e1e2e;
+  color: #cdd6f4;
+}
+
+/* ─── GapRadarChart ───────────────────────────────────────────────────────── */
+[data-theme="light"] .gap-radar-chart {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .gap-radar-tooltip {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .gap-radar-tooltip__skill {
+  color: #0f172a;
+}
+
+[data-theme="light"] .gap-radar-tooltip__row {
+  color: #475569;
+}
+
+[data-theme="light"] .gap-radar-tooltip__row dt {
+  color: #64748b;
+}
+
+[data-theme="light"] .gap-radar-tooltip__row dd {
+  color: #0f172a;
+}
+
+/* ─── Onboarding ──────────────────────────────────────────────────────────── */
+[data-theme="light"] .resume-analyzing-core {
+  background: radial-gradient(circle at 30% 30%, rgba(79, 70, 229, 0.08), #ffffff);
+  border-color: rgba(79, 70, 229, 0.2);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.03) inset, 0 18px 40px rgba(0,0,0,0.06);
+}
+
+[data-theme="light"] .resume-skill-bubble {
+  background: #ffffff;
+  border-color: rgba(79, 70, 229, 0.15);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+}
+
+[data-theme="light"] .resume-orbit-pill {
+  background: rgba(79, 70, 229, 0.06);
+  border-color: rgba(79, 70, 229, 0.2);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+}
+
+/* ─── SkillBridge components ──────────────────────────────────────────────── */
+[data-theme="light"] .sb-card,
+[data-theme="light"] .sb-panel {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+/* ─── General dark-alpha backgrounds ──────────────────────────────────────── */
+[data-theme="light"] .mi-speech-logs {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .mi-speech-log-row {
+  border-bottom-color: #f1f5f9;
 }

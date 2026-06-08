@@ -1,18 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Background -->
   <circle cx="50" cy="50" r="48" fill="#8B5CF6"/>
+  <!-- Head wrap -->
   <ellipse cx="50" cy="33" rx="26" ry="20" fill="#F97316"/>
   <path d="M26 38 Q50 26 74 38 Q74 32 50 28 Q26 32 26 38" fill="#EA580C"/>
   <circle cx="50" cy="26" r="4" fill="#FBBF24"/>
+  <!-- Face -->
   <ellipse cx="50" cy="50" rx="21" ry="23" fill="#6B3A1A"/>
+  <!-- Eyes -->
   <ellipse cx="41" cy="48" rx="3.5" ry="4" fill="#1a1a2e"/>
   <ellipse cx="59" cy="48" rx="3.5" ry="4" fill="#1a1a2e"/>
   <circle cx="42" cy="47" r="1.2" fill="#fff"/>
   <circle cx="60" cy="47" r="1.2" fill="#fff"/>
+  <!-- Eyebrows -->
   <path d="M36 42 Q41 39 46 42" stroke="#3D1F0F" stroke-width="1.5" fill="none" stroke-linecap="round"/>
   <path d="M54 42 Q59 39 64 42" stroke="#3D1F0F" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Nose -->
   <path d="M48 54 Q50 57 52 54" stroke="#4A2210" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Warm smile -->
   <path d="M42 60 Q50 66 58 60" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Earrings -->
   <circle cx="29" cy="54" r="3" fill="#FBBF24"/>
   <circle cx="71" cy="54" r="3" fill="#FBBF24"/>
+  <!-- Shirt collar -->
   <path d="M30 80 Q50 72 70 80 Q70 87 50 84 Q30 87 30 80" fill="#7C3AED"/>
 </svg>

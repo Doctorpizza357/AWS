@@ -1,4 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <circle cx="50" cy="50" r="48" fill="#607D8B" stroke="#37474F" stroke-width="2"/>
-  <text x="50" y="55" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF">Y</text>
+  <circle cx="50" cy="50" r="48" fill="#F43F5E"/>
+  <ellipse cx="50" cy="34" rx="25" ry="20" fill="#1a1a2e"/>
+  <path d="M30 36 Q32 28 42 30 Q36 34 34 38 Z" fill="#1a1a2e"/>
+  <ellipse cx="50" cy="48" rx="21" ry="23" fill="#F5DEB3"/>
+  <path d="M37 46 Q41 43 45 46" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M55 46 Q59 43 63 46" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="37" cy="52" rx="4" ry="2.5" fill="#FFB3C6" opacity="0.5"/>
+  <ellipse cx="63" cy="52" rx="4" ry="2.5" fill="#FFB3C6" opacity="0.5"/>
+  <circle cx="50" cy="52" r="1.5" fill="#D4A574"/>
+  <path d="M44 57 Q50 61 56 57" stroke="#1a1a2e" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M30 78 Q50 70 70 78 Q70 85 50 82 Q30 85 30 78" fill="#E11D48"/>
 </svg>

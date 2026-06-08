@@ -103,22 +103,6 @@ function CareerPath() {
           </div>
         </section>
 
-        {career.videoUrl && (
-          <section className="video-section">
-            <h2>See It In Action</h2>
-            <p className="section-sub">Watch real professionals talk about their career</p>
-            <div className="video-container">
-              <iframe
-                src={career.videoUrl}
-                title={`${career.title} career video`}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-          </section>
-        )}
-
         <section className="skills-section">
           <h2>Key Skills</h2>
           <div className="skills-list">

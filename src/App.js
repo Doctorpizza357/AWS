@@ -16,6 +16,7 @@ import Leaderboard from './pages/Leaderboard';
 import RoleModels from './pages/RoleModels';
 import AIAssistantPopup from './components/AIAssistantPopup';
 import AvatarCard from './components/AvatarCard';
+import ThemeToggle from './components/ThemeToggle';
 import ProtectedRoute from './components/ProtectedRoute';
 import { UserProvider } from './context/UserContext';
 import { MarketIntelligenceProvider } from './context/MarketIntelligenceContext';
@@ -23,6 +24,7 @@ import { InterviewProvider } from './context/InterviewContext';
 import { SkillBridgeProvider } from './context/SkillBridgeContext';
 import { AvatarProvider, useAvatar } from './context/AvatarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
 const lazyWithRetry = (importFn, key) =>
@@ -176,6 +178,7 @@ function AppContent() {
               </div>
             </footer>
             <AIAssistantPopup />
+            <ThemeToggle />
             <ConnectedAvatarCard />
           </div>
           </AvatarProvider>
@@ -187,11 +190,13 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
