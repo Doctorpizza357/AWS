@@ -6,18 +6,9 @@ import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
-import Dashboard from './pages/Dashboard';
-import CareerPath from './pages/CareerPath';
-import Simulation from './pages/Simulation';
-import Profile from './pages/Profile';
-import SkillBridge from './pages/SkillBridge';
-import InterviewHistory from './pages/InterviewHistory';
-import Leaderboard from './pages/Leaderboard';
-import RoleModels from './pages/RoleModels';
 import AIAssistantPopup from './components/AIAssistantPopup';
 import AvatarCard from './components/AvatarCard';
 import ThemeToggle from './components/ThemeToggle';
-import ProtectedRoute from './components/ProtectedRoute';
 import { UserProvider } from './context/UserContext';
 import { MarketIntelligenceProvider } from './context/MarketIntelligenceContext';
 import { InterviewProvider } from './context/InterviewContext';
@@ -25,6 +16,8 @@ import { SkillBridgeProvider } from './context/SkillBridgeContext';
 import { AvatarProvider, useAvatar } from './context/AvatarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { GameProvider } from './context/GameContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 const lazyWithRetry = (importFn, key) =>
@@ -54,12 +47,45 @@ const lazyWithRetry = (importFn, key) =>
     }
   });
 
+const Campus = lazyWithRetry(() => import('./pages/Campus'), 'campus');
 const MarketIntelligence = lazyWithRetry(() => import('./pages/MarketIntelligence'), 'market-intelligence');
 const InterviewHub = lazyWithRetry(() => import('./pages/InterviewHub'), 'interview-hub');
 const MockInterview = lazyWithRetry(() => import('./pages/MockInterview'), 'mock-interview');
-// InterviewHistory imported directly (not lazy) to avoid lazy resolution issues
 const ResumeTailor = lazyWithRetry(() => import('./pages/ResumeTailor'), 'resume-tailor');
 const TechnicalAssessment = lazyWithRetry(() => import('./pages/TechnicalAssessment'), 'technical-assessment');
+const InterviewHistory = lazyWithRetry(() => import('./pages/InterviewHistory'), 'interview-history');
+const SkillBridge = lazyWithRetry(() => import('./pages/SkillBridge'), 'skillbridge');
+const Leaderboard = lazyWithRetry(() => import('./pages/Leaderboard'), 'leaderboard');
+const Profile = lazyWithRetry(() => import('./pages/Profile'), 'profile');
+const RoleModels = lazyWithRetry(() => import('./pages/RoleModels'), 'role-models');
+const Simulation = lazyWithRetry(() => import('./pages/Simulation'), 'simulation');
+const CareerPath = lazyWithRetry(() => import('./pages/CareerPath'), 'career-path');
+
+// Wrapper that adds a floating "Back to Campus" button to feature pages
+function WithCampusReturn({ children }) {
+  const navigate = useNavigate();
+  return (
+    <>
+      <div style={{
+        position: 'fixed', top: 12, left: 12, zIndex: 999,
+      }}>
+        <button
+          onClick={() => navigate('/campus')}
+          style={{
+            background: 'rgba(30,30,50,0.9)', color: '#4A90D9', border: '1px solid rgba(74,144,217,0.4)',
+            padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            backdropFilter: 'blur(4px)', transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => { e.target.style.background = '#4A90D9'; e.target.style.color = '#fff'; }}
+          onMouseLeave={e => { e.target.style.background = 'rgba(30,30,50,0.9)'; e.target.style.color = '#4A90D9'; }}
+        >
+          ← Back to Campus
+        </button>
+      </div>
+      {children}
+    </>
+  );
+}
 
 // Connected AvatarCard that reads from AvatarContext and passes props.
 // Also feeds real user metrics for context-aware AI tips and handles navigation.
@@ -117,8 +143,9 @@ function AppContent() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname]);
   
-  // Show navbar on all pages except login
-  const showNavbar = !['/login'].includes(location.pathname);
+  // Show navbar on all pages except login and campus (campus has its own HUD)
+  const showNavbar = !['/login', '/campus'].includes(location.pathname);
+  const showFooter = location.pathname !== '/campus';
 
   return (
     <UserProvider>
@@ -133,28 +160,32 @@ function AppContent() {
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/career/:careerId" element={<CareerPath />} />
-                  <Route path="/simulation/:careerId/:scenarioId" element={<Simulation />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/skillbridge" element={<ProtectedRoute><SkillBridge /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<Navigate to="/campus" replace />} />
+                  <Route path="/campus" element={<GameProvider><Campus /></GameProvider>} />
+                  {/* Feature pages - accessible from campus, with back button */}
+                  <Route path="/career/:careerId" element={<WithCampusReturn><CareerPath /></WithCampusReturn>} />
+                  <Route path="/simulation/:careerId/:scenarioId" element={<WithCampusReturn><Simulation /></WithCampusReturn>} />
+                  <Route path="/profile" element={<WithCampusReturn><Profile /></WithCampusReturn>} />
+                  <Route path="/skillbridge" element={<WithCampusReturn><ProtectedRoute><SkillBridge /></ProtectedRoute></WithCampusReturn>} />
                   <Route path="/market-intelligence" element={
-                    <MarketIntelligenceProvider>
-                      <MarketIntelligence />
-                    </MarketIntelligenceProvider>
+                    <WithCampusReturn>
+                      <MarketIntelligenceProvider>
+                        <MarketIntelligence />
+                      </MarketIntelligenceProvider>
+                    </WithCampusReturn>
                   } />
-                  <Route path="/interview" element={<InterviewHub />} />
-                  <Route path="/interview/mock" element={<MockInterview />} />
-                  <Route path="/interview/history" element={<InterviewHistory />} />
-                  <Route path="/interview/resume" element={<ResumeTailor />} />
-                  <Route path="/interview/technical" element={<TechnicalAssessment />} />
-                  <Route path="/leaderboard" element={<Leaderboard />} />
-                  <Route path="/role-models" element={<RoleModels />} />
+                  <Route path="/interview" element={<WithCampusReturn><InterviewHub /></WithCampusReturn>} />
+                  <Route path="/interview/mock" element={<WithCampusReturn><MockInterview /></WithCampusReturn>} />
+                  <Route path="/interview/history" element={<WithCampusReturn><InterviewHistory /></WithCampusReturn>} />
+                  <Route path="/interview/resume" element={<WithCampusReturn><ResumeTailor /></WithCampusReturn>} />
+                  <Route path="/interview/technical" element={<WithCampusReturn><TechnicalAssessment /></WithCampusReturn>} />
+                  <Route path="/leaderboard" element={<WithCampusReturn><Leaderboard /></WithCampusReturn>} />
+                  <Route path="/role-models" element={<WithCampusReturn><RoleModels /></WithCampusReturn>} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </Suspense>
             </main>
-            <footer className="site-footer">
+            {showFooter && <footer className="site-footer">
               <div className="site-footer__inner">
                 <div className="site-footer__brand">
                   <span className="site-footer__name">{t('brand.name')}</span>
@@ -176,9 +207,9 @@ function AppContent() {
                   <span>{t('footer.builtFor')}</span>
                 </div>
               </div>
-            </footer>
-            <AIAssistantPopup />
-            <ThemeToggle />
+            </footer>}
+            {showFooter && <AIAssistantPopup />}
+            {showFooter && <ThemeToggle />}
             <ConnectedAvatarCard />
           </div>
           </AvatarProvider>

@@ -1,0 +1,214 @@
+/* CampusHUD - Overlay styles */
+.campus-hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 100;
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  max-height: 15vh;
+}
+
+.campus-hud > * {
+  pointer-events: auto;
+}
+
+.campus-hud--compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-height: 48px;
+  background: rgba(30, 30, 50, 0.9);
+  border-bottom: 2px solid var(--accent-color, #4A90D9);
+  padding: 8px 16px;
+}
+
+/* Stats */
+.campus-hud__stats {
+  background: rgba(30, 30, 50, 0.85);
+  border-radius: 12px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.campus-hud__level-badge {
+  background: #4A90D9;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.campus-hud__xp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.campus-hud__xp-text {
+  color: #FFD700;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.campus-hud__progress-bar {
+  width: 100px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.campus-hud__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4A90D9, #00CEC9);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Quest Tracker */
+.quest-tracker {
+  background: rgba(30, 30, 50, 0.85);
+  border-radius: 12px;
+  padding: 10px 14px;
+  max-width: 220px;
+  backdrop-filter: blur(4px);
+}
+
+.quest-tracker__title {
+  color: #FFD700;
+  font-size: 11px;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quest-tracker__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quest-tracker__item:last-child {
+  border-bottom: none;
+}
+
+.quest-tracker__name {
+  color: #ddd;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+.quest-tracker__progress {
+  color: #4ECDC4;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Minimap */
+.minimap {
+  background: rgba(30, 30, 50, 0.85);
+  border-radius: 12px;
+  padding: 8px;
+  backdrop-filter: blur(4px);
+  margin-left: auto;
+}
+
+.minimap__svg {
+  display: block;
+}
+
+.minimap__building {
+  cursor: pointer;
+  transition: r 0.2s ease;
+}
+
+.minimap__building:hover {
+  r: 5;
+}
+
+.minimap__player {
+  animation: pulse-player 2s infinite;
+}
+
+@keyframes pulse-player {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Audio controls */
+.campus-hud__audio {
+  background: rgba(30, 30, 50, 0.85);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.campus-hud__mute-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.campus-hud__volume-slider {
+  width: 60px;
+  height: 4px;
+  cursor: pointer;
+}
+
+/* Compact mode */
+.campus-hud__xp-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.campus-hud__xp-value {
+  color: #FFD700;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.campus-hud__level {
+  color: #4A90D9;
+  font-weight: bold;
+}
+
+.campus-hud__back-btn {
+  background: #4A90D9;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.campus-hud__back-btn:hover {
+  background: #357ABD;
+}
+
+.campus-hud__back-btn:focus-visible {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}

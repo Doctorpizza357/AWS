@@ -234,7 +234,7 @@ function Onboarding() {
     try {
       const careers = await generateCareerRecommendations(profile);
       completeOnboarding(profile, careers);
-      navigate('/dashboard');
+      navigate('/campus');
     } catch (err) {
       console.error('Error generating recommendations:', err);
       setError('Something went wrong generating your recommendations. Please try again.');

@@ -41,7 +41,7 @@ function Landing() {
 
   const handleStart = () => {
     if (user.isOnboarded) {
-      navigate('/dashboard');
+      navigate('/campus');
     } else {
       navigate('/onboarding');
     }

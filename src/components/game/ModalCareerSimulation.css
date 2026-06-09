@@ -1,0 +1,294 @@
+.modal-sim {
+  padding: 0;
+}
+
+.modal-sim__empty {
+  text-align: center;
+  padding: 40px;
+  color: #fff;
+}
+
+.modal-sim__hero {
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(74, 144, 217, 0.1), rgba(78, 205, 196, 0.05));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.modal-sim__title {
+  color: #fff;
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.modal-sim__field {
+  color: #4ECDC4;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.modal-sim__desc {
+  color: #bbb;
+  font-size: 14px;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.modal-sim__stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.modal-sim__scenarios {
+  padding: 20px 24px;
+}
+
+.modal-sim__scenarios h3 {
+  color: #fff;
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+
+.modal-sim__scenario-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-sim__scenario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  color: #fff;
+  transition: all 0.15s;
+  width: 100%;
+}
+
+.modal-sim__scenario:hover {
+  background: rgba(74, 144, 217, 0.12);
+  border-color: rgba(74, 144, 217, 0.3);
+}
+
+.modal-sim__scenario.completed {
+  border-color: rgba(39, 174, 96, 0.3);
+}
+
+.modal-sim__scenario-status {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(74, 144, 217, 0.2);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.modal-sim__scenario.completed .modal-sim__scenario-status {
+  background: rgba(39, 174, 96, 0.2);
+  color: #27AE60;
+}
+
+.modal-sim__scenario-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modal-sim__scenario-info strong {
+  font-size: 14px;
+}
+
+.modal-sim__scenario-info span {
+  font-size: 12px;
+  color: #888;
+}
+
+.modal-sim__scenario-xp {
+  font-size: 12px;
+  color: #FFD700;
+  font-weight: 600;
+}
+
+/* Simulation play view */
+.modal-sim__loading {
+  text-align: center;
+  padding: 60px 24px;
+  color: #aaa;
+}
+
+.modal-sim__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(74, 144, 217, 0.2);
+  border-top-color: #4A90D9;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.modal-sim__play {
+  padding: 20px 24px;
+}
+
+.modal-sim__play-title {
+  color: #fff;
+  font-size: 18px;
+  margin: 0 0 16px;
+}
+
+.modal-sim__narrative {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid #4A90D9;
+  padding: 14px 18px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 16px;
+}
+
+.modal-sim__narrative p {
+  color: #ccc;
+  margin: 0;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.modal-sim__challenge {
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.modal-sim__challenge h4 {
+  color: #FFD700;
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.modal-sim__challenge p {
+  color: #ddd;
+  margin: 0;
+  font-size: 14px;
+}
+
+.modal-sim__options h4 {
+  color: #fff;
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+.modal-sim__option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #ddd;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.15s;
+}
+
+.modal-sim__option:hover {
+  background: rgba(74, 144, 217, 0.1);
+  border-color: #4A90D9;
+}
+
+.modal-sim__option-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #4A90D9;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.modal-sim__outcome {
+  background: rgba(39, 174, 96, 0.05);
+  border: 1px solid rgba(39, 174, 96, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.modal-sim__outcome h4 {
+  color: #27AE60;
+  margin: 0 0 10px;
+}
+
+.modal-sim__outcome p {
+  color: #ccc;
+  font-size: 14px;
+  margin: 6px 0;
+}
+
+.modal-sim__outcome-text {
+  font-style: italic;
+  color: #aaa !important;
+}
+
+.modal-sim__rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.modal-sim__xp-badge {
+  background: rgba(255, 215, 0, 0.15);
+  color: #FFD700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modal-sim__trait {
+  background: rgba(74, 144, 217, 0.1);
+  color: #4A90D9;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.modal-sim__complete-btn {
+  background: #27AE60;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.modal-sim__complete-btn:hover {
+  background: #219a52;
+}

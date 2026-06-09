@@ -1,0 +1,116 @@
+/* Hotbar - Bottom action bar */
+.hotbar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  background: rgba(20, 20, 40, 0.92);
+  border-radius: 16px;
+  padding: 6px 10px;
+  z-index: 80;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.hotbar__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 8px 14px 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  min-width: 56px;
+}
+
+.hotbar__btn:hover {
+  background: rgba(74, 144, 217, 0.2);
+  border-color: rgba(74, 144, 217, 0.3);
+  transform: translateY(-2px);
+}
+
+.hotbar__btn:active {
+  transform: translateY(0);
+}
+
+.hotbar__btn:focus-visible {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}
+
+.hotbar__icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.hotbar__label {
+  font-size: 10px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+.hotbar__key {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 8px;
+  color: #666;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+/* Mobile: wider buttons, no keyboard hints */
+@media (max-width: 600px) {
+  .hotbar {
+    bottom: 8px;
+    gap: 2px;
+    padding: 4px 6px;
+  }
+
+  .hotbar__btn {
+    padding: 6px 10px 5px;
+    min-width: 48px;
+  }
+
+  .hotbar__key {
+    display: none;
+  }
+
+  .hotbar__label {
+    font-size: 9px;
+  }
+}
+
+
+/* Notification badge */
+.hotbar__badge {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background: #FF4757;
+  color: white;
+  font-size: 9px;
+  font-weight: bold;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}

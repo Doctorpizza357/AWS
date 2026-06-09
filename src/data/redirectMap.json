@@ -1,0 +1,12 @@
+{
+  "/dashboard": "/campus",
+  "/market-intelligence": "/campus?building=market-observatory",
+  "/interview": "/campus?building=interview-hall",
+  "/interview/mock": "/campus?building=interview-hall&section=mock",
+  "/interview/resume": "/campus?building=interview-hall&section=resume",
+  "/interview/technical": "/campus?building=interview-hall&section=technical",
+  "/skillbridge": "/campus?building=skill-forge",
+  "/leaderboard": "/campus?building=student-union&section=leaderboard",
+  "/profile": "/campus?building=student-union&section=profile",
+  "/role-models": "/campus?building=student-union&section=role-models"
+}

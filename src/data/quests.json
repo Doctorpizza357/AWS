@@ -1,0 +1,156 @@
+[
+  {
+    "id": "welcome-quest",
+    "title": "Welcome to Campus",
+    "description": "Your first day at STEM PathfindR University! Get your bearings by exploring the main areas.",
+    "type": "exploration",
+    "careerZone": "tech-hub",
+    "tasks": [
+      { "id": "visit-campus-guide", "action": "interact_npc", "target": "campus-guide", "label": "Talk to the Campus Guide" },
+      { "id": "visit-tech-hub", "action": "visit_zone", "target": "tech-hub", "label": "Visit the Technology Hub" },
+      { "id": "visit-student-union", "action": "visit_building", "target": "student-union", "label": "Find the Student Union" }
+    ],
+    "xpReward": 75,
+    "prerequisite": null
+  },
+  {
+    "id": "explore-tech-hub",
+    "title": "Discover the Tech Hub",
+    "description": "The Technology Hub buzzes with innovation. Visit the labs to see what engineers build daily.",
+    "type": "exploration",
+    "careerZone": "tech-hub",
+    "tasks": [
+      { "id": "visit-software-lab", "action": "visit_building", "target": "software-engineering", "label": "Visit Software Engineering Lab" },
+      { "id": "visit-data-lab", "action": "visit_building", "target": "data-science", "label": "Visit Data Science Center" }
+    ],
+    "xpReward": 75,
+    "prerequisite": "welcome-quest"
+  },
+  {
+    "id": "explore-engineering-quad",
+    "title": "Engineering Expedition",
+    "description": "The Quad echoes with the sound of machinery. Engineers here solve tomorrow's problems today.",
+    "type": "exploration",
+    "careerZone": "engineering-quad",
+    "tasks": [
+      { "id": "visit-mech", "action": "visit_building", "target": "mechanical-engineering", "label": "Visit the Mechanical Workshop" },
+      { "id": "visit-elec", "action": "visit_building", "target": "electrical-engineering", "label": "Visit the Circuits Lab" }
+    ],
+    "xpReward": 75,
+    "prerequisite": "welcome-quest"
+  },
+  {
+    "id": "first-simulation",
+    "title": "Into the Simulation",
+    "description": "Time to experience what it's really like! Complete your first career simulation challenge.",
+    "type": "skill",
+    "careerZone": "tech-hub",
+    "tasks": [
+      { "id": "enter-any-sim", "action": "enter_building", "target": "software-engineering", "label": "Enter a career simulation" },
+      { "id": "complete-sim", "action": "complete_simulation", "target": "any", "label": "Complete the simulation" }
+    ],
+    "xpReward": 200,
+    "prerequisite": "explore-tech-hub"
+  },
+  {
+    "id": "interview-prep",
+    "title": "Interview Training Begins",
+    "description": "The Interview Hall awaits. Practice makes perfect when it comes to landing your dream job.",
+    "type": "skill",
+    "careerZone": "creative-stem",
+    "tasks": [
+      { "id": "visit-interview-hall", "action": "visit_building", "target": "interview-hall", "label": "Enter the Interview Hall" },
+      { "id": "start-mock", "action": "start_interview", "target": "mock", "label": "Begin a mock interview" },
+      { "id": "complete-mock", "action": "complete_interview", "target": "mock", "label": "Complete the mock interview" }
+    ],
+    "xpReward": 250,
+    "prerequisite": "welcome-quest"
+  },
+  {
+    "id": "market-explorer",
+    "title": "Market Intelligence Briefing",
+    "description": "The Observatory's telescopes reveal job market data. Knowledge is power in the career hunt.",
+    "type": "skill",
+    "careerZone": "creative-stem",
+    "tasks": [
+      { "id": "visit-observatory", "action": "visit_building", "target": "market-observatory", "label": "Enter the Market Observatory" },
+      { "id": "view-heatmap", "action": "view_panel", "target": "heatmap", "label": "View the Market Pulse Heatmap" },
+      { "id": "view-salary", "action": "view_panel", "target": "salary-arc", "label": "Check the Predictive Salary Arc" }
+    ],
+    "xpReward": 150,
+    "prerequisite": "welcome-quest"
+  },
+  {
+    "id": "skillbridge-journey",
+    "title": "Forging Your Path",
+    "description": "The Skill Forge can shape your future. Identify gaps and build a personalized learning roadmap.",
+    "type": "skill",
+    "careerZone": "creative-stem",
+    "tasks": [
+      { "id": "visit-forge", "action": "visit_building", "target": "skill-forge", "label": "Enter the Skill Forge" },
+      { "id": "pick-dream-job", "action": "complete_step", "target": "dream-job", "label": "Pick your dream job" },
+      { "id": "self-assess", "action": "complete_step", "target": "self-assessment", "label": "Complete the self-assessment" },
+      { "id": "view-roadmap", "action": "complete_step", "target": "roadmap", "label": "View your AI roadmap" }
+    ],
+    "xpReward": 300,
+    "prerequisite": "welcome-quest"
+  },
+  {
+    "id": "cybersecurity-mastery",
+    "title": "Cybersecurity Challenge Master",
+    "description": "Prove your skills in the digital fortress. Score 80% or higher to earn the Security badge.",
+    "type": "mastery",
+    "careerZone": "tech-hub",
+    "tasks": [
+      { "id": "enter-cyber", "action": "visit_building", "target": "cybersecurity", "label": "Enter the Cybersecurity Fortress" },
+      { "id": "start-assessment", "action": "start_assessment", "target": "cybersecurity-analyst", "label": "Start the assessment" },
+      { "id": "score-80", "action": "achieve_score", "target": "80", "label": "Score 80% or higher" }
+    ],
+    "xpReward": 400,
+    "badgeReward": { "id": "cybersecurity-master", "name": "Cybersecurity Master", "zone": "tech-hub", "icon": "🛡️" },
+    "prerequisite": "first-simulation"
+  },
+  {
+    "id": "interview-mastery",
+    "title": "Interview Excellence",
+    "description": "Master the art of the interview. Demonstrate confidence and knowledge at the highest level.",
+    "type": "mastery",
+    "careerZone": "creative-stem",
+    "tasks": [
+      { "id": "complete-technical", "action": "complete_assessment", "target": "technical", "label": "Complete a technical assessment" },
+      { "id": "upload-resume", "action": "upload_resume", "target": "resume", "label": "Upload and analyze your resume" },
+      { "id": "score-80-interview", "action": "achieve_score", "target": "80", "label": "Score 80% on a mock interview" }
+    ],
+    "xpReward": 500,
+    "badgeReward": { "id": "interview-champion", "name": "Interview Champion", "zone": "creative-stem", "icon": "🏆" },
+    "prerequisite": "interview-prep"
+  },
+  {
+    "id": "explore-health-sciences",
+    "title": "Health Sciences Discovery",
+    "description": "Where biology meets technology. The Health Sciences Campus pushes boundaries of medical innovation.",
+    "type": "exploration",
+    "careerZone": "health-sciences",
+    "tasks": [
+      { "id": "visit-biomed", "action": "visit_building", "target": "biomedical-engineering", "label": "Visit the Biomedical Innovation Lab" },
+      { "id": "visit-healthtech", "action": "visit_building", "target": "healthcare-tech", "label": "Visit the HealthTech Pavilion" }
+    ],
+    "xpReward": 75,
+    "prerequisite": "welcome-quest"
+  },
+  {
+    "id": "data-science-mastery",
+    "title": "Data Scientist Elite",
+    "description": "Crunch numbers like a pro. Prove your data analysis mastery in the Data Science Center.",
+    "type": "mastery",
+    "careerZone": "tech-hub",
+    "tasks": [
+      { "id": "enter-data-center", "action": "visit_building", "target": "data-science", "label": "Enter the Data Science Center" },
+      { "id": "start-data-sim", "action": "start_simulation", "target": "data-scientist", "label": "Start the data science simulation" },
+      { "id": "score-80-data", "action": "achieve_score", "target": "80", "label": "Score 80% or higher" }
+    ],
+    "xpReward": 450,
+    "badgeReward": { "id": "data-master", "name": "Data Master", "zone": "tech-hub", "icon": "📈" },
+    "prerequisite": "first-simulation"
+  }
+]

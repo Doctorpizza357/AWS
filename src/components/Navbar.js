@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
-import { Trophy } from 'lucide-react';
 import logo from '../assets/logo_orange.png';
 import './Navbar.css';
 
@@ -72,47 +71,11 @@ function Navbar() {
           {user?.isOnboarded && (
             <>
               <Link
-                to="/dashboard"
-                className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
+                to="/campus"
+                className={`nav-link ${isActive('/campus') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                {t('nav.dashboard')}
-              </Link>
-              <Link
-                to="/skillbridge"
-                className={`nav-link ${isActive('/skillbridge') ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {t('nav.skillbridge')}
-              </Link>
-              <Link
-                to="/market-intelligence"
-                className={`nav-link mi-link ${isActive('/market-intelligence') ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {t('nav.marketIntel')}
-              </Link>
-              <Link
-                to="/interview"
-                className={`nav-link ${location.pathname.startsWith('/interview') ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {t('nav.interviewAI')}
-              </Link>
-              <Link
-                to="/role-models"
-                className={`nav-link ${isActive('/role-models') ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {t('nav.roleModels')}
-              </Link>
-              <Link
-                to="/leaderboard"
-                className={`nav-link lb-link ${isActive('/leaderboard') ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-                title={t('nav.leaderboard')}
-              >
-                <Trophy size={18} aria-hidden="true" />
+                🏫 Campus
               </Link>
             </>
           )}

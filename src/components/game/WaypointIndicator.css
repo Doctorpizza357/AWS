@@ -1,0 +1,66 @@
+.waypoint-indicator {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 40, 0.9);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 20px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 90;
+  backdrop-filter: blur(4px);
+}
+
+.waypoint-indicator--arrived {
+  border-color: rgba(39, 174, 96, 0.6);
+  color: #27AE60;
+  font-size: 13px;
+}
+
+.waypoint-indicator--arrived button {
+  background: rgba(39, 174, 96, 0.2);
+  border: 1px solid rgba(39, 174, 96, 0.4);
+  color: #27AE60;
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.waypoint-indicator__arrow {
+  font-size: 20px;
+  color: #FFD700;
+  transition: transform 0.3s ease;
+}
+
+.waypoint-indicator__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.waypoint-indicator__name {
+  color: #FFD700;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.waypoint-indicator__dist {
+  color: #aaa;
+  font-size: 11px;
+}
+
+.waypoint-indicator__clear {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.waypoint-indicator__clear:hover {
+  color: #fff;
+}

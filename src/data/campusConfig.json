@@ -1,0 +1,217 @@
+{
+  "worldSize": { "width": 3200, "height": 2400 },
+  "spawnPoint": { "x": 1600, "y": 1200 },
+  "avatarLength": 32,
+  "zones": [
+    {
+      "id": "tech-hub",
+      "label": "Technology Hub",
+      "palette": ["#1E3A5F", "#2E86AB", "#A23B72", "#F18F01", "#4ECDC4", "#1A535C", "#FF6B6B", "#3D5A80"],
+      "bounds": { "x": 0, "y": 0, "width": 1000, "height": 1000 },
+      "ambientAudio": "tech-ambient.mp3",
+      "buildings": [
+        {
+          "id": "software-engineering",
+          "label": "Software Engineering Lab",
+          "careerPathId": "software-engineer",
+          "position": { "x": 200, "y": 300 },
+          "featureRoute": "/simulation/software-engineer",
+          "interactionRadius": 64,
+          "icon": "💻"
+        },
+        {
+          "id": "data-science",
+          "label": "Data Science Center",
+          "careerPathId": "data-scientist",
+          "position": { "x": 500, "y": 200 },
+          "featureRoute": "/simulation/data-scientist",
+          "interactionRadius": 64,
+          "icon": "📊"
+        },
+        {
+          "id": "cybersecurity",
+          "label": "Cybersecurity Fortress",
+          "careerPathId": "cybersecurity-analyst",
+          "position": { "x": 800, "y": 500 },
+          "featureRoute": "/simulation/cybersecurity-analyst",
+          "interactionRadius": 64,
+          "icon": "🔒"
+        }
+      ]
+    },
+    {
+      "id": "engineering-quad",
+      "label": "Engineering Quad",
+      "palette": ["#2D3436", "#636E72", "#B2BEC3", "#DFE6E9", "#74B9FF", "#0984E3", "#00CEC9", "#6C5CE7"],
+      "bounds": { "x": 1000, "y": 0, "width": 1100, "height": 1000 },
+      "ambientAudio": "engineering-ambient.mp3",
+      "buildings": [
+        {
+          "id": "mechanical-engineering",
+          "label": "Mechanical Workshop",
+          "careerPathId": "mechanical-engineer",
+          "position": { "x": 1200, "y": 300 },
+          "featureRoute": "/simulation/mechanical-engineer",
+          "interactionRadius": 64,
+          "icon": "⚙️"
+        },
+        {
+          "id": "electrical-engineering",
+          "label": "Circuits Laboratory",
+          "careerPathId": "electrical-engineer",
+          "position": { "x": 1600, "y": 400 },
+          "featureRoute": "/simulation/electrical-engineer",
+          "interactionRadius": 64,
+          "icon": "⚡"
+        }
+      ]
+    },
+    {
+      "id": "science-park",
+      "label": "Science Park",
+      "palette": ["#00B894", "#55EFC4", "#81ECEC", "#74B9FF", "#A29BFE", "#6C5CE7", "#FD79A8", "#E84393"],
+      "bounds": { "x": 2100, "y": 0, "width": 1100, "height": 1200 },
+      "ambientAudio": "science-ambient.mp3",
+      "buildings": [
+        {
+          "id": "environmental-science",
+          "label": "Green Research Center",
+          "careerPathId": "environmental-scientist",
+          "position": { "x": 2400, "y": 300 },
+          "featureRoute": "/simulation/environmental-scientist",
+          "interactionRadius": 64,
+          "icon": "🌿"
+        }
+      ]
+    },
+    {
+      "id": "health-sciences",
+      "label": "Health Sciences Campus",
+      "palette": ["#E17055", "#FDCB6E", "#FFEAA7", "#DFE6E9", "#FF7675", "#D63031", "#E84393", "#FD79A8"],
+      "bounds": { "x": 0, "y": 1000, "width": 1200, "height": 1400 },
+      "ambientAudio": "health-ambient.mp3",
+      "buildings": [
+        {
+          "id": "biomedical-engineering",
+          "label": "Biomedical Innovation Lab",
+          "careerPathId": "biomedical-engineer",
+          "position": { "x": 400, "y": 1400 },
+          "featureRoute": "/simulation/biomedical-engineer",
+          "interactionRadius": 64,
+          "icon": "🧬"
+        },
+        {
+          "id": "healthcare-tech",
+          "label": "HealthTech Pavilion",
+          "careerPathId": "healthcare-technologist",
+          "position": { "x": 800, "y": 1600 },
+          "featureRoute": "/simulation/healthcare-technologist",
+          "interactionRadius": 64,
+          "icon": "🏥"
+        }
+      ]
+    },
+    {
+      "id": "creative-stem",
+      "label": "Creative STEM Studios",
+      "palette": ["#6C5CE7", "#A29BFE", "#FD79A8", "#E84393", "#FDCB6E", "#F39C12", "#00CEC9", "#81ECEC"],
+      "bounds": { "x": 1200, "y": 1000, "width": 2000, "height": 1400 },
+      "ambientAudio": "creative-ambient.mp3",
+      "buildings": [
+        {
+          "id": "ux-design",
+          "label": "UX Design Studio",
+          "careerPathId": "ux-designer",
+          "position": { "x": 1800, "y": 1400 },
+          "featureRoute": "/simulation/ux-designer",
+          "interactionRadius": 64,
+          "icon": "🎨"
+        }
+      ]
+    }
+  ],
+  "specialBuildings": [
+    {
+      "id": "interview-hall",
+      "label": "Interview Hall",
+      "position": { "x": 1600, "y": 1200 },
+      "featureRoute": "/interview",
+      "interactionRadius": 80,
+      "icon": "🎤",
+      "zone": "creative-stem",
+      "sections": ["mock", "resume", "technical"]
+    },
+    {
+      "id": "market-observatory",
+      "label": "Market Observatory",
+      "position": { "x": 2600, "y": 1400 },
+      "featureRoute": "/market-intelligence",
+      "interactionRadius": 80,
+      "icon": "🔭",
+      "zone": "creative-stem",
+      "sections": ["heatmap", "salary-arc", "viability-radar", "opportunity-score", "overview"]
+    },
+    {
+      "id": "skill-forge",
+      "label": "Skill Forge",
+      "position": { "x": 2200, "y": 1800 },
+      "featureRoute": "/skillbridge",
+      "interactionRadius": 80,
+      "icon": "🔨",
+      "zone": "creative-stem",
+      "sections": ["dream-job", "self-assessment", "gap-analysis", "roadmap"]
+    },
+    {
+      "id": "student-union",
+      "label": "Student Union",
+      "position": { "x": 1000, "y": 1800 },
+      "featureRoute": "/leaderboard",
+      "interactionRadius": 80,
+      "icon": "🏛️",
+      "zone": "health-sciences",
+      "sections": ["leaderboard", "profile", "badges", "role-models"]
+    }
+  ],
+  "npcs": [
+    {
+      "id": "campus-guide",
+      "label": "Campus Guide",
+      "position": { "x": 1600, "y": 1050 },
+      "topic": "general",
+      "zone": null,
+      "fallbackDialogue": "Welcome to STEM PathfindR Campus! Explore the buildings to discover career paths. Each zone represents a different STEM domain. Use WASD or arrow keys to move, and press E near buildings to enter!"
+    },
+    {
+      "id": "tech-advisor",
+      "label": "Tech Advisor",
+      "position": { "x": 350, "y": 150 },
+      "topic": "technology",
+      "zone": "tech-hub",
+      "fallbackDialogue": "The Technology Hub houses our software, data science, and cybersecurity programs. Each lab offers real-world simulation challenges! Try entering the Software Engineering Lab first."
+    },
+    {
+      "id": "engineering-mentor",
+      "label": "Engineering Mentor",
+      "position": { "x": 1350, "y": 150 },
+      "topic": "engineering",
+      "zone": "engineering-quad",
+      "fallbackDialogue": "Welcome to the Engineering Quad! Here you can explore mechanical and electrical engineering through hands-on simulations. The future is built here!"
+    },
+    {
+      "id": "interview-coach",
+      "label": "Interview Coach",
+      "position": { "x": 1700, "y": 1350 },
+      "topic": "interviews",
+      "zone": null,
+      "fallbackDialogue": "Ready to practice for your future interviews? The Interview Hall has mock interviews, resume analysis, and technical assessments. I recommend starting with a mock interview!"
+    },
+    {
+      "id": "student-advisor",
+      "label": "Student Advisor",
+      "position": { "x": 900, "y": 1950 },
+      "topic": "community",
+      "zone": "health-sciences",
+      "fallbackDialogue": "The Student Union is where you can view leaderboards, manage your profile, collect badges, and connect with role models. Check out the leaderboard to see how you rank!"
+    }
+  ]
+}

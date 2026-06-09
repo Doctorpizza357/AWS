@@ -1,0 +1,104 @@
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.loading-screen__content {
+  text-align: center;
+  max-width: 400px;
+  padding: 32px;
+}
+
+.loading-screen__campus-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.loading-screen__title {
+  color: #fff;
+  font-size: 22px;
+  margin: 0 0 20px;
+  font-weight: 600;
+}
+
+.loading-screen__progress-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loading-screen__progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.loading-screen__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4A90D9, #4ECDC4);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.loading-screen__progress-text {
+  color: #4ECDC4;
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 40px;
+}
+
+.loading-screen__hint {
+  color: #8899aa;
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+/* Error state */
+.loading-screen--error .loading-screen__content {
+  max-width: 350px;
+}
+
+.loading-screen__icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.loading-screen__message {
+  color: #aaa;
+  font-size: 14px;
+  margin: 8px 0 20px;
+}
+
+.loading-screen__retry {
+  background: #4A90D9;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.loading-screen__retry:hover {
+  background: #357ABD;
+}
+
+.loading-screen__retry:focus-visible {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}
