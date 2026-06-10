@@ -5,7 +5,7 @@
 import React from 'react';
 import './Hotbar.css';
 
-function Hotbar({ onMap, onQuests, onProfile, onSettings, onTextNav, badges = {} }) {
+function Hotbar({ onMap, onQuests, onProfile, onSettings, onTextNav, onTrivia, badges = {} }) {
   return (
     <div className="hotbar" role="toolbar" aria-label="Quick actions">
       <button className="hotbar__btn" onClick={onMap} title="Map (M)" aria-label="Open map">
@@ -27,6 +27,11 @@ function Hotbar({ onMap, onQuests, onProfile, onSettings, onTextNav, badges = {}
       <button className="hotbar__btn" onClick={onProfile} title="Profile" aria-label="Open profile">
         <span className="hotbar__icon">👤</span>
         <span className="hotbar__label">Profile</span>
+      </button>
+      <button className="hotbar__btn hotbar__btn--trivia" onClick={onTrivia} title="Trivia" aria-label="STEM Trivia">
+        <span className="hotbar__icon">💡</span>
+        <span className="hotbar__label">Trivia</span>
+        {badges.trivia > 0 && <span className="hotbar__badge">{badges.trivia}</span>}
       </button>
       <button className="hotbar__btn" onClick={onSettings} title="Settings" aria-label="Open settings">
         <span className="hotbar__icon">⚙️</span>

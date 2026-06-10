@@ -27,6 +27,7 @@ import Tutorial from '../components/game/Tutorial';
 import Hotbar from '../components/game/Hotbar';
 import ModalCareerSimulation from '../components/game/ModalCareerSimulation';
 import WaypointIndicator from '../components/game/WaypointIndicator';
+import KnowledgeOrbs, { TRIVIA_QUESTIONS } from '../components/game/KnowledgeOrbs';
 import './Campus.css';
 
 // Lazy-loaded feature pages rendered as overlays inside campus
@@ -77,6 +78,9 @@ function Campus() {
   const [waypoint, setWaypoint] = useState(null);
   const [streakNotification, setStreakNotification] = useState(null);
   const [availableQuestCount, setAvailableQuestCount] = useState(0);
+  const [collectedOrbs, setCollectedOrbs] = useState(() => { try { return JSON.parse(localStorage.getItem('campus_collected_orbs') || '[]'); } catch { return []; } });
+  const [showOrbQuestion, setShowOrbQuestion] = useState(false);
+  const [xpToast, setXpToast] = useState(null);
 
   const nearbyNPCRef = useRef(null);
 
@@ -116,6 +120,9 @@ function Campus() {
         });
         avatarRef.current = avatar;
         world.worldContainer.addChild(avatar.container);
+        // Ensure avatar always renders on top of buildings
+        avatar.container.zIndex = 9999;
+        world.worldContainer.sortableChildren = true;
         world.setCameraTarget(avatar);
         setLoadProgress(70);
 
@@ -157,6 +164,8 @@ function Campus() {
         engine.addTickerCallback((delta) => {
           if (!engine.isPaused) {
             avatar.update(delta);
+            // Update avatar depth sort position so it renders above/below buildings correctly
+            avatar.container._sortY = avatar.getPosition().y;
             world.updateCamera();
             world.loadVisibleChunks(avatar.getPosition(), window.innerWidth);
 
@@ -273,7 +282,7 @@ function Campus() {
             avatarRef.current.getPosition()
           );
         } else if (!interactionPrompt && nearbyNPC && npcSystemRef.current) {
-          const dialogue = npcSystemRef.current.getFallbackDialogue(nearbyNPC.id);
+          const dialogue = npcSystemRef.current.getProgressDialogue(nearbyNPC.id, user.progress);
           setNpcDialogue({ npc: nearbyNPC, text: dialogue });
         }
       }
@@ -287,6 +296,28 @@ function Campus() {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [interactionPrompt, nearbyNPC]);
+
+  // Global Escape key handler - closes any open overlay
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        if (activeBuilding) {
+          if (transitionRef.current) transitionRef.current.exitBuilding();
+          setActiveBuilding(null);
+          gameContext.exitBuilding();
+          return;
+        }
+        if (showSettings) { setShowSettings(false); return; }
+        if (showMap) { setShowMap(false); return; }
+        if (showQuestLog) { setShowQuestLog(false); return; }
+        if (textNavOpen) { setTextNavOpen(false); return; }
+        if (npcDialogue) { setNpcDialogue(null); return; }
+        if (showOrbQuestion) { setShowOrbQuestion(false); return; }
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [activeBuilding, showSettings, showMap, showQuestLog, textNavOpen, npcDialogue, showOrbQuestion, gameContext, setTextNavOpen]);
 
   // Auto-close NPC dialogue after 8 seconds
   useEffect(() => {
@@ -365,12 +396,12 @@ function Campus() {
 
   const handleInteractNPC = useCallback((npcId) => {
     if (npcSystemRef.current) {
-      const dialogue = npcSystemRef.current.getFallbackDialogue(npcId);
+      const dialogue = npcSystemRef.current.getProgressDialogue(npcId, user.progress);
       const npc = npcSystemRef.current.getNPCById(npcId);
       setNpcDialogue({ npc, text: dialogue });
     }
     setTextNavOpen(false);
-  }, [setTextNavOpen]);
+  }, [setTextNavOpen, user.progress]);
 
   const handleActivateQuest = useCallback((questId) => {
     if (questServiceRef.current) {
@@ -387,6 +418,30 @@ function Campus() {
     setLoading(true);
     window.location.reload();
   }, []);
+
+  const handleOrbCollect = useCallback((orbId) => {
+    setCollectedOrbs(prev => {
+      const next = [...prev, orbId];
+      localStorage.setItem('campus_collected_orbs', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const handleOrbAnswer = useCallback((xp, correct) => {
+    if (correct && xp > 0) {
+      addXP(xp);
+      setXpToast(`+${xp} XP`);
+      setTimeout(() => setXpToast(null), 2000);
+    }
+    setTimeout(() => setShowOrbQuestion(false), correct ? 1500 : 2500);
+  }, [addXP]);
+
+  const handleTrivia = useCallback(() => {
+    const available = TRIVIA_QUESTIONS.filter(q => !collectedOrbs.includes(q.id));
+    if (available.length > 0) {
+      setShowOrbQuestion(true);
+    }
+  }, [collectedOrbs]);
 
   // Loading state
   if (loading || loadError) {
@@ -425,6 +480,20 @@ function Campus() {
         </div>
       )}
 
+      {/* Knowledge Orbs / Trivia */}
+      {showOrbQuestion && (
+        <KnowledgeOrbs
+          collectedOrbs={collectedOrbs}
+          onCollectOrb={handleOrbCollect}
+          onAnswer={handleOrbAnswer}
+        />
+      )}
+
+      {/* XP Toast */}
+      {xpToast && (
+        <div className="campus-xp-toast">{xpToast}</div>
+      )}
+
       {/* NPC Dialogue */}
       {npcDialogue && (
         <div className="campus-npc-dialogue" role="dialog" aria-label={`Dialogue with ${npcDialogue.npc.label}`}>
@@ -459,7 +528,8 @@ function Campus() {
           onProfile={() => setActiveBuilding('student-union')}
           onSettings={() => setShowSettings(true)}
           onTextNav={() => setTextNavOpen(true)}
-          badges={{ quests: availableQuestCount }}
+          onTrivia={handleTrivia}
+          badges={{ quests: availableQuestCount, trivia: TRIVIA_QUESTIONS.filter(q => !collectedOrbs.includes(q.id)).length }}
         />
       )}
 

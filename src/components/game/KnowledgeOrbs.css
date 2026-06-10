@@ -1,0 +1,112 @@
+.orb-question-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 160;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.orb-question-panel {
+  background: #1a1a2e;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 480px;
+  width: 90vw;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  animation: orbPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.orb-question-panel.correct {
+  border-color: #27AE60;
+  box-shadow: 0 0 30px rgba(39, 174, 96, 0.3);
+}
+
+.orb-question-panel.wrong {
+  border-color: #E74C3C;
+  box-shadow: 0 0 30px rgba(231, 76, 60, 0.3);
+}
+
+@keyframes orbPop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.orb-question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.orb-question-icon {
+  font-size: 28px;
+}
+
+.orb-question-xp {
+  background: rgba(255, 215, 0, 0.15);
+  color: #FFD700;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.orb-question-text {
+  color: #fff;
+  font-size: 18px;
+  margin: 0 0 20px;
+  line-height: 1.4;
+}
+
+.orb-question-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.orb-option {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #ddd;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.orb-option:hover:not(:disabled) {
+  background: rgba(74, 144, 217, 0.15);
+  border-color: #4A90D9;
+}
+
+.orb-option.correct {
+  background: rgba(39, 174, 96, 0.2);
+  border-color: #27AE60;
+  color: #27AE60;
+}
+
+.orb-option:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.orb-result {
+  margin: 16px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.orb-result--correct { color: #27AE60; }
+.orb-result--wrong { color: #E74C3C; }

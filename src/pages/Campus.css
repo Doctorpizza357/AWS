@@ -305,3 +305,26 @@
   from { transform: translateX(-50%) scale(0.8); opacity: 0; }
   to { transform: translateX(-50%) scale(1); opacity: 1; }
 }
+
+
+/* XP Toast Notification */
+.campus-xp-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #FFD700;
+  font-size: 32px;
+  font-weight: 800;
+  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+  z-index: 180;
+  pointer-events: none;
+  animation: xpFloat 2s ease-out forwards;
+}
+
+@keyframes xpFloat {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  40% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(0.8); }
+}
