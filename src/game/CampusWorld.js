@@ -100,6 +100,9 @@ class CampusWorld {
     // Create zones with isometric buildings
     this._loadZones();
 
+    // Enable zIndex-based sorting for the world container
+    this._worldContainer.sortableChildren = true;
+
     // Initial depth sort
     this.sortByDepth();
 
@@ -1052,11 +1055,13 @@ class CampusWorld {
   // ─── DEPTH SORTING ──────────────────────────────────────────────────────────
 
   sortByDepth() {
-    this._worldContainer.children.sort((a, b) => {
-      const ay = a._sortY !== undefined ? a._sortY : -Infinity;
-      const by = b._sortY !== undefined ? b._sortY : -Infinity;
-      return ay - by;
-    });
+    // Use zIndex-based sorting instead of manual child reordering
+    // This preserves the avatar's zIndex (9999) set in Campus.js
+    for (const child of this._worldContainer.children) {
+      if (child._sortY !== undefined) {
+        child.zIndex = Math.floor(child._sortY);
+      }
+    }
   }
 
   // ─── ZOOM ON APPROACH ───────────────────────────────────────────────────────

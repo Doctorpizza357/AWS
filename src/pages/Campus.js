@@ -29,6 +29,7 @@ import ModalCareerSimulation from '../components/game/ModalCareerSimulation';
 import WaypointIndicator from '../components/game/WaypointIndicator';
 import KnowledgeOrbs, { TRIVIA_QUESTIONS } from '../components/game/KnowledgeOrbs';
 import './Campus.css';
+import questsData from '../data/quests.json';
 
 // Lazy-loaded feature pages rendered as overlays inside campus
 const MarketIntelligence = lazy(() => import('./MarketIntelligence'));
@@ -151,6 +152,23 @@ function Campus() {
         transition.setCallbacks({
           onEnter: async (buildingId) => {
             setActiveBuilding(buildingId);
+            // Complete quest tasks related to visiting this building
+            if (questServiceRef.current) {
+              const active = questServiceRef.current.getActiveQuests();
+              for (const aq of active) {
+                const questId = aq.questId || aq.id;
+                const questDef = questsData.find(q => q.id === questId);
+                if (questDef) {
+                  for (const task of questDef.tasks) {
+                    if ((task.action === 'visit_building' || task.action === 'enter_building') && task.target === buildingId) {
+                      questServiceRef.current.completeTask(questId, task.id);
+                    }
+                  }
+                }
+              }
+              setActiveQuests([...questServiceRef.current.getActiveQuests()]);
+              setAvailableQuestCount(questServiceRef.current.getAvailableQuests().length);
+            }
           },
           onExit: async () => {
             setActiveBuilding(null);
@@ -230,6 +248,13 @@ function Campus() {
         }
 
         // Track available quests
+        // Auto-activate welcome quest for new players
+        if (questService.getActiveQuests().length === 0) {
+          const result = questService.activateQuest('welcome-quest');
+          if (result.success) {
+            setActiveQuests(questService.getActiveQuests());
+          }
+        }
         setAvailableQuestCount(questService.getAvailableQuests().length);
 
         // Handle URL params (building auto-entry)
@@ -270,6 +295,31 @@ function Campus() {
     };
     bus.on(GameEvents.BUILDING_PROXIMITY, onProximity);
     return () => bus.off(GameEvents.BUILDING_PROXIMITY, onProximity);
+  }, []);
+
+  // Track zone visits for quests
+  useEffect(() => {
+    const bus = EventBus.getInstance();
+    const onZoneChange = (data) => {
+      if (questServiceRef.current && data.currentZone) {
+        const active = questServiceRef.current.getActiveQuests();
+        for (const aq of active) {
+          const questId = aq.questId || aq.id;
+          const questDef = questsData.find(q => q.id === questId);
+          if (questDef) {
+            for (const task of questDef.tasks) {
+              if (task.action === 'visit_zone' && task.target === data.currentZone) {
+                questServiceRef.current.completeTask(questId, task.id);
+              }
+            }
+          }
+        }
+        setActiveQuests([...questServiceRef.current.getActiveQuests()]);
+        setAvailableQuestCount(questServiceRef.current.getAvailableQuests().length);
+      }
+    };
+    bus.on(GameEvents.ZONE_CHANGED, onZoneChange);
+    return () => bus.off(GameEvents.ZONE_CHANGED, onZoneChange);
   }, []);
 
   // Handle interaction key (E)
