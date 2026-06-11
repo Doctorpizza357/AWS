@@ -7,6 +7,7 @@ import { useAvatar } from '../context/AvatarContext';
 import { generateInterviewQuestions, analyzeInterviewResponse } from '../services/interviewService';
 import { speakText, stopSpeaking, isSpeaking } from '../services/ttsService';
 import { MLBodyAnalyzer } from '../services/poseAnalyzer';
+import MeshReplay from '../components/MeshReplay';
 import './MockInterview.css';
 import { getIconComponent } from '../utils/iconMap';
 
@@ -15,28 +16,27 @@ const safePct = (v) => Number.isFinite(v) ? `${v}%` : '-';
 const clampScore = (v) => Number.isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : null;
 
 const POSE_CONNECTIONS = [
-  ['left_eye', 'right_eye'],
-  ['left_eye', 'nose'],
-  ['right_eye', 'nose'],
+  // Face
+  ['nose', 'left_eye_inner'], ['left_eye_inner', 'left_eye'], ['left_eye', 'left_eye_outer'],
+  ['nose', 'right_eye_inner'], ['right_eye_inner', 'right_eye'], ['right_eye', 'right_eye_outer'],
+  ['left_eye_outer', 'left_ear'], ['right_eye_outer', 'right_ear'],
+  ['left_mouth', 'right_mouth'],
+  // Torso
   ['left_shoulder', 'right_shoulder'],
-  ['left_shoulder', 'left_elbow'],
-  ['left_elbow', 'left_wrist'],
-  ['right_shoulder', 'right_elbow'],
-  ['right_elbow', 'right_wrist'],
-  ['left_shoulder', 'left_hip'],
-  ['right_shoulder', 'right_hip'],
+  ['left_shoulder', 'left_hip'], ['right_shoulder', 'right_hip'],
   ['left_hip', 'right_hip'],
-  ['left_hip', 'left_knee'],
-  ['left_knee', 'left_ankle'],
-  ['right_hip', 'right_knee'],
-  ['right_knee', 'right_ankle']
+  // Arms
+  ['left_shoulder', 'left_elbow'], ['left_elbow', 'left_wrist'],
+  ['right_shoulder', 'right_elbow'], ['right_elbow', 'right_wrist'],
+  // Hands
+  ['left_wrist', 'left_pinky'], ['left_wrist', 'left_index'], ['left_wrist', 'left_thumb'],
+  ['right_wrist', 'right_pinky'], ['right_wrist', 'right_index'], ['right_wrist', 'right_thumb'],
+  // Legs
+  ['left_hip', 'left_knee'], ['left_knee', 'left_ankle'],
+  ['right_hip', 'right_knee'], ['right_knee', 'right_ankle'],
+  ['left_ankle', 'left_heel'], ['left_heel', 'left_foot'],
+  ['right_ankle', 'right_heel'], ['right_heel', 'right_foot'],
 ];
-
-// Add extra facial/neck/hand connections where available for richer avatar skeleton
-POSE_CONNECTIONS.push(
-  ['nose', 'left_eye'], ['nose', 'right_eye'], ['left_eye', 'left_ear'], ['right_eye', 'right_ear'],
-  ['left_wrist', 'left_index'] , ['right_wrist', 'right_index']
-);
 
 // Enable fancier overlay visuals
 const showFancyOverlay = true;
@@ -161,6 +161,7 @@ export default function MockInterview() {
   const [error, setError] = useState('');
   const [trackingMode, setTrackingMode] = useState('ml');
   const [showPoseOverlay, setShowPoseOverlay] = useState(false);
+  const [meshReplayFrames, setMeshReplayFrames] = useState([]);
   const [ttsPlaying, setTtsPlaying] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
 
@@ -256,6 +257,9 @@ export default function MockInterview() {
     const offsetX = (targetWidth - sourceWidth * scale) / 2;
     const offsetY = (targetHeight - sourceHeight * scale) / 2;
 
+    // Helper to convert normalized coords to canvas coords
+    const toCanvas = (x, y) => ({ x: x * scale + offsetX, y: y * scale + offsetY });
+
     const points = poseFrame.keypoints.reduce((acc, point) => {
       if (!point?.name) return acc;
       acc[point.name] = {
@@ -265,17 +269,127 @@ export default function MockInterview() {
       };
       return acc;
     }, {});
-    // Fancy neon skeleton + trails
+
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // push to trail buffer
+    // ─── Face Mesh wireframe (subtle holographic) ─────────────────────────────
+    if (poseFrame.faceMesh && showFancyOverlay) {
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      ctx.strokeStyle = '#00ffd0';
+      ctx.lineWidth = 0.5;
+      const mesh = poseFrame.faceMesh;
+      // Draw contour silhouette (outer face + eyes + lips) for performance
+      const contours = [
+        // Face oval (key indices)
+        [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10],
+        // Left eye
+        [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246, 33],
+        // Right eye
+        [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398, 362],
+        // Lips outer
+        [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185, 61],
+      ];
+      for (const contour of contours) {
+        ctx.beginPath();
+        for (let i = 0; i < contour.length; i++) {
+          const lm = mesh[contour[i]];
+          if (!lm) continue;
+          const p = toCanvas(lm.x * sourceWidth, lm.y * sourceHeight);
+          if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // ─── Gaze indicator ───────────────────────────────────────────────────────
+    if (poseFrame.gaze && poseFrame.faceMesh && showFancyOverlay) {
+      const gaze = poseFrame.gaze;
+      const mesh = poseFrame.faceMesh;
+      // Draw a small gaze direction arrow from between the eyes
+      const leftIris = mesh[468];
+      const rightIris = mesh[473];
+      if (leftIris && rightIris) {
+        const midX = ((leftIris.x + rightIris.x) / 2) * sourceWidth;
+        const midY = ((leftIris.y + rightIris.y) / 2) * sourceHeight;
+        const cp = toCanvas(midX, midY);
+        const gazeLen = 20;
+        const gx = (gaze.x - 0.5) * gazeLen * 2;
+        const gy = gaze.y * gazeLen * 2;
+
+        ctx.save();
+        ctx.globalAlpha = 0.8;
+        const gazeColor = gaze.score > 0.7 ? '#00ff88' : gaze.score > 0.4 ? '#ffcc00' : '#ff4444';
+        ctx.strokeStyle = gazeColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cp.x, cp.y, 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cp.x, cp.y);
+        ctx.lineTo(cp.x + gx, cp.y + gy);
+        ctx.stroke();
+        // small arrow head
+        const angle = Math.atan2(gy, gx);
+        ctx.beginPath();
+        ctx.moveTo(cp.x + gx, cp.y + gy);
+        ctx.lineTo(cp.x + gx - 5 * Math.cos(angle - 0.4), cp.y + gy - 5 * Math.sin(angle - 0.4));
+        ctx.moveTo(cp.x + gx, cp.y + gy);
+        ctx.lineTo(cp.x + gx - 5 * Math.cos(angle + 0.4), cp.y + gy - 5 * Math.sin(angle + 0.4));
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // ─── Hand landmarks ───────────────────────────────────────────────────────
+    if (poseFrame.hands && poseFrame.hands.length > 0 && showFancyOverlay) {
+      ctx.save();
+      const handConnections = [
+        [0,1],[1,2],[2,3],[3,4], // thumb
+        [0,5],[5,6],[6,7],[7,8], // index
+        [0,9],[9,10],[10,11],[11,12], // middle
+        [0,13],[13,14],[14,15],[15,16], // ring
+        [0,17],[17,18],[18,19],[19,20], // pinky
+        [5,9],[9,13],[13,17], // palm
+      ];
+      for (const hand of poseFrame.hands) {
+        if (!hand || hand.length < 21) continue;
+        ctx.globalAlpha = 0.6;
+        ctx.strokeStyle = '#ff66ff';
+        ctx.lineWidth = 1.5;
+        for (const [i, j] of handConnections) {
+          const a = hand[i], b = hand[j];
+          if (!a || !b) continue;
+          const pa = toCanvas(a.x * sourceWidth, a.y * sourceHeight);
+          const pb = toCanvas(b.x * sourceWidth, b.y * sourceHeight);
+          ctx.beginPath();
+          ctx.moveTo(pa.x, pa.y);
+          ctx.lineTo(pb.x, pb.y);
+          ctx.stroke();
+        }
+        // fingertip dots
+        ctx.fillStyle = '#ff99ff';
+        ctx.globalAlpha = 0.85;
+        for (const idx of [4, 8, 12, 16, 20]) {
+          const tip = hand[idx];
+          if (!tip) continue;
+          const pt = toCanvas(tip.x * sourceWidth, tip.y * sourceHeight);
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+
+    // ─── Motion trails ────────────────────────────────────────────────────────
     try {
       previousPosesRef.current.push({ ts: Date.now(), pts: points });
-      if (previousPosesRef.current.length > 20) previousPosesRef.current.shift();
+      if (previousPosesRef.current.length > 16) previousPosesRef.current.shift();
     } catch (e) {}
 
-    // draw per-point trails (each keypoint has its own thin trail)
     try {
       const names = Object.keys(points);
       names.forEach((name) => {
@@ -287,22 +401,21 @@ export default function MockInterview() {
           if (!moved) { ctx.moveTo(p.x, p.y); moved = true; } else ctx.lineTo(p.x, p.y);
         }
         if (!moved) return;
-        // subtle color based on hash of name
         let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
-        const colorA = `hsla(${h},85%,60%,0.95)`;
-        const colorB = `hsla(${(h+80)%360},75%,60%,0.6)`;
+        const colorA = `hsla(${h},85%,60%,0.9)`;
+        const colorB = `hsla(${(h+80)%360},75%,60%,0.5)`;
         const grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
         grad.addColorStop(0, colorA);
         grad.addColorStop(1, colorB);
         ctx.strokeStyle = grad;
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.7;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.5;
         ctx.stroke();
         ctx.globalAlpha = 1;
       });
     } catch (e) {}
 
-    // main skeleton lines (soft glow pass + crisp core pass)
+    // ─── Skeleton lines (neon glow + core) ────────────────────────────────────
     POSE_CONNECTIONS.forEach(([from, to]) => {
       if (!points[from] || !points[to]) return;
 
@@ -329,7 +442,7 @@ export default function MockInterview() {
       ctx.stroke();
     });
 
-    // keypoints
+    // ─── Keypoint dots ────────────────────────────────────────────────────────
     const pulse = 1 + Math.sin(Date.now() / 300) * 0.15;
     Object.entries(points).forEach(([name, point]) => {
       if ((point.score ?? 0) < 0.25) return;
@@ -339,11 +452,13 @@ export default function MockInterview() {
         coreColor = 'rgba(80,240,255,0.98)';
       } else if (name.includes('hip') || name.includes('knee') || name.includes('ankle')) {
         coreColor = 'rgba(120,200,255,0.96)';
+      } else if (name.includes('index') || name.includes('pinky') || name.includes('thumb')) {
+        coreColor = 'rgba(255,120,255,0.95)';
       }
 
       const confidence = point.score ?? 1;
-      const rOuter = (5 + confidence * 5) * pulse;
-      const rInner = (2.8 + confidence * 2.2) * pulse;
+      const rOuter = (4.5 + confidence * 4.5) * pulse;
+      const rInner = (2.5 + confidence * 2) * pulse;
 
       ctx.beginPath();
       ctx.shadowBlur = 12;
@@ -360,6 +475,19 @@ export default function MockInterview() {
       ctx.fill();
       ctx.shadowBlur = 0;
     });
+
+    // ─── Head pose HUD ────────────────────────────────────────────────────────
+    if (poseFrame.headPose && showFancyOverlay) {
+      const hp = poseFrame.headPose;
+      ctx.save();
+      ctx.globalAlpha = 0.7;
+      ctx.font = '10px monospace';
+      ctx.fillStyle = '#00ffd0';
+      ctx.fillText(`YAW ${(hp.yaw * 45).toFixed(0)}°`, 8, canvas.height - 28);
+      ctx.fillText(`PITCH ${(hp.pitch * 45).toFixed(0)}°`, 8, canvas.height - 16);
+      ctx.fillText(`ROLL ${hp.roll.toFixed(0)}°`, 8, canvas.height - 4);
+      ctx.restore();
+    }
   }, [clearPoseOverlay, showPoseOverlay]);
 
   const stopMicMeter = useCallback(() => {
@@ -519,6 +647,7 @@ export default function MockInterview() {
       setReplayEntries([]);
       setActiveFollowUp(null);
       setBodyResults(null);
+      setMeshReplayFrames([]);
       setSpeechStats(null);
       setSpeechStatus({ supported: false, active: false, error: '', message: 'Speech recognition idle' });
       setSpeechDebug('');
@@ -576,6 +705,23 @@ export default function MockInterview() {
             }
           }
           drawPoseOverlay(frame);
+          // Store frames for mesh replay during recording (throttle to ~10fps for memory)
+          if (recordingRef.current && frame?.visible) {
+            const now = Date.now();
+            const last = poseFramesRef.current.length > 0 ? poseFramesRef.current[poseFramesRef.current.length - 1].ts : 0;
+            if (now - last >= 66) { // ~15fps capture rate for smooth replay
+              poseFramesRef.current.push({
+                ts: now,
+                keypoints: frame.keypoints ? frame.keypoints.map(k => ({ name: k.name, x: k.x, y: k.y, z: k.z, score: k.score })) : [],
+                faceMesh: frame.faceMesh ? frame.faceMesh.map(lm => ({ x: lm.x, y: lm.y, z: lm.z })) : null,
+                hands: frame.hands ? frame.hands.map(h => h.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }))) : null,
+                headPose: frame.headPose || null,
+                gaze: frame.gaze || null,
+                width: frame.width,
+                height: frame.height,
+              });
+            }
+          }
         } catch (e) {
           console.warn('poseListener error', e?.message || e);
         }
@@ -607,10 +753,13 @@ export default function MockInterview() {
       } else {
         usingFallbackRef.current = false;
         setTrackingMode('ml');
-        clearTrackingLoadingState('Pose ML ready');
-        bodyRef.current.start().catch((err) => {
+        setTrackingMessage('Warming up pose detection...');
+        try {
+          await bodyRef.current.start();
+        } catch (err) {
           pushSpeechLog('warn', 'pose loop warmup failed', { message: err?.message });
-        });
+        }
+        if (!cancelled) clearTrackingLoadingState('Pose ML ready');
       }
     };
 
@@ -837,7 +986,9 @@ export default function MockInterview() {
     const body = usingFallbackRef.current ? fallbackBodyRef.current.getResults() : bodyRef.current.getResults();
     setBodyResults(body);
 
-    // Not saving pose frames for replay (replay feature removed)
+    // Save pose frames for mesh replay
+    const capturedFrames = [...poseFramesRef.current];
+    setMeshReplayFrames(capturedFrames);
 
     // Show review phase RIGHT AWAY with local results
     setResults(prev => [...prev, { question: questions[qIdx]?.question, score: null, body: body.overall, confidence: Math.round(confidence) }]);
@@ -867,6 +1018,7 @@ export default function MockInterview() {
       setQIdx(qIdx + 1);
       setAnalysis(null);
       setBodyResults(null);
+      setMeshReplayFrames([]);
       setSpeechStats(null);
       setPhase('interview');
     } else {
@@ -917,6 +1069,7 @@ export default function MockInterview() {
     setActiveFollowUp(questionText);
     setAnalysis(null);
     setBodyResults(null);
+    setMeshReplayFrames([]);
     setSpeechStats(null);
     setTranscript('');
     setInterim('');
@@ -1261,16 +1414,30 @@ export default function MockInterview() {
                 <div className="mi-section">
                   <h3>{(() => { const Icon = getIconComponent('user'); return <><Icon size={16} style={{marginRight:8}}/> Body Language</>; })()}</h3>
                   <div className="mi-metrics mi-metrics-compact">
-                    <div><span>{safePct(bodyResults.eyeContact)}</span><small>Eye Contact</small></div>
+                    <div><span>{safePct(bodyResults.eyeContact)}</span><small>Gaze</small></div>
                     <div><span>{safePct(bodyResults.posture)}</span><small>Posture</small></div>
                     <div><span>{safePct(bodyResults.stillness)}</span><small>Stillness</small></div>
+                    <div><span>{safePct(bodyResults.gestures)}</span><small>Gestures</small></div>
+                    <div><span>{safePct(bodyResults.engagement)}</span><small>Engagement</small></div>
                     <div><span>{safePct(bodyResults.overall)}</span><small>Overall</small></div>
                   </div>
-                  {bodyResults.feedback?.slice(0, 3).map((f, i) => <p key={i} className="mi-body-fb">• {f}</p>)}
+                  {bodyResults.detailed && (
+                    <div className="mi-body-details">
+                      <small className="mi-body-detail-row">
+                        🎯 Nods: {bodyResults.detailed.headNods} &nbsp;|&nbsp; 😊 Smiles: {bodyResults.detailed.smilePercentage}% &nbsp;|&nbsp; 🤚 Face touches: {bodyResults.detailed.faceTouches}
+                      </small>
+                    </div>
+                  )}
+                  {bodyResults.feedback?.slice(0, 5).map((f, i) => <p key={i} className="mi-body-fb">• {f}</p>)}
                 </div>
               )}
 
-              {/* Avatar replay removed */}
+              {/* Mesh Replay */}
+              {meshReplayFrames.length > 1 && (
+                <div className="mi-section">
+                  <MeshReplay frames={meshReplayFrames} />
+                </div>
+              )}
 
               {answerTranscript && (
                 <div className="mi-section">
@@ -1321,7 +1488,7 @@ export default function MockInterview() {
           {results.map((r,i) => <div key={i}><span>Q{i+1}</span><span>AI: {r.score || '-'}</span><span>Body: {r.body || '-'}%</span><span>Conf: {r.confidence || '-'}%</span></div>)}
         </div>
         <div className="mi-done-actions">
-          <button className="btn-primary" onClick={() => { setPhase('setup'); setQIdx(0); setResults([]); setAnalysis(null); setBodyResults(null); setSpeechStats(null); setFollowUpQuestions([]); setReplayEntries([]); setActiveFollowUp(null); setSpeechStatus({ supported: false, active: false, error: '', message: 'Speech recognition idle' }); setError(''); }}>Practice Again</button>
+          <button className="btn-primary" onClick={() => { setPhase('setup'); setQIdx(0); setResults([]); setAnalysis(null); setBodyResults(null); setMeshReplayFrames([]); setSpeechStats(null); setFollowUpQuestions([]); setReplayEntries([]); setActiveFollowUp(null); setSpeechStatus({ supported: false, active: false, error: '', message: 'Speech recognition idle' }); setError(''); }}>Practice Again</button>
           <button className="btn-secondary" onClick={() => navigate('/interview')}>Back to Hub</button>
           <button className="btn-secondary" onClick={() => navigate('/skillbridge')}>Improve Skills →</button>
         </div>
