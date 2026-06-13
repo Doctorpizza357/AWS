@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: pathfindr-backend
+    runtime: node
+    region: ohio
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_BEDROCK_MODEL_ID
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_SESSION_TOKEN
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
