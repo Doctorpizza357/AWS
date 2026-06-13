@@ -586,6 +586,7 @@ export class MLBodyAnalyzer {
       this.poseListener({
         keypoints,
         faceMesh: hasFace ? faceLandmarks : null,
+        faceBlendshapes: faceBlendshapes || null,
         hands: hasHands ? handLandmarksList : null,
         headPose,
         gaze: gazeData,

@@ -7,7 +7,8 @@ import { useAvatar } from '../context/AvatarContext';
 import { generateInterviewQuestions, analyzeInterviewResponse } from '../services/interviewService';
 import { speakText, stopSpeaking, isSpeaking } from '../services/ttsService';
 import { MLBodyAnalyzer } from '../services/poseAnalyzer';
-import MeshReplay from '../components/MeshReplay';
+import AvatarReplay3D from '../components/AvatarReplay3D';
+import HumanoidAvatar3D from '../components/HumanoidAvatar3D';
 import './MockInterview.css';
 import { getIconComponent } from '../utils/iconMap';
 
@@ -162,6 +163,8 @@ export default function MockInterview() {
   const [trackingMode, setTrackingMode] = useState('ml');
   const [showPoseOverlay, setShowPoseOverlay] = useState(false);
   const [meshReplayFrames, setMeshReplayFrames] = useState([]);
+  const [showLiveAvatar, setShowLiveAvatar] = useState(false);
+  const [livePoseFrame, setLivePoseFrame] = useState(null);
   const [ttsPlaying, setTtsPlaying] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
 
@@ -705,6 +708,8 @@ export default function MockInterview() {
             }
           }
           drawPoseOverlay(frame);
+          // Update live pose frame for 3D avatar
+          setLivePoseFrame(frame);
           // Store frames for mesh replay during recording (throttle to ~10fps for memory)
           if (recordingRef.current && frame?.visible) {
             const now = Date.now();
@@ -714,6 +719,7 @@ export default function MockInterview() {
                 ts: now,
                 keypoints: frame.keypoints ? frame.keypoints.map(k => ({ name: k.name, x: k.x, y: k.y, z: k.z, score: k.score })) : [],
                 faceMesh: frame.faceMesh ? frame.faceMesh.map(lm => ({ x: lm.x, y: lm.y, z: lm.z })) : null,
+                faceBlendshapes: frame.faceBlendshapes || null,
                 hands: frame.hands ? frame.hands.map(h => h.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }))) : null,
                 headPose: frame.headPose || null,
                 gaze: frame.gaze || null,
@@ -1221,6 +1227,22 @@ export default function MockInterview() {
             </div>
           </div>
         )}
+        {recording && (
+          <div style={{ marginTop: 12 }}>
+            <div className="live-avatar-panel">
+              <button
+                className={`live-avatar-toggle ${showLiveAvatar ? 'active' : ''}`}
+                onClick={() => setShowLiveAvatar(prev => !prev)}
+              >
+                {showLiveAvatar ? 'Hide 3D Avatar' : 'Show 3D Avatar'}
+              </button>
+              {showLiveAvatar && <span className="live-avatar-badge">LIVE</span>}
+              {showLiveAvatar && (
+                <HumanoidAvatar3D poseFrame={livePoseFrame} quality="low" width={320} height={280} />
+              )}
+            </div>
+          </div>
+        )}
         <div className="mi-controls">
           {!recording ? <button className="btn-primary" onClick={startRecording}>{(() => { const Icon = getIconComponent('play'); return <><Icon size={14} style={{marginRight:8}}/> Start Recording</>; })()}</button> : <button className="mi-stop-btn" onClick={stopRecording}>{(() => { const Icon = getIconComponent('x'); return <><Icon size={14} style={{marginRight:8}}/> Stop & Analyze</>; })()}</button>}
           <button className="btn-secondary" onClick={handleNext}>Skip →</button>
@@ -1278,6 +1300,22 @@ export default function MockInterview() {
           <div style={{ marginTop: 12 }}>
             <div className="mi-skeleton-box">
               <canvas ref={skeletonRef} width={320} height={240} style={{ width: '100%', height: '100%', transform: 'scaleX(-1)' }} />
+            </div>
+          </div>
+        )}
+        {recording && (
+          <div style={{ marginTop: 12 }}>
+            <div className="live-avatar-panel">
+              <button
+                className={`live-avatar-toggle ${showLiveAvatar ? 'active' : ''}`}
+                onClick={() => setShowLiveAvatar(prev => !prev)}
+              >
+                {showLiveAvatar ? 'Hide 3D Avatar' : 'Show 3D Avatar'}
+              </button>
+              {showLiveAvatar && <span className="live-avatar-badge">LIVE</span>}
+              {showLiveAvatar && (
+                <HumanoidAvatar3D poseFrame={livePoseFrame} quality="low" width={320} height={280} />
+              )}
             </div>
           </div>
         )}
@@ -1432,10 +1470,10 @@ export default function MockInterview() {
                 </div>
               )}
 
-              {/* Mesh Replay */}
+              {/* 3D Avatar Replay (replaces legacy 2D MeshReplay) */}
               {meshReplayFrames.length > 1 && (
                 <div className="mi-section">
-                  <MeshReplay frames={meshReplayFrames} />
+                  <AvatarReplay3D frames={meshReplayFrames} />
                 </div>
               )}
 
