@@ -7,6 +7,7 @@ import { useSkillBridge } from '../context/SkillBridgeContext';
 import { useAvatar } from '../context/AvatarContext';
 import SkillBridgeWizard from '../components/skillbridge/SkillBridgeWizard';
 import OfflineBanner from '../components/skillbridge/OfflineBanner';
+import careers from '../data/careers';
 import './SkillBridge.css';
 
 /**
@@ -80,7 +81,6 @@ function SkillBridgePage() {
   // ── Avatar checkpoint trigger (multicultural-avatars spec, Req 4.1, 4.2, 4.4) ──
   useEffect(() => {
     const wizardStep = deriveWizardStep(sb.dreamJobId, sb.skillAssessment);
-    const careers = require('../data/careers').default;
     const dreamJobCareer = careers && sb.dreamJobId
       ? careers.find((c) => c.id === sb.dreamJobId)
       : null;
@@ -129,7 +129,6 @@ function SkillBridgePage() {
       sb.skillAssessment !== null
     ) {
       // User just completed their first assessment
-      const careers = require('../data/careers').default;
       const dreamJobCareer = careers && sb.dreamJobId
         ? careers.find((c) => c.id === sb.dreamJobId)
         : null;

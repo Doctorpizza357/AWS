@@ -86,13 +86,14 @@ export async function generateScenario(career, scenario, userProfile) {
   }
 }
 
+import careers from '../data/careers';
+
 export async function generateCareerRecommendations(profile) {
   // Returns career IDs based on profile matching
   const { interests, skills } = profile;
   const allTags = [...interests, ...skills].map(t => t.toLowerCase());
 
   // Simple matching algorithm (AI would enhance this)
-  const careers = require('../data/careers').default;
   const scored = careers.map(career => {
     const matchScore = career.tags.reduce((score, tag) => {
       return score + (allTags.some(t => t.includes(tag) || tag.includes(t)) ? 1 : 0);
