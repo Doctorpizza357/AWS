@@ -1510,6 +1510,24 @@ RULES:
   }
 });
 
+// ─── BLS API Proxy ──────────────────────────────────────────────────────────
+// The BLS API requires POST requests. Vercel rewrites cannot preserve POST
+// method for external destinations, so we proxy through the backend.
+app.post('/api/bls', async (req, res) => {
+  try {
+    const response = await fetch('https://api.bls.gov/publicAPI/v2/timeseries/data/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    console.error('BLS proxy failed:', err);
+    res.status(502).json({ ok: false, message: 'BLS API proxy failed', error: String(err) });
+  }
+});
+
 app.use((_req, res) => {
   res.status(404).json({ ok: false, message: 'Not found' });
 });

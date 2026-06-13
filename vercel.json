@@ -4,10 +4,6 @@
   "framework": "create-react-app",
   "rewrites": [
     {
-      "source": "/api/bls/:path*",
-      "destination": "https://api.bls.gov/publicAPI/v2/timeseries/data/:path*"
-    },
-    {
       "source": "/api/:path*",
       "destination": "https://pathfindr-backend-j5qg.onrender.com/api/:path*"
     },
