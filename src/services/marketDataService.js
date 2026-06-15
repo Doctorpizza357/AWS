@@ -25,7 +25,7 @@
 
 // Proxied through CRA dev server (see src/setupProxy.js) to avoid CORS.
 // In production, replace with your own backend proxy or serverless function.
-const BLS_API_BASE = '/api/bls/';
+const BLS_API_BASE = '/api/bls';
 const BLS_API_KEY = process.env.REACT_APP_BLS_API_KEY;
 
 // SOC codes (6 digits, no dash)
