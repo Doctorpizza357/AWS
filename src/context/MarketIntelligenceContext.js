@@ -1,8 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useUser } from './UserContext';
 import { fetchMarketOverview, fetchHeatmapData, fetchSalaryData, fetchViabilityData } from '../services/marketDataService';
 
 const MarketIntelligenceContext = createContext();
+
+// Cache TTL: 1 hour (BLS data updates infrequently)
+const CACHE_TTL_MS = 60 * 60 * 1000;
 
 const initialState = {
   selectedCareerId: null,
@@ -16,7 +19,6 @@ const initialState = {
   viabilityData: [],
   selectedState: null,
   selectedPercentile: 50,
-  // stream removed
   lastFetchTimestamps: {},
   errors: {},
 };
@@ -24,8 +26,32 @@ const initialState = {
 export function MarketIntelligenceProvider({ children }) {
   const { user } = useUser();
   const [state, setState] = useState(initialState);
+  const cacheRef = useRef({}); // { [careerId]: { heatmap, salary, viability, timestamp } }
 
-  const loadAllData = useCallback(async (careerId) => {
+  const loadAllData = useCallback(async (careerId, forceRefresh = false) => {
+    // Check cache first
+    const cached = cacheRef.current[careerId];
+    if (!forceRefresh && cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+      setState(prev => ({
+        ...prev,
+        heatmapData: cached.heatmap,
+        salaryData: cached.salary,
+        viabilityData: cached.viability,
+        loadingStates: {
+          heatmap: 'success',
+          salary: 'success',
+          viability: 'success',
+        },
+        errors: {},
+        lastFetchTimestamps: {
+          heatmap: new Date(cached.timestamp),
+          salary: new Date(cached.timestamp),
+          viability: new Date(cached.timestamp),
+        },
+      }));
+      return;
+    }
+
     setState(prev => ({
       ...prev,
       loadingStates: {
@@ -35,18 +61,30 @@ export function MarketIntelligenceProvider({ children }) {
       },
     }));
 
-    // Parallel fetch panels (no job stream)
+    // Parallel fetch panels
     const [heatmap, salary, viability] = await Promise.allSettled([
       fetchHeatmapData(careerId),
       fetchSalaryData(careerId),
       fetchViabilityData(careerId),
     ]);
 
+    const heatmapData = heatmap.status === 'fulfilled' ? heatmap.value : [];
+    const salaryData = salary.status === 'fulfilled' ? salary.value : { historical: [], predicted: [] };
+    const viabilityData = viability.status === 'fulfilled' ? viability.value : [];
+
+    // Store in cache
+    cacheRef.current[careerId] = {
+      heatmap: heatmapData,
+      salary: salaryData,
+      viability: viabilityData,
+      timestamp: Date.now(),
+    };
+
     setState(prev => ({
       ...prev,
-      heatmapData: heatmap.status === 'fulfilled' ? heatmap.value : [],
-      salaryData: salary.status === 'fulfilled' ? salary.value : { historical: [], predicted: [] },
-      viabilityData: viability.status === 'fulfilled' ? viability.value : [],
+      heatmapData,
+      salaryData,
+      viabilityData,
       loadingStates: {
         heatmap: heatmap.status === 'fulfilled' ? 'success' : 'error',
         salary: salary.status === 'fulfilled' ? 'success' : 'error',
@@ -87,7 +125,12 @@ export function MarketIntelligenceProvider({ children }) {
     setState(prev => ({ ...prev, selectedState: stateCode }));
   }, []);
 
-  // Job stream removed: no stream filters or refresh handler
+  // Force refresh bypasses cache
+  const refreshData = useCallback(() => {
+    if (state.selectedCareerId) {
+      loadAllData(state.selectedCareerId, true);
+    }
+  }, [state.selectedCareerId, loadAllData]);
 
   return (
     <MarketIntelligenceContext.Provider value={{
@@ -95,6 +138,7 @@ export function MarketIntelligenceProvider({ children }) {
       selectCareer,
       selectState,
       loadAllData,
+      refreshData,
     }}>
       {children}
     </MarketIntelligenceContext.Provider>
