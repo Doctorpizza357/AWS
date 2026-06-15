@@ -155,13 +155,13 @@ export default function AvatarReplay3D({ frames, width = 520, height = 450 }) {
             className={`avatar-replay-3d-mode-btn ${mode === '3d' ? 'active' : ''}`}
             onClick={() => setMode('3d')}
           >
-            🧍 3D Avatar
+            3D Avatar
           </button>
           <button
             className={`avatar-replay-3d-mode-btn ${mode === '2d' ? 'active' : ''}`}
             onClick={() => setMode('2d')}
           >
-            🔬 2D Mesh
+            2D Mesh
           </button>
         </div>
         {mode === '3d' && (

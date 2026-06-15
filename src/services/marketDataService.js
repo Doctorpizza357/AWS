@@ -232,63 +232,43 @@ export async function fetchMarketOverview(careerId) {
  * Heatmap data: state-level Location Quotient, Mean Wage, Employment.
  * 
  * BLS v2 supports a registration key and a larger request window.
- * Strategy: fetch LQ + wage for 10 key states in one request (20 series),
- * then use national data to estimate the rest.
+ * Strategy: fetch LQ + wage for ALL states using fetchMultipleSeries batching
+ * (it handles the 20-series-per-request limit automatically).
  */
 export async function fetchHeatmapData(careerId) {
   const soc = CAREER_SOC[careerId];
   if (!soc) return [];
 
-  // Top 10 states by tech employment — fetch real data for these
-  const keyStates = ['CA','TX','NY','WA','VA','MA','IL','FL','PA','CO'];
-  const keyFips = keyStates.map(s => STATE_FIPS[s]);
+  const allStates = Object.entries(STATE_FIPS);
 
-  // Build series: LQ + mean wage for key states (20 series, fits in 1 request)
+  // Build series IDs: LQ + mean wage for every state
   const ids = [];
-  keyFips.forEach(f => {
-    ids.push(stateSeriesId(f, soc, '17')); // LQ
-    ids.push(stateSeriesId(f, soc, '04')); // Mean wage
+  allStates.forEach(([, fips]) => {
+    ids.push(stateSeriesId(fips, soc, '17')); // LQ
+    ids.push(stateSeriesId(fips, soc, '04')); // Mean wage
   });
 
   // Also get national employment for context
   ids.push(nationalSeriesId(soc, '01'));
 
+  // fetchMultipleSeries handles batching into groups of 20 automatically
   const series = await fetchMultipleSeries(ids);
-
-  // Parse key state data
-  const keyStateData = {};
-  keyStates.forEach((code, i) => {
-    const lqSeries = series[i * 2];
-    const wageSeries = series[i * 2 + 1];
-    keyStateData[code] = {
-      locationQuotient: latestAnnualValue(lqSeries) || 0,
-      meanWage: latestAnnualValue(wageSeries) || 0,
-    };
-  });
 
   const nationalEmp = latestAnnualValue(series[series.length - 1]) || 0;
 
-  // Build full state array: real data for key states, estimated for others
-  const allStates = Object.entries(STATE_FIPS);
-  return allStates.map(([stateCode]) => {
-    const real = keyStateData[stateCode];
-    if (real) {
-      return {
-        stateCode,
-        stateName: STATE_NAMES[stateCode],
-        locationQuotient: Math.round(real.locationQuotient * 100) / 100,
-        employment: Math.round(nationalEmp / 50 * real.locationQuotient),
-        meanWage: Math.round(real.meanWage),
-        percentChange: 0,
-      };
-    }
-    // For non-key states, use a baseline LQ of ~0.5-0.8
+  // Parse state data — each state has 2 consecutive series (LQ, wage)
+  return allStates.map(([stateCode], i) => {
+    const lqSeries = series[i * 2];
+    const wageSeries = series[i * 2 + 1];
+    const lq = latestAnnualValue(lqSeries) || 0;
+    const wage = latestAnnualValue(wageSeries) || 0;
+
     return {
       stateCode,
       stateName: STATE_NAMES[stateCode],
-      locationQuotient: 0.6,
-      employment: Math.round(nationalEmp / 100),
-      meanWage: 0,
+      locationQuotient: Math.round(lq * 100) / 100,
+      employment: lq > 0 ? Math.round(nationalEmp / 50 * lq) : 0,
+      meanWage: Math.round(wage),
       percentChange: 0,
     };
   });
@@ -308,6 +288,14 @@ function latestAnnualValue(series) {
 /**
  * Viability: derived from real BLS national employment + wage data vs CPI.
  * Uses CPI-U (CUUR0000SA0) for inflation comparison.
+ *
+ * BLS OEWS data is annual (period A01) and typically has a 1-2 year lag.
+ * Without a registration key, the API may return only the most recent year.
+ * We handle this by:
+ *  - Computing per-year growth rates when multi-year data is available
+ *  - Using the absolute level of wages and employment as differentiators when
+ *    growth data is unavailable (different careers have very different wage levels)
+ *  - Comparing annualized CPI growth to annualized wage growth
  */
 export async function fetchViabilityData(careerId) {
   const soc = CAREER_SOC[careerId];
@@ -322,70 +310,99 @@ export async function fetchViabilityData(careerId) {
   const wageS = series[1];
   const cpiS = series[2];
 
-  // Get values for growth calculation (v1 gives ~3 years)
+  // Get values for growth calculation
   const empVals = extractYearValues(empS);
   const wageVals = extractYearValues(wageS);
-  const cpiVals = extractDecemberValues(cpiS);
+  const cpiVals = extractAllMonthlyValues(cpiS);
 
-  // Employment growth %
+  // Employment growth % (annualized)
   let empGrowth = 0;
   const empYears = Object.keys(empVals).sort();
   if (empYears.length >= 2) {
     const oldest = empVals[empYears[0]];
     const newest = empVals[empYears[empYears.length - 1]];
-    if (oldest > 0) empGrowth = ((newest - oldest) / oldest) * 100;
+    const n = parseInt(empYears[empYears.length - 1]) - parseInt(empYears[0]);
+    if (oldest > 0 && n > 0) empGrowth = (Math.pow(newest / oldest, 1 / n) - 1) * 100;
   }
 
-  // Wage growth %
+  // Wage growth % (annualized)
   let wageGrowth = 0;
+  let latestWage = 0;
   const wageYears = Object.keys(wageVals).sort();
   if (wageYears.length >= 2) {
     const oldest = wageVals[wageYears[0]];
     const newest = wageVals[wageYears[wageYears.length - 1]];
-    if (oldest > 0) wageGrowth = ((newest - oldest) / oldest) * 100;
+    const n = parseInt(wageYears[wageYears.length - 1]) - parseInt(wageYears[0]);
+    if (oldest > 0 && n > 0) wageGrowth = (Math.pow(newest / oldest, 1 / n) - 1) * 100;
+    latestWage = newest;
+  } else if (wageYears.length === 1) {
+    latestWage = wageVals[wageYears[0]];
   }
 
-  // CPI inflation %
+  // Latest employment level
+  let latestEmp = 0;
+  if (empYears.length >= 1) {
+    latestEmp = empVals[empYears[empYears.length - 1]];
+  }
+
+  // CPI inflation % (annualized, using latest available year-over-year)
   let inflation = 0;
-  const cpiYears = Object.keys(cpiVals).sort();
-  if (cpiYears.length >= 2) {
-    const oldest = cpiVals[cpiYears[0]];
-    const newest = cpiVals[cpiYears[cpiYears.length - 1]];
-    if (oldest > 0) inflation = ((newest - oldest) / oldest) * 100;
+  const cpiYearMonths = Object.keys(cpiVals).sort();
+  if (cpiYearMonths.length >= 13) {
+    // Use year-over-year from the most recent 12-month span
+    const latest = cpiVals[cpiYearMonths[cpiYearMonths.length - 1]];
+    const yearAgo = cpiVals[cpiYearMonths[cpiYearMonths.length - 13]];
+    if (yearAgo > 0) inflation = ((latest - yearAgo) / yearAgo) * 100;
+  } else if (cpiYearMonths.length >= 2) {
+    const oldest = cpiVals[cpiYearMonths[0]];
+    const newest = cpiVals[cpiYearMonths[cpiYearMonths.length - 1]];
+    const months = cpiYearMonths.length - 1;
+    if (oldest > 0 && months > 0) inflation = (Math.pow(newest / oldest, 12 / months) - 1) * 100;
   }
 
   const realWage = wageGrowth - inflation;
+
+  // Career-specific differentiation signals:
+  // - wageLevel: higher-paying careers score higher on capital inflow & viability
+  // - empLevel: larger employment pools indicate mature, stable demand
+  // Scale wage level (50k-200k range → 0-1 signal)
+  const wageLevelSignal = Math.max(0, Math.min(1, (latestWage - 50000) / 150000));
+  // Scale employment (10k-500k range → 0-1 signal)
+  const empLevelSignal = Math.max(0, Math.min(1, (latestEmp - 10000) / 490000));
+
   const clamp = (v) => Math.max(10, Math.min(90, Math.round(v)));
   const trend = (v) => v > 2 ? 'up' : v < -2 ? 'down' : 'stable';
 
+  // Use both growth data AND level data to differentiate careers.
+  // When growth data is 0 (insufficient time range), level signals still vary by career.
   return [
     {
       id: 'ai-displacement', label: 'AI Displacement Risk',
-      value: clamp(50 - empGrowth * 3),
+      value: clamp(50 - empGrowth * 3 - empLevelSignal * 15),
       rawValue: Math.round((50 - empGrowth * 3)) / 100,
       unit: 'risk score', trend: trend(-empGrowth),
     },
     {
       id: 'capital-inflow', label: 'Capital Inflow Rate',
-      value: clamp(50 + (empGrowth + wageGrowth) * 2),
+      value: clamp(40 + (empGrowth + wageGrowth) * 2 + wageLevelSignal * 30),
       rawValue: Math.round((empGrowth + wageGrowth) * 10) / 10,
       unit: '% combined growth', trend: trend(empGrowth + wageGrowth),
     },
     {
       id: 'supply-demand', label: 'Supply vs Demand',
-      value: clamp(50 + empGrowth * 5),
+      value: clamp(45 + empGrowth * 5 + empLevelSignal * 20),
       rawValue: Math.round(empGrowth * 10) / 10,
       unit: '% emp growth', trend: trend(empGrowth),
     },
     {
       id: 'wage-growth', label: 'Wage Growth vs Inflation',
-      value: clamp(50 + realWage * 4),
+      value: clamp(50 + realWage * 4 + wageLevelSignal * 15),
       rawValue: Math.round(realWage * 10) / 10,
       unit: '% real', trend: trend(realWage),
     },
     {
       id: 'cola-delta', label: 'COLA Adjusted Value',
-      value: clamp(50 + realWage * 5),
+      value: clamp(45 + realWage * 5 + wageLevelSignal * 20),
       rawValue: Math.round(realWage * 10) / 10,
       unit: '% delta', trend: trend(realWage),
     },
@@ -399,6 +416,19 @@ function extractYearValues(series) {
   series.data.forEach(d => {
     if (d.period === 'A01' && d.value !== '-') {
       vals[d.year] = parseFloat(d.value);
+    }
+  });
+  return vals;
+}
+
+/** Extract all monthly CPI values keyed by "YYYY-MM" for proper ordering. */
+function extractAllMonthlyValues(series) {
+  const vals = {};
+  if (!series?.data) return vals;
+  series.data.forEach(d => {
+    if (d.period && d.period.startsWith('M') && d.value !== '-') {
+      const month = d.period.replace('M', '');
+      vals[`${d.year}-${month}`] = parseFloat(d.value);
     }
   });
   return vals;
