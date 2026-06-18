@@ -1,0 +1,53 @@
+/* Opponent Pose View */
+.opponent-pose-view {
+  background: rgba(15, 15, 30, 0.95);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 300px;
+}
+
+.opv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 107, 107, 0.08);
+  border-bottom: 1px solid rgba(255, 107, 107, 0.15);
+}
+
+.opv-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ffb4a0;
+}
+
+.opv-live {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ff4444;
+  animation: opvPulse 1.5s infinite;
+}
+
+@keyframes opvPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.opv-canvas {
+  width: 100%;
+  height: 200px;
+  display: block;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 600px) {
+  .opponent-pose-view {
+    max-width: 100%;
+  }
+
+  .opv-canvas {
+    height: 160px;
+  }
+}

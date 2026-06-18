@@ -1,0 +1,284 @@
+/* Challenge Results — Side-by-side comparison */
+.challenge-results {
+  background: var(--bg-primary, #0f1923);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+  animation: crFadeIn 0.4s ease;
+}
+
+@keyframes crFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Header */
+.cr-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.cr-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 12px;
+}
+
+.cr-verdict {
+  display: inline-block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  padding: 8px 24px;
+  border-radius: 8px;
+}
+
+.cr-verdict.win {
+  background: rgba(0, 255, 200, 0.1);
+  color: #00ffc8;
+  border: 2px solid rgba(0, 255, 200, 0.3);
+  text-shadow: 0 0 20px rgba(0, 255, 200, 0.4);
+}
+
+.cr-verdict.lose {
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+  border: 2px solid rgba(255, 107, 107, 0.3);
+}
+
+.cr-verdict.tie {
+  background: rgba(255, 200, 0, 0.1);
+  color: #fbbf24;
+  border: 2px solid rgba(255, 200, 0, 0.3);
+}
+
+/* Players header */
+.cr-players {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cr-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.cr-player-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.cr-player-left .cr-player-name {
+  color: #00ffc8;
+}
+
+.cr-player-right .cr-player-name {
+  color: #ff6b6b;
+}
+
+.cr-player-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cr-vs {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #475569;
+}
+
+/* Stats */
+.cr-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.cr-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cr-stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.cr-stat-bars {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cr-stat-left, .cr-stat-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cr-stat-left {
+  flex-direction: row-reverse;
+}
+
+.cr-stat-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #94a3b8;
+  min-width: 28px;
+  text-align: center;
+}
+
+.cr-stat-value.winner {
+  color: #00ffc8;
+  text-shadow: 0 0 8px rgba(0, 255, 200, 0.4);
+}
+
+.cr-bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cr-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cr-fill-left {
+  background: linear-gradient(90deg, transparent, #00ffc8);
+  margin-left: auto;
+}
+
+.cr-fill-right {
+  background: linear-gradient(90deg, #ff6b6b, transparent);
+}
+
+/* Totals */
+.cr-totals {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.cr-total-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cr-total-card.winner {
+  border-color: rgba(0, 255, 200, 0.3);
+  background: rgba(0, 255, 200, 0.05);
+}
+
+.cr-total-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.cr-total-card.winner .cr-total-value {
+  color: #00ffc8;
+}
+
+.cr-total-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+/* Close button */
+.cr-close-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: rgba(74, 144, 217, 0.15);
+  color: #4A90D9;
+  border: 1px solid rgba(74, 144, 217, 0.3);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cr-close-btn:hover {
+  background: #4A90D9;
+  color: white;
+}
+
+/* Waiting state */
+.cr-waiting {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.cr-waiting h3 {
+  color: #f1f5f9;
+  font-size: 1.1rem;
+  margin: 16px 0 8px;
+}
+
+.cr-waiting p {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.cr-waiting-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #00ffc8;
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: crSpin 1s linear infinite;
+}
+
+@keyframes crSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .challenge-results {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .cr-verdict {
+    font-size: 1.2rem;
+    padding: 6px 16px;
+  }
+
+  .cr-stat-value {
+    font-size: 0.75rem;
+    min-width: 24px;
+  }
+}

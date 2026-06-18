@@ -3,9 +3,10 @@
  * React overlays, HUD, quests, NPC system, and all feature integrations.
  */
 import React, { useEffect, useRef, useState, useCallback, lazy, Suspense } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { useUser } from '../context/UserContext';
+import { useSocial } from '../context/SocialContext';
 import GameEngine from '../game/GameEngine';
 import CampusWorld from '../game/CampusWorld';
 import PlayerAvatar from '../game/PlayerAvatar';
@@ -28,6 +29,9 @@ import Hotbar from '../components/game/Hotbar';
 import ModalCareerSimulation from '../components/game/ModalCareerSimulation';
 import WaypointIndicator from '../components/game/WaypointIndicator';
 import KnowledgeOrbs, { TRIVIA_QUESTIONS } from '../components/game/KnowledgeOrbs';
+import CampusPlayers from '../components/social/CampusPlayers';
+import NotificationToast from '../components/social/NotificationToast';
+import MultiplayerRenderer from '../game/MultiplayerRenderer';
 import './Campus.css';
 import questsData from '../data/quests.json';
 
@@ -54,10 +58,13 @@ function Campus() {
   const questServiceRef = useRef(null);
   const guidedPathRef = useRef(null);
   const positionSaveRef = useRef(null);
+  const multiplayerRef = useRef(null);
 
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const gameContext = useGame();
   const { user, addXP, earnBadge } = useUser();
+  const { pendingRequests, updateMyPosition, onlinePlayers } = useSocial();
 
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
@@ -67,6 +74,7 @@ function Campus() {
   const [showMap, setShowMap] = useState(false);
   const [showQuestLog, setShowQuestLog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSocial, setShowSocial] = useState(false);
   const [activeQuests, setActiveQuests] = useState([]);
   const [completedQuests, setCompletedQuests] = useState([]);
   const [audioVolume, setAudioVolume] = useState(50);
@@ -84,6 +92,22 @@ function Campus() {
   const [xpToast, setXpToast] = useState(null);
 
   const nearbyNPCRef = useRef(null);
+
+  // Broadcast player position in real-time via throttled presence service.
+  // This hooks into the GameContext's position state which updates every frame
+  // the avatar moves. The broadcaster internally throttles writes to ~5/sec.
+  useEffect(() => {
+    const pos = gameContext.playerPosition;
+    if (!pos || (pos.x === 0 && pos.y === 0)) return;
+    updateMyPosition(pos);
+  }, [gameContext.playerPosition, updateMyPosition]);
+
+  // Feed online players data into the multiplayer renderer for real-time movement
+  useEffect(() => {
+    if (multiplayerRef.current) {
+      multiplayerRef.current.updatePlayers(onlinePlayers);
+    }
+  }, [onlinePlayers]);
 
   // Initialize game engine
   useEffect(() => {
@@ -109,6 +133,19 @@ function Campus() {
         worldRef.current = world;
         world.initialize();
         world.setViewport(window.innerWidth, window.innerHeight);
+
+        // Keep viewport in sync on resize
+        const handleResize = () => {
+          world.setViewport(window.innerWidth, window.innerHeight);
+        };
+        window.addEventListener('resize', handleResize);
+        // Store for cleanup
+        worldRef.current._resizeHandler = handleResize;
+
+        // Create multiplayer renderer (renders other players on the campus)
+        const mp = new MultiplayerRenderer(world.worldContainer);
+        multiplayerRef.current = mp;
+
         setLoadProgress(50);
 
         // Create avatar - add to world container so camera following works
@@ -186,6 +223,11 @@ function Campus() {
             avatar.container._sortY = avatar.getPosition().y;
             world.updateCamera();
             world.loadVisibleChunks(avatar.getPosition(), window.innerWidth);
+
+            // Tick multiplayer renderer (interpolate remote player positions)
+            if (multiplayerRef.current) {
+              multiplayerRef.current.tick(delta * 16.67); // delta is in frames, convert to ~ms
+            }
 
             // Check NPC proximity
             const avatarPos = avatar.getPosition();
@@ -277,6 +319,13 @@ function Campus() {
     return () => {
       cancelled = true;
       if (positionSaveRef.current) clearInterval(positionSaveRef.current);
+      if (multiplayerRef.current) {
+        multiplayerRef.current.destroy();
+        multiplayerRef.current = null;
+      }
+      if (worldRef.current?._resizeHandler) {
+        window.removeEventListener('resize', worldRef.current._resizeHandler);
+      }
       if (engineRef.current) {
         engineRef.current.destroy();
       }
@@ -579,7 +628,8 @@ function Campus() {
           onSettings={() => setShowSettings(true)}
           onTextNav={() => setTextNavOpen(true)}
           onTrivia={handleTrivia}
-          badges={{ quests: availableQuestCount, trivia: TRIVIA_QUESTIONS.filter(q => !collectedOrbs.includes(q.id)).length }}
+          onSocial={() => setShowSocial(prev => !prev)}
+          badges={{ quests: availableQuestCount, trivia: TRIVIA_QUESTIONS.filter(q => !collectedOrbs.includes(q.id)).length, social: pendingRequests.length }}
         />
       )}
 
@@ -592,10 +642,25 @@ function Campus() {
         />
       )}
 
+      {/* Social Panel */}
+      {showSocial && (
+        <div className="campus-social-overlay">
+          <CampusPlayers onJoinChallenge={(challengeId, role) => {
+            setShowSocial(false);
+            // Navigate to mock interview with challenge params
+            navigate(`/interview/mock?challenge=${challengeId}&role=${role}`);
+          }} />
+        </div>
+      )}
+
+      {/* Notification Toasts */}
+      <NotificationToast onJoinChallenge={(challengeId, role) => {
+        navigate(`/interview/mock?challenge=${challengeId}&role=${role}`);
+      }} />
+
       {/* NPC Interaction Prompt */}
       {!interactionPrompt && nearbyNPC && !npcDialogue && (
         <div className="campus-interaction-prompt" role="status" aria-live="polite">
-          <span className="campus-interaction-prompt__icon">💬</span>
           <span className="campus-interaction-prompt__text">
             Press <kbd>E</kbd> to talk to {nearbyNPC.label}
           </span>

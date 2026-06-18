@@ -92,6 +92,17 @@ class GameEngine {
 
     this._isInitialized = true;
     this._eventBus.emit(GameEvents.GAME_READY, { timestamp: Date.now() });
+
+    // Handle window resize — resize the renderer to match the container
+    this._handleResize = () => {
+      if (!this._app || this._isDestroyed) return;
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
+      this._app.renderer.resize(w, h);
+      // Notify world to update camera bounds
+      this._eventBus.emit('VIEWPORT_RESIZE', { width: w, height: h });
+    };
+    window.addEventListener('resize', this._handleResize);
   }
 
   start() {
@@ -120,6 +131,8 @@ class GameEngine {
     if (this._isDestroyed) return;
     this._isDestroyed = true;
     this._isInitialized = false;
+
+    window.removeEventListener('resize', this._handleResize);
 
     this._eventBus.off(GameEvents.PAUSE_GAME, this._handlePause);
     this._eventBus.off(GameEvents.RESUME_GAME, this._handleResume);

@@ -17,12 +17,13 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  overflow: hidden;
 }
 
 .campus-canvas canvas {
-  width: 100% !important;
-  height: 100% !important;
   display: block;
+  /* Let PixiJS control the canvas size via renderer.resize() + autoDensity.
+     Do NOT force width/height 100% — that stretches the pixel buffer. */
 }
 
 /* Interaction prompt */
@@ -172,6 +173,30 @@
   overflow: hidden;
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
   animation: panelSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (max-width: 768px) {
+  .campus-feature-overlay {
+    padding: 12px;
+  }
+
+  .campus-feature-overlay__panel {
+    border-radius: 14px;
+    max-height: 90vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .campus-feature-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .campus-feature-overlay__panel {
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100%;
+  }
 }
 
 @keyframes panelSlideIn {
@@ -327,4 +352,39 @@
   20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
   40% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -80%) scale(0.8); }
+}
+
+/* ─── Social Panel Overlay ─────────────────────────────────────────────────── */
+.campus-social-overlay {
+  position: fixed;
+  top: 80px;
+  right: 16px;
+  z-index: 1000;
+  animation: socialSlideIn 0.2s ease;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+@keyframes socialSlideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 768px) {
+  .campus-social-overlay {
+    right: 8px;
+    top: 60px;
+    max-height: calc(100vh - 140px);
+  }
+}
+
+@media (max-width: 480px) {
+  .campus-social-overlay {
+    top: auto;
+    bottom: 70px;
+    right: 0;
+    left: 0;
+    max-height: 50vh;
+    border-radius: 12px 12px 0 0;
+  }
 }

@@ -1,0 +1,129 @@
+/* Notification Toast Stack */
+.notification-toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 360px;
+  width: calc(100vw - 32px);
+}
+
+.notification-toast {
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.96);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  backdrop-filter: blur(12px);
+  animation: ntSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.notification-toast.nt-friend-request {
+  border-left: 3px solid #00ffc8;
+}
+
+.notification-toast.nt-challenge {
+  border-left: 3px solid #ff6b6b;
+}
+
+@keyframes ntSlideIn {
+  from { opacity: 0; transform: translateX(40px) scale(0.9); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.nt-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.nt-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 3px;
+}
+
+.nt-friend-request .nt-title {
+  color: #00ffc8;
+}
+
+.nt-challenge .nt-title {
+  color: #ff6b6b;
+}
+
+.nt-message {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.nt-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.nt-accept {
+  background: rgba(0, 255, 200, 0.12);
+  color: #00ffc8;
+  border: 1px solid rgba(0, 255, 200, 0.3);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.nt-accept:hover {
+  background: rgba(0, 255, 200, 0.25);
+  border-color: #00ffc8;
+}
+
+.nt-challenge .nt-accept {
+  background: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+.nt-challenge .nt-accept:hover {
+  background: rgba(255, 107, 107, 0.25);
+  border-color: #ff6b6b;
+}
+
+.nt-dismiss {
+  background: none;
+  border: none;
+  color: #475569;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.nt-dismiss:hover {
+  color: #94a3b8;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .notification-toast-container {
+    right: 8px;
+    left: 8px;
+    max-width: 100%;
+    width: auto;
+  }
+
+  .notification-toast {
+    padding: 10px 12px;
+  }
+}

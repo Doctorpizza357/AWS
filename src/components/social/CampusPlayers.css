@@ -1,0 +1,360 @@
+/* ─── Campus Players Social Panel ─────────────────────────────────────────── */
+
+.campus-players {
+  background: var(--surface, #0f1729);
+  border: 1px solid var(--border, #1e293b);
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  max-width: 360px;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.campus-players.compact {
+  max-width: 280px;
+  padding: 12px;
+}
+
+/* Header */
+.cp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cp-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text, #f1f5f9);
+}
+
+.cp-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-online-count {
+  font-size: 0.75rem;
+  color: #00ffc8;
+  background: rgba(0, 255, 200, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.cp-request-badge {
+  background: #ff4444;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tabs */
+.cp-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border, #1e293b);
+  padding-bottom: 8px;
+}
+
+.cp-tab {
+  background: none;
+  border: none;
+  color: var(--text-muted, #64748b);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.cp-tab:hover {
+  color: var(--text, #f1f5f9);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cp-tab.active {
+  color: #00ffc8;
+  background: rgba(0, 255, 200, 0.08);
+}
+
+.cp-tab-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #ff4444;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Messages */
+.cp-message {
+  font-size: 0.75rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  animation: cpFadeIn 0.2s ease;
+}
+
+.cp-error {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+.cp-success {
+  background: rgba(0, 255, 200, 0.08);
+  color: #00ffc8;
+  border: 1px solid rgba(0, 255, 200, 0.15);
+}
+
+/* Player List */
+.cp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #1e293b transparent;
+}
+
+.cp-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cp-list::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 2px;
+}
+
+.cp-empty {
+  color: var(--text-muted, #64748b);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 20px 10px;
+  margin: 0;
+}
+
+/* Player Card */
+.cp-player-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.cp-player-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border, #1e293b);
+}
+
+.cp-request-card {
+  background: rgba(0, 255, 200, 0.03);
+  border-color: rgba(0, 255, 200, 0.1);
+}
+
+/* Avatar */
+.cp-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cp-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border, #1e293b);
+}
+
+.cp-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+}
+
+.cp-status-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--surface, #0f1729);
+}
+
+.cp-status-dot.online {
+  background: #00ff88;
+  box-shadow: 0 0 6px rgba(0, 255, 136, 0.6);
+}
+
+.cp-status-dot.offline {
+  background: #475569;
+}
+
+/* Info */
+.cp-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cp-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text, #f1f5f9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted, #64748b);
+}
+
+/* Actions */
+.cp-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.cp-add-btn {
+  background: rgba(0, 255, 200, 0.1);
+  color: #00ffc8;
+  border: 1px solid rgba(0, 255, 200, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cp-add-btn:hover:not(:disabled) {
+  background: rgba(0, 255, 200, 0.2);
+  border-color: #00ffc8;
+}
+
+.cp-add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cp-friend-badge {
+  color: #00ff88;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.cp-pending-badge {
+  color: #fbbf24;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.cp-accept-btn, .cp-reject-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cp-accept-btn {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+}
+
+.cp-accept-btn:hover:not(:disabled) {
+  background: rgba(0, 255, 136, 0.3);
+}
+
+.cp-reject-btn {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff6b6b;
+}
+
+.cp-reject-btn:hover:not(:disabled) {
+  background: rgba(255, 68, 68, 0.2);
+}
+
+.cp-remove-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 68, 68, 0.08);
+  color: #ff6b6b;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-remove-btn:hover:not(:disabled) {
+  background: rgba(255, 68, 68, 0.2);
+}
+
+.cp-accept-btn:disabled, .cp-reject-btn:disabled, .cp-remove-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Animation */
+@keyframes cpFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .campus-players {
+    max-width: 100%;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}

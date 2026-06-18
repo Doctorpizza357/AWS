@@ -1,12 +1,16 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInterview } from '../context/InterviewContext';
 import { useUser } from '../context/UserContext';
 import { useAvatar } from '../context/AvatarContext';
+import { useAuth } from '../context/AuthContext';
 import { generateInterviewQuestions, analyzeInterviewResponse } from '../services/interviewService';
 import { speakText, stopSpeaking, isSpeaking } from '../services/ttsService';
 import { MLBodyAnalyzer } from '../services/poseAnalyzer';
+import { createPoseBroadcaster, subscribeToChallenge, setRecordingState, submitResults } from '../services/challengeService';
+import OpponentPoseView from '../components/social/OpponentPoseView';
+import ChallengeResults from '../components/social/ChallengeResults';
 import './MockInterview.css';
 import { getIconComponent } from '../utils/iconMap';
 
@@ -104,9 +108,43 @@ class BodyAnalyzer {
 
 export default function MockInterview() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { jobDescription, addSession, sessions } = useInterview();
   const { user } = useUser();
   const { triggerCheckpoint } = useAvatar();
+  const { user: authUser } = useAuth();
+
+  // Challenge mode — read from URL params: ?challenge=ID&role=challenger|opponent
+  const challengeId = searchParams.get('challenge');
+  const challengeRole = searchParams.get('role');
+  const [challengeData, setChallengeData] = useState(null);
+  const [opponentPose, setOpponentPose] = useState(null);
+  const poseBroadcasterRef = useRef(null);
+  const challengeSubRef = useRef(null);
+
+  // Subscribe to challenge data when in challenge mode
+  useEffect(() => {
+    if (!challengeId) return;
+    challengeSubRef.current = subscribeToChallenge(challengeId, (data) => {
+      setChallengeData(data);
+      // Extract opponent's pose
+      if (data && challengeRole) {
+        const opponentPoseField = challengeRole === 'challenger' ? 'opponentPose' : 'challengerPose';
+        setOpponentPose(data[opponentPoseField] || null);
+      }
+    });
+    return () => { challengeSubRef.current?.(); };
+  }, [challengeId, challengeRole]);
+
+  // Create pose broadcaster when challenge is active
+  useEffect(() => {
+    if (!challengeId || !challengeRole) return;
+    poseBroadcasterRef.current = createPoseBroadcaster(challengeId, challengeRole);
+    return () => { poseBroadcasterRef.current?.dispose?.(); };
+  }, [challengeId, challengeRole]);
+
+  // Auto-start ref (moved effect below after handleStart is defined)
+  const challengeAutoStartedRef = useRef(false);
 
   // Compute interview metrics for the AI prompt
   const interviewCount = Array.isArray(sessions) ? sessions.length : 0;
@@ -160,7 +198,7 @@ export default function MockInterview() {
   const [results, setResults] = useState([]);
   const [error, setError] = useState('');
   const [trackingMode, setTrackingMode] = useState('ml');
-  const [showPoseOverlay, setShowPoseOverlay] = useState(false);
+  const [showPoseOverlay, setShowPoseOverlay] = useState(true);
   const [ttsPlaying, setTtsPlaying] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
 
@@ -528,7 +566,9 @@ export default function MockInterview() {
       setInterim('');
       transcriptRef.current = '';
       interimRef.current = '';
-      const qs = await generateInterviewQuestions(jobDescription || (user.activeCareerGoal ? `${user.activeCareerGoal.title} in ${user.activeCareerGoal.field || 'STEM'}` : 'General software engineering role'), selectedType, 'mid');
+      const qs = challengeData?.questions?.length > 0
+        ? challengeData.questions
+        : await generateInterviewQuestions(jobDescription || (user.activeCareerGoal ? `${user.activeCareerGoal.title} in ${user.activeCareerGoal.field || 'STEM'}` : 'General software engineering role'), selectedType, 'mid');
       if (!qs || qs.length === 0) throw new Error('No questions generated');
       setQuestions(qs);
       setTrackingLoadingState('Opening camera...');
@@ -557,6 +597,17 @@ export default function MockInterview() {
     setLoading(false);
   };
 
+  // Auto-start interview when in challenge mode (skip setup phase)
+  useEffect(() => {
+    if (!challengeId || !challengeData || challengeAutoStartedRef.current) return;
+    if (challengeData.questions?.length > 0 && phase === 'setup') {
+      challengeAutoStartedRef.current = true;
+      setTimeout(() => {
+        handleStart();
+      }, 100);
+    }
+  }); // eslint-disable-line
+
   useEffect(() => {
     let cancelled = false;
 
@@ -576,6 +627,11 @@ export default function MockInterview() {
             }
           }
           drawPoseOverlay(frame);
+
+          // Broadcast pose to challenge opponent if in challenge mode
+          if (poseBroadcasterRef.current && recordingRef.current) {
+            poseBroadcasterRef.current(frame);
+          }
         } catch (e) {
           console.warn('poseListener error', e?.message || e);
         }
@@ -885,6 +941,20 @@ export default function MockInterview() {
       } catch (e) {
         pushSpeechLog('error', 'addSession failed', { message: e?.message });
       }
+
+      // Submit results to challenge if in challenge mode
+      if (challengeId && challengeRole) {
+        const challengeResultData = {
+          score: analysis?.overallScore || 0,
+          bodyOverall: bodyResults?.overall || 0,
+          confidence: speechStats?.confidence || 0,
+          wpm: speechStats?.wpm || 0,
+          fillerCount: speechStats?.fillerCount || 0,
+          transcript: answerTranscript || '',
+        };
+        submitResults(challengeId, challengeRole, challengeResultData).catch(console.error);
+      }
+
       setPhase('done');
 
       // ── Event-based avatar trigger: interview complete ──
@@ -957,6 +1027,19 @@ export default function MockInterview() {
   };
 
   // ─── SETUP ───────────────────────────────────────────────────────────────────
+  if (phase === 'setup' && challengeId) {
+    // Challenge mode: show loading state while auto-starting
+    return (
+      <div className="mock-interview"><div className="container">
+        <motion.div className="mi-setup" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <h1>Challenge Mode</h1>
+          <p>Setting up your challenge interview...</p>
+          <div className="mi-spinner" style={{ margin: '20px auto' }} />
+        </motion.div>
+      </div></div>
+    );
+  }
+
   if (phase === 'setup') return (
     <div className="mock-interview"><div className="container">
       <motion.div className="mi-setup" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}}>
@@ -1068,9 +1151,19 @@ export default function MockInterview() {
             </div>
           </div>
         )}
+        {/* Opponent's live pose during challenge mode */}
+        {challengeId && recording && (
+          <div style={{ marginTop: 12 }}>
+            <OpponentPoseView
+              poseData={opponentPose}
+              opponentName={challengeData ? (challengeRole === 'challenger' ? challengeData.opponentName : challengeData.challengerName) : 'Opponent'}
+              isRecording={challengeData ? (challengeRole === 'challenger' ? challengeData.opponentRecording : challengeData.challengerRecording) : false}
+            />
+          </div>
+        )}
         <div className="mi-controls">
           {!recording ? <button className="btn-primary" onClick={startRecording}>{(() => { const Icon = getIconComponent('play'); return <><Icon size={14} style={{marginRight:8}}/> Start Recording</>; })()}</button> : <button className="mi-stop-btn" onClick={stopRecording}>{(() => { const Icon = getIconComponent('x'); return <><Icon size={14} style={{marginRight:8}}/> Stop & Analyze</>; })()}</button>}
-          <button className="btn-secondary" onClick={handleNext}>Skip →</button>
+          {!challengeId && <button className="btn-secondary" onClick={handleNext}>Skip →</button>}
         </div>
       </div>
     </div></div>
@@ -1305,13 +1398,29 @@ export default function MockInterview() {
 
         <div className="mi-review-actions">
           <button className="btn-primary" onClick={handleNext}>{qIdx < questions.length-1 ? 'Next Question →' : 'Finish Session'}</button>
-          <button className="btn-secondary" onClick={() => { stopCamera(); navigate('/interview'); }}>Back to Hub</button>
+          {!challengeId && <button className="btn-secondary" onClick={() => { stopCamera(); navigate('/interview'); }}>Back to Hub</button>}
         </div>
       </motion.div>
     </div></div>
   );
 
   // ─── DONE ────────────────────────────────────────────────────────────────────
+  // Challenge mode: show comparison results
+  if (challengeId && challengeData) {
+    return (
+      <div className="mock-interview"><div className="container">
+        <motion.div className="mi-done" initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}}>
+          <ChallengeResults
+            challengeData={challengeData}
+            currentRole={challengeRole}
+            onClose={() => navigate('/campus')}
+          />
+        </motion.div>
+      </div></div>
+    );
+  }
+
+  // Normal mode: standard session complete
   return (
     <div className="mock-interview"><div className="container">
       <motion.div className="mi-done" initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}}>

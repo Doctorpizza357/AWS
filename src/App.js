@@ -17,6 +17,7 @@ import { AvatarProvider, useAvatar } from './context/AvatarContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { GameProvider } from './context/GameContext';
+import { SocialProvider } from './context/SocialContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -149,6 +150,7 @@ function AppContent() {
 
   return (
     <UserProvider>
+      <SocialProvider>
       <InterviewProvider>
         <SkillBridgeProvider>
           <AvatarProvider>
@@ -215,6 +217,7 @@ function AppContent() {
           </AvatarProvider>
         </SkillBridgeProvider>
       </InterviewProvider>
+      </SocialProvider>
     </UserProvider>
   );
 }

@@ -75,7 +75,7 @@ function Navbar() {
                 className={`nav-link ${isActive('/campus') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
               >
-                🏫 Campus
+                Campus
               </Link>
             </>
           )}

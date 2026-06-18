@@ -1,6 +1,6 @@
 {
   "worldSize": { "width": 3200, "height": 2400 },
-  "spawnPoint": { "x": 1600, "y": 1200 },
+  "spawnPoint": { "x": 1600, "y": 1050 },
   "avatarLength": 32,
   "zones": [
     {
@@ -134,7 +134,7 @@
     {
       "id": "interview-hall",
       "label": "Interview Hall",
-      "position": { "x": 1600, "y": 1200 },
+      "position": { "x": 1400, "y": 1350 },
       "featureRoute": "/interview",
       "interactionRadius": 80,
       "icon": "🎤",
@@ -144,7 +144,7 @@
     {
       "id": "market-observatory",
       "label": "Market Observatory",
-      "position": { "x": 2600, "y": 1400 },
+      "position": { "x": 2600, "y": 1500 },
       "featureRoute": "/market-intelligence",
       "interactionRadius": 80,
       "icon": "🔭",
@@ -154,7 +154,7 @@
     {
       "id": "skill-forge",
       "label": "Skill Forge",
-      "position": { "x": 2200, "y": 1800 },
+      "position": { "x": 2100, "y": 1900 },
       "featureRoute": "/skillbridge",
       "interactionRadius": 80,
       "icon": "🔨",
@@ -164,7 +164,7 @@
     {
       "id": "student-union",
       "label": "Student Union",
-      "position": { "x": 1000, "y": 1800 },
+      "position": { "x": 700, "y": 1850 },
       "featureRoute": "/leaderboard",
       "interactionRadius": 80,
       "icon": "🏛️",
@@ -176,7 +176,7 @@
     {
       "id": "campus-guide",
       "label": "Campus Guide",
-      "position": { "x": 1600, "y": 1050 },
+      "position": { "x": 1650, "y": 950 },
       "topic": "general",
       "zone": null,
       "fallbackDialogue": "Welcome to STEM PathfindR Campus! Explore the buildings to discover career paths. Each zone represents a different STEM domain. Use WASD or arrow keys to move, and press E near buildings to enter!"
