@@ -1,0 +1,26 @@
+{
+  "buildCommand": "CI=false npm run build",
+  "outputDirectory": "build",
+  "framework": "create-react-app",
+  "installCommand": "npm install --legacy-peer-deps",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://pathfindr-backend-j5qg.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Accept, Authorization" }
+      ]
+    }
+  ]
+}
