@@ -1,0 +1,422 @@
+/* ─── Quiz Battle Page ─────────────────────────────────────────────────────── */
+.quiz-battle {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0f1923 0%, #1a1a2e 50%, #16213e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+/* ─── Waiting State ────────────────────────────────────────────────────────── */
+.qb-waiting {
+  text-align: center;
+  color: #fff;
+}
+
+.qb-waiting h2 {
+  margin: 16px 0 8px;
+  font-size: 22px;
+}
+
+.qb-waiting p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.qb-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 200, 0, 0.2);
+  border-top-color: #ffc800;
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: qbSpin 0.8s linear infinite;
+}
+
+@keyframes qbSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Header ───────────────────────────────────────────────────────────────── */
+.qb-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 24px;
+}
+
+.qb-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.qb-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffc800, #ff8c00);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.qb-header-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qb-question-counter {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.qb-score-badge {
+  background: rgba(255, 200, 0, 0.1);
+  color: #ffc800;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.qb-timer {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s;
+}
+
+.qb-timer--urgent {
+  color: #ff6b6b;
+  background: rgba(255, 68, 68, 0.1);
+  animation: qbTimerPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes qbTimerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* ─── Question Area ────────────────────────────────────────────────────────── */
+.qb-question-area {
+  text-align: center;
+  padding: 0 24px;
+  margin-bottom: 32px;
+  max-width: 600px;
+}
+
+.qb-question-text {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0;
+  animation: qbFadeIn 0.3s ease;
+}
+
+@keyframes qbFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Options ──────────────────────────────────────────────────────────────── */
+.qb-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 24px;
+  max-width: 600px;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .qb-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+.qb-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.2s;
+  animation: qbFadeIn 0.3s ease;
+}
+
+.qb-option:hover:not(:disabled) {
+  background: rgba(74, 144, 217, 0.1);
+  border-color: rgba(74, 144, 217, 0.4);
+  transform: translateY(-2px);
+}
+
+.qb-option:disabled {
+  cursor: default;
+}
+
+.qb-option--correct {
+  background: rgba(0, 255, 136, 0.1) !important;
+  border-color: #00ff88 !important;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+.qb-option--wrong {
+  background: rgba(255, 68, 68, 0.1) !important;
+  border-color: #ff4444 !important;
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+}
+
+.qb-option--selected {
+  border-color: rgba(74, 144, 217, 0.6);
+  background: rgba(74, 144, 217, 0.15);
+}
+
+.qb-option-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.qb-option--correct .qb-option-letter {
+  background: #00ff88;
+  color: #0a0a14;
+}
+
+.qb-option--wrong .qb-option-letter {
+  background: #ff4444;
+  color: white;
+}
+
+.qb-option-text {
+  flex: 1;
+}
+
+/* ─── Feedback ─────────────────────────────────────────────────────────────── */
+.qb-feedback {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  animation: qbFeedbackPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.qb-feedback--correct {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.qb-feedback--wrong {
+  background: rgba(255, 68, 68, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+@keyframes qbFeedbackPop {
+  0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* ─── Results ──────────────────────────────────────────────────────────────── */
+.qb-results {
+  text-align: center;
+  padding: 24px;
+  max-width: 450px;
+}
+
+.qb-results-title {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 20px;
+}
+
+.qb-score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.qb-score-number {
+  font-size: 56px;
+  font-weight: 900;
+  color: #ffc800;
+  text-shadow: 0 4px 20px rgba(255, 200, 0, 0.4);
+  line-height: 1;
+}
+
+.qb-score-label {
+  font-size: 14px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+.qb-stats {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.qb-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.qb-stat-value {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.qb-stat-label {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.qb-back-btn {
+  background: rgba(74, 144, 217, 0.15);
+  color: #4a90d9;
+  border: 1px solid rgba(74, 144, 217, 0.3);
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 16px;
+}
+
+.qb-back-btn:hover {
+  background: #4a90d9;
+  color: white;
+}
+
+
+/* ─── Quiz Comparison (VS screen) ──────────────────────────────────────────── */
+.qb-comparison {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.qb-verdict {
+  font-size: 24px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.qb-verdict--win {
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.08);
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.qb-verdict--lose {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.qb-verdict--tie {
+  color: #ffc800;
+  background: rgba(255, 200, 0, 0.08);
+}
+
+.qb-vs-scores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.qb-vs-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  min-width: 120px;
+}
+
+.qb-vs-winner {
+  border-color: rgba(255, 215, 0, 0.4);
+  background: rgba(255, 215, 0, 0.06);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+.qb-vs-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qb-vs-score {
+  color: #ffc800;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.qb-vs-detail {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.qb-vs-divider {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* Waiting for opponent */
+.qb-waiting-opponent {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.qb-waiting-opponent p {
+  color: #64748b;
+  font-size: 13px;
+}

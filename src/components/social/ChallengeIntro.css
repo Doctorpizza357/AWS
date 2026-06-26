@@ -1,0 +1,336 @@
+/* ─── ChallengeIntro — Prodigy-style battle animation ─────────────────────── */
+.challenge-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a14 100%);
+  overflow: hidden;
+}
+
+/* Background flash on clash */
+.ci-bg-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 200, 0, 0.3) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.challenge-intro--clash .ci-bg-flash {
+  opacity: 1;
+  animation: ciFlash 0.6s ease-out forwards;
+}
+
+@keyframes ciFlash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Particles */
+.ci-bg-particles {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 20% 30%, rgba(255, 215, 0, 0.6), transparent),
+    radial-gradient(2px 2px at 80% 70%, rgba(74, 144, 217, 0.6), transparent),
+    radial-gradient(1px 1px at 60% 20%, rgba(255, 107, 107, 0.5), transparent),
+    radial-gradient(1px 1px at 40% 80%, rgba(0, 255, 200, 0.5), transparent),
+    radial-gradient(2px 2px at 10% 60%, rgba(255, 160, 0, 0.4), transparent),
+    radial-gradient(2px 2px at 90% 40%, rgba(147, 51, 234, 0.4), transparent);
+  opacity: 0;
+}
+
+.challenge-intro--clash .ci-bg-particles,
+.challenge-intro--ready .ci-bg-particles {
+  opacity: 1;
+  animation: ciParticlesDrift 3s linear infinite;
+}
+
+@keyframes ciParticlesDrift {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-20px); }
+}
+
+/* ─── Player Cards ─────────────────────────────────────────────────────────── */
+.ci-player {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ci-player--left {
+  left: -300px;
+}
+
+.ci-player--right {
+  right: -300px;
+}
+
+/* Enter phase — slide in */
+.challenge-intro--enter .ci-player--left,
+.challenge-intro--clash .ci-player--left,
+.challenge-intro--ready .ci-player--left,
+.challenge-intro--done .ci-player--left {
+  left: 8%;
+  transform: translateY(-50%);
+}
+
+.challenge-intro--enter .ci-player--right,
+.challenge-intro--clash .ci-player--right,
+.challenge-intro--ready .ci-player--right,
+.challenge-intro--done .ci-player--right {
+  right: 8%;
+  transform: translateY(-50%);
+}
+
+/* Initial offscreen (before animation plays) */
+.challenge-intro--enter .ci-player--left {
+  animation: ciSlideFromLeft 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.challenge-intro--enter .ci-player--right {
+  animation: ciSlideFromRight 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes ciSlideFromLeft {
+  0% { left: -300px; }
+  100% { left: 8%; }
+}
+
+@keyframes ciSlideFromRight {
+  0% { right: -300px; }
+  100% { right: 8%; }
+}
+
+/* Player card styling */
+.ci-player-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.ci-player--left .ci-player-card {
+  border-color: rgba(74, 144, 217, 0.4);
+  box-shadow: 0 0 30px rgba(74, 144, 217, 0.2);
+}
+
+.ci-player--right .ci-player-card {
+  border-color: rgba(255, 107, 107, 0.4);
+  box-shadow: 0 0 30px rgba(255, 107, 107, 0.2);
+}
+
+/* Avatar */
+.ci-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.ci-player--left .ci-avatar {
+  border-color: rgba(74, 144, 217, 0.6);
+}
+
+.ci-player--right .ci-avatar {
+  border-color: rgba(255, 107, 107, 0.6);
+}
+
+.ci-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ci-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4a90d9, #9333ea);
+  color: white;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.ci-player--right .ci-avatar-placeholder {
+  background: linear-gradient(135deg, #ff6b6b, #ff8c42);
+}
+
+/* Player info */
+.ci-player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ci-player-name {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.ci-player-level {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ─── VS Badge ─────────────────────────────────────────────────────────────── */
+.ci-vs-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.challenge-intro--clash .ci-vs-container,
+.challenge-intro--ready .ci-vs-container,
+.challenge-intro--done .ci-vs-container {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ci-vs-badge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a2e;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), 0 0 80px rgba(255, 140, 0, 0.2);
+  animation: ciVsPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ciVsPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(255, 215, 0, 0.5); }
+  50% { transform: scale(1.08); box-shadow: 0 0 60px rgba(255, 215, 0, 0.7); }
+}
+
+.ci-type-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* ─── Ready Text ───────────────────────────────────────────────────────────── */
+.ci-ready-text {
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 36px;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.5);
+  animation: ciReadyPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  letter-spacing: 4px;
+}
+
+@keyframes ciReadyPop {
+  0% { transform: translateX(-50%) scale(0.3); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* ─── Done phase — fade out ────────────────────────────────────────────────── */
+.challenge-intro--done {
+  animation: ciFadeOut 0.5s ease forwards;
+}
+
+@keyframes ciFadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; }
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .ci-player-card {
+    padding: 16px 20px;
+  }
+
+  .ci-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .ci-avatar-placeholder {
+    font-size: 24px;
+  }
+
+  .ci-player-name {
+    font-size: 14px;
+  }
+
+  .ci-vs-badge {
+    width: 60px;
+    height: 60px;
+    font-size: 22px;
+  }
+
+  .ci-ready-text {
+    font-size: 24px;
+  }
+
+  @keyframes ciSlideFromLeft {
+    0% { left: -200px; }
+    100% { left: 5%; }
+  }
+
+  @keyframes ciSlideFromRight {
+    0% { right: -200px; }
+    100% { right: 5%; }
+  }
+}
+
+@media (max-width: 480px) {
+  .ci-player--left,
+  .challenge-intro--enter .ci-player--left,
+  .challenge-intro--clash .ci-player--left,
+  .challenge-intro--ready .ci-player--left {
+    left: 5%;
+    top: 30%;
+  }
+
+  .ci-player--right,
+  .challenge-intro--enter .ci-player--right,
+  .challenge-intro--clash .ci-player--right,
+  .challenge-intro--ready .ci-player--right {
+    right: 5%;
+    top: 60%;
+  }
+
+  .ci-player-card {
+    padding: 12px 16px;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .ci-player-info {
+    align-items: flex-start;
+  }
+}

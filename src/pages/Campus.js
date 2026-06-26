@@ -31,6 +31,7 @@ import WaypointIndicator from '../components/game/WaypointIndicator';
 import KnowledgeOrbs, { TRIVIA_QUESTIONS } from '../components/game/KnowledgeOrbs';
 import CampusPlayers from '../components/social/CampusPlayers';
 import NotificationToast from '../components/social/NotificationToast';
+import ChallengeIntro from '../components/social/ChallengeIntro';
 import MultiplayerRenderer from '../game/MultiplayerRenderer';
 import './Campus.css';
 import questsData from '../data/quests.json';
@@ -90,6 +91,7 @@ function Campus() {
   const [collectedOrbs, setCollectedOrbs] = useState(() => { try { return JSON.parse(localStorage.getItem('campus_collected_orbs') || '[]'); } catch { return []; } });
   const [showOrbQuestion, setShowOrbQuestion] = useState(false);
   const [xpToast, setXpToast] = useState(null);
+  const [challengeIntro, setChallengeIntro] = useState(null); // { challenger, opponent, type, navigateTo }
 
   const nearbyNPCRef = useRef(null);
 
@@ -645,18 +647,60 @@ function Campus() {
       {/* Social Panel */}
       {showSocial && (
         <div className="campus-social-overlay">
-          <CampusPlayers onJoinChallenge={(challengeId, role) => {
+          <CampusPlayers onJoinChallenge={(challengeId, role, challengeData) => {
             setShowSocial(false);
-            // Navigate to mock interview with challenge params
-            navigate(`/interview/mock?challenge=${challengeId}&role=${role}`);
+            // Show the battle intro animation before navigating
+            const challenger = {
+              displayName: challengeData?.challengerName || 'Challenger',
+              photoURL: challengeData?.challengerPhoto || null,
+              level: challengeData?.challengerLevel || 1,
+            };
+            const opponent = {
+              displayName: challengeData?.opponentName || 'Opponent',
+              photoURL: challengeData?.opponentPhoto || null,
+              level: challengeData?.opponentLevel || 1,
+            };
+            const challengeType = challengeData?.type || 'interview';
+            const navTarget = challengeType === 'quiz'
+              ? `/campus/quiz-battle?challenge=${challengeId}&role=${role}`
+              : `/interview/mock?challenge=${challengeId}&role=${role}`;
+            setChallengeIntro({ challenger, opponent, type: challengeType, navigateTo: navTarget });
           }} />
         </div>
       )}
 
       {/* Notification Toasts */}
-      <NotificationToast onJoinChallenge={(challengeId, role) => {
-        navigate(`/interview/mock?challenge=${challengeId}&role=${role}`);
+      <NotificationToast onJoinChallenge={(challengeId, role, challengeData) => {
+        const challenger = {
+          displayName: challengeData?.challengerName || 'Challenger',
+          photoURL: challengeData?.challengerPhoto || null,
+          level: challengeData?.challengerLevel || 1,
+        };
+        const opponent = {
+          displayName: challengeData?.opponentName || 'Opponent',
+          photoURL: challengeData?.opponentPhoto || null,
+          level: challengeData?.opponentLevel || 1,
+        };
+        const challengeType = challengeData?.type || 'interview';
+        const navTarget = challengeType === 'quiz'
+          ? `/campus/quiz-battle?challenge=${challengeId}&role=${role}`
+          : `/interview/mock?challenge=${challengeId}&role=${role}`;
+        setChallengeIntro({ challenger, opponent, type: challengeType, navigateTo: navTarget });
       }} />
+
+      {/* Challenge Intro Animation */}
+      {challengeIntro && (
+        <ChallengeIntro
+          challenger={challengeIntro.challenger}
+          opponent={challengeIntro.opponent}
+          challengeType={challengeIntro.type}
+          onComplete={() => {
+            const navTarget = challengeIntro.navigateTo;
+            setChallengeIntro(null);
+            navigate(navTarget);
+          }}
+        />
+      )}
 
       {/* NPC Interaction Prompt */}
       {!interactionPrompt && nearbyNPC && !npcDialogue && (

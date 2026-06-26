@@ -61,6 +61,7 @@ const Profile = lazyWithRetry(() => import('./pages/Profile'), 'profile');
 const RoleModels = lazyWithRetry(() => import('./pages/RoleModels'), 'role-models');
 const Simulation = lazyWithRetry(() => import('./pages/Simulation'), 'simulation');
 const CareerPath = lazyWithRetry(() => import('./pages/CareerPath'), 'career-path');
+const QuizBattle = lazyWithRetry(() => import('./pages/QuizBattle'), 'quiz-battle');
 
 // Wrapper that adds a floating "Back to Campus" button to feature pages
 function WithCampusReturn({ children }) {
@@ -183,6 +184,7 @@ function AppContent() {
                   <Route path="/interview/technical" element={<WithCampusReturn><TechnicalAssessment /></WithCampusReturn>} />
                   <Route path="/leaderboard" element={<WithCampusReturn><Leaderboard /></WithCampusReturn>} />
                   <Route path="/role-models" element={<WithCampusReturn><RoleModels /></WithCampusReturn>} />
+                  <Route path="/campus/quiz-battle" element={<WithCampusReturn><QuizBattle /></WithCampusReturn>} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </Suspense>

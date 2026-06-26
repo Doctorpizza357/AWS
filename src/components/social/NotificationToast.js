@@ -71,14 +71,14 @@ function NotificationToast({ onJoinChallenge }) {
       // Show a toast and auto-navigate
       addToast({
         id: `accepted-${ch.id}`,
-        type: 'challenge',
+        type: 'challenge-accepted',
         title: 'Challenge Accepted',
         message: `${ch.opponentName} accepted your challenge! Joining...`,
         data: ch,
       });
       // Auto-navigate after a brief delay so the user sees the toast
       setTimeout(() => {
-        onJoinChallenge(ch.id, 'challenger');
+        onJoinChallenge(ch.id, 'challenger', ch);
       }, 1000);
     });
   }, [activeChallenges, authUser?.uid, onJoinChallenge]);
@@ -107,7 +107,7 @@ function NotificationToast({ onJoinChallenge }) {
       await acceptChallenge(toast.data.id);
       dismissToast(toast.id);
       if (onJoinChallenge) {
-        onJoinChallenge(toast.data.id, 'opponent');
+        onJoinChallenge(toast.data.id, 'opponent', toast.data);
       }
     } catch (e) {}
   }, [dismissToast, onJoinChallenge]);

@@ -1,6 +1,7 @@
 /**
  * ChallengePanel
  * UI for sending/receiving interview challenges and displaying active challenges.
+ * Now supports both Quiz and Interview challenge types.
  * Integrates into the CampusPlayers social panel or can be used standalone.
  */
 import React, { useState, useEffect, useRef } from 'react';
@@ -16,6 +17,8 @@ import {
   subscribeToSentChallenges,
 } from '../../services/challengeService';
 import { generateInterviewQuestions } from '../../services/interviewService';
+import { TRIVIA_QUESTIONS } from '../game/KnowledgeOrbs';
+import ChallengeTypeModal from './ChallengeTypeModal';
 import './ChallengePanel.css';
 
 function ChallengePanel({ onJoinChallenge }) {
@@ -28,6 +31,7 @@ function ChallengePanel({ onJoinChallenge }) {
   const [sending, setSending] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [challengeTarget, setChallengeTarget] = useState(null); // friend to show type modal for
 
   const pendingSubRef = useRef(null);
   const activeSubRef = useRef(null);
@@ -49,31 +53,52 @@ function ChallengePanel({ onJoinChallenge }) {
 
   const clearMessages = () => setTimeout(() => { setError(''); setSuccess(''); }, 4000);
 
-  const handleChallenge = async (friend) => {
-    if (!authUser?.uid) return;
+  // Open the challenge type modal for a friend
+  const handleChallenge = (friend) => {
+    setChallengeTarget(friend);
+  };
+
+  // Send the challenge with the selected type
+  const handleSendChallenge = async (type) => {
+    const friend = challengeTarget;
+    if (!authUser?.uid || !friend) return;
+    setChallengeTarget(null);
     setSending(friend.uid);
     setError('');
 
     try {
-      // Generate just 1 question for challenge mode
-      const allQuestions = await generateInterviewQuestions(
-        'General STEM technical interview',
-        'technical',
-        'mid'
-      );
+      let questions = [];
 
-      const questions = allQuestions?.length > 0 ? [allQuestions[0]] : [];
+      if (type === 'quiz') {
+        // Pick 5 random trivia questions for quiz battle
+        const shuffled = [...TRIVIA_QUESTIONS].sort(() => Math.random() - 0.5);
+        questions = shuffled.slice(0, 5).map(q => ({
+          id: q.id,
+          question: q.question,
+          options: q.options,
+          correct: q.correct,
+          xp: q.xp,
+        }));
+      } else {
+        // Generate 1 interview question for interview duel
+        const allQuestions = await generateInterviewQuestions(
+          'General STEM technical interview',
+          'technical',
+          'mid'
+        );
+        questions = allQuestions?.length > 0 ? [allQuestions[0]] : [];
+      }
 
       await createChallenge(
         authUser.uid,
         friend.uid,
         authUser.displayName || 'Anonymous',
         friend.displayName || 'Anonymous',
-        'technical',
+        type,
         questions
       );
 
-      setSuccess(`Challenge sent to ${friend.displayName}!`);
+      setSuccess(`${type === 'quiz' ? 'Quiz' : 'Interview'} challenge sent to ${friend.displayName}!`);
       clearMessages();
     } catch (err) {
       setError(err.message || 'Failed to send challenge');
@@ -89,7 +114,7 @@ function ChallengePanel({ onJoinChallenge }) {
       clearMessages();
       if (onJoinChallenge) {
         const role = challenge.opponent === authUser?.uid ? 'opponent' : 'challenger';
-        onJoinChallenge(challenge.id, role);
+        onJoinChallenge(challenge.id, role, challenge);
       }
     } catch (err) {
       setError(err.message || 'Failed to accept');
@@ -120,7 +145,7 @@ function ChallengePanel({ onJoinChallenge }) {
   const handleJoinActive = (challenge) => {
     if (!onJoinChallenge || !authUser?.uid) return;
     const role = challenge.challenger === authUser.uid ? 'challenger' : 'opponent';
-    onJoinChallenge(challenge.id, role);
+    onJoinChallenge(challenge.id, role, challenge);
   };
 
   if (!authUser) return null;
@@ -159,7 +184,7 @@ function ChallengePanel({ onJoinChallenge }) {
             <div key={ch.id} className="ch-pending-card">
               <div className="ch-pending-info">
                 <span className="ch-pending-name">{ch.challengerName}</span>
-                <span className="ch-pending-type">{ch.type} interview</span>
+                <span className="ch-pending-type">{ch.type === 'quiz' ? '⚡ Quiz Battle' : '🎤 Interview Duel'}</span>
               </div>
               <div className="ch-pending-actions">
                 <button className="ch-accept-btn" onClick={() => handleAccept(ch)}>Accept</button>
@@ -211,6 +236,15 @@ function ChallengePanel({ onJoinChallenge }) {
           </div>
         )}
       </div>
+
+      {/* Challenge Type Selection Modal */}
+      {challengeTarget && (
+        <ChallengeTypeModal
+          friend={challengeTarget}
+          onSelect={handleSendChallenge}
+          onClose={() => setChallengeTarget(null)}
+        />
+      )}
     </div>
   );
 }
